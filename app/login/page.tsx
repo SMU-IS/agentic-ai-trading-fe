@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import type React from 'react';
+import type React from "react";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/lib/auth-context';
-import { Eye, EyeOff } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/lib/auth-context";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(true);
-  const [email, setEmail] = useState('');
-  const [fullname, setFullname] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [fullname, setFullname] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const { signIn, signInWithTwitter } = useAuth();
@@ -26,35 +26,31 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL ?? "http://localhost:8000";
 
       if (isSignUp) {
         if (password !== confirmPassword) {
-          throw new Error('Passwords do not match');
+          throw new Error("Passwords do not match");
         }
 
         // Step 1: Register with your backend API
-        const registerRes = await fetch(
-          `${baseUrl}/api/v1/user/auth/register`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: email,
-              full_name: fullname,
-              password: password,
-            }),
-          }
-        );
+        const registerRes = await fetch(`${baseUrl}/api/v1/user/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            full_name: fullname,
+            password: password,
+          }),
+        });
 
         if (!registerRes.ok) {
           const errorText = await registerRes.text();
-          throw new Error(errorText || 'Failed to register');
+          throw new Error(errorText || "Failed to register");
         }
 
         // Step 2: After successful registration, use context signIn to authenticate
@@ -67,22 +63,22 @@ export default function LoginPage() {
       }
 
       // Navigate only after context state is fully updated
-      router.push('/portfolio');
+      router.push("/portfolio");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleTwitterSignIn = async () => {
-    setError('');
+    setError("");
     setIsLoading(true);
     try {
       await signInWithTwitter();
-      router.push('/portfolio');
+      router.push("/portfolio");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -98,21 +94,17 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-          <span className="text-foreground text-2xl font-semibold">
-            Agent M
-          </span>
+          <span className="text-foreground text-2xl font-semibold">Agent M</span>
         </Link>
 
         {/* Auth Card */}
         <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
           <div className="text-center mb-8">
             <h1 className="text-foreground text-2xl font-semibold mb-2">
-              {isSignUp ? 'Create your account' : 'Welcome back'}
+              {isSignUp ? "Create your account" : "Welcome back"}
             </h1>
             <p className="text-muted-foreground text-sm">
-              {isSignUp
-                ? 'Start managing your portfolio with AI-powered insights'
-                : 'Sign in to access your portfolio'}
+              {isSignUp ? "Start managing your portfolio with AI-powered insights" : "Sign in to access your portfolio"}
             </p>
           </div>
 
@@ -124,11 +116,7 @@ export default function LoginPage() {
             onClick={handleTwitterSignIn}
             disabled={isLoading}
           >
-            <svg
-              className="w-5 h-5 mr-2"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
+            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
             Continue with X
@@ -182,7 +170,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -194,11 +182,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
@@ -209,7 +193,7 @@ export default function LoginPage() {
                 </Label>
                 <Input
                   id="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Confirm your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -218,33 +202,27 @@ export default function LoginPage() {
                 />
               </div>
             )}
-            {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
             <Button
               type="submit"
               className="w-full py-5 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/90 font-medium"
               disabled={isLoading}
             >
-              {isLoading
-                ? 'Loading...'
-                : isSignUp
-                ? 'Create Account'
-                : 'Sign In'}
+              {isLoading ? "Loading..." : isSignUp ? "Create Account" : "Sign In"}
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             <button
               type="button"
               onClick={() => {
                 setIsSignUp(!isSignUp);
-                setError('');
+                setError("");
               }}
               className="text-primary hover:underline font-medium"
             >
-              {isSignUp ? 'Sign in' : 'Sign up'}
+              {isSignUp ? "Sign in" : "Sign up"}
             </button>
           </p>
         </div>
