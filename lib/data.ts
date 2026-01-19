@@ -237,3 +237,30 @@ export const mockPredictions = [
     relatedSymbols: ['AMZN'],
   },
 ];
+
+// Mock data
+export const mockTransactions = [
+  {
+    id: '1',
+    symbol: 'AAPL',
+    name: 'Apple Inc.',
+    type: 'buy' as const,
+    datetime: '2024-01-15T10:30:00',
+    price: 178.50,
+    shares: 10,
+    totalValue: 1785.00,
+    reason: 'Strong earnings report exceeded expectations',
+  },
+  {
+    id: '2',
+    symbol: 'TSLA',
+    name: 'Tesla Inc.',
+    type: 'sell' as const,
+    datetime: '2024-01-14T15:45:00',
+    price: 248.30,
+    shares: 5,
+    totalValue: 1241.50,
+    reason: 'Taking profit after 15% gain',
+  },
+  // ... more transactions
+];

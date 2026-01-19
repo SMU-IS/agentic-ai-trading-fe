@@ -10,7 +10,7 @@ interface PredictionCardProps {
 
 export default function PredictionCard({ prediction }: PredictionCardProps) {
   return (
-    <Card className="bg-card mb-2 border-border hover:border-muted-foreground/50 transition-colors">
+    <Card className="bg-card mb-4 m-3 border-border hover:border-muted-foreground/50 transition-colors">
       <CardContent className="p-5">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">

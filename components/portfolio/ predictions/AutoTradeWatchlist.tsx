@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -60,6 +60,14 @@ const mockStockData: Record<
 
 export default function AutoTradeCard() {
   const [autoTradeSearch, setAutoTradeSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<StockSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const FINNHUB_API_KEY = 'd5jrbu1r01qjaedrbp5gd5jrbu1r01qjaedrbp60';
+  console.log(FINNHUB_API_KEY);
   const [autoTradeStocks, setAutoTradeStocks] = useState<AutoTradeStock[]>([
     {
       symbol: 'AAPL',
@@ -94,6 +102,132 @@ export default function AutoTradeCard() {
       enabled: true,
     },
   ]);
+
+  // NEW: Debounced search function with Finnhub API
+  const searchStocks = async (query: string) => {
+    if (query.length < 1) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    setIsSearching(true);
+
+    try {
+      // Search for symbols
+      const searchResponse = await fetch(
+        `https://finnhub.io/api/v1/search?q=${encodeURIComponent(
+          query,
+        )}&token=${FINNHUB_API_KEY}`,
+      );
+      const searchData = await searchResponse.json();
+
+      if (!searchData.result || searchData.result.length === 0) {
+        setSearchResults([]);
+        setShowDropdown(false);
+        setIsSearching(false);
+        return;
+      }
+
+      // Get quotes for top 5 results
+      const topResults = searchData.result.slice(0, 5);
+      const resultsWithPrices = await Promise.all(
+        topResults.map(async (stock: FinnhubSearchResult) => {
+          try {
+            const quoteResponse = await fetch(
+              `https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${FINNHUB_API_KEY}`,
+            );
+            const quoteData: FinnhubQuote = await quoteResponse.json();
+
+            return {
+              symbol: stock.symbol,
+              name: stock.description,
+              type: stock.type,
+              price: quoteData.c || null,
+              change: quoteData.d || null,
+              changePercent: quoteData.dp || null,
+            };
+          } catch (error) {
+            return {
+              symbol: stock.symbol,
+              name: stock.description,
+              type: stock.type,
+              price: null,
+              change: null,
+              changePercent: null,
+            };
+          }
+        }),
+      );
+
+      setSearchResults(resultsWithPrices);
+      setShowDropdown(true);
+    } catch (error) {
+      console.error('Error searching stocks:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // NEW: Handle search input change with debouncing
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setAutoTradeSearch(value);
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for debounced search
+    searchTimeoutRef.current = setTimeout(() => {
+      searchStocks(value);
+    }, 300);
+  };
+
+  // NEW: Handle clicking outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // NEW: Select stock from dropdown
+  const selectStock = (stock: StockSearchResult) => {
+    const upperSymbol = stock.symbol.toUpperCase().trim();
+
+    // Prevent duplicates
+    if (autoTradeStocks.some((s) => s.symbol === upperSymbol)) {
+      setAutoTradeSearch('');
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    setAutoTradeStocks([
+      ...autoTradeStocks,
+      {
+        symbol: upperSymbol,
+        name: stock.name,
+        currentPrice: stock.price || 0,
+        change: stock.change || 0,
+        changePercent: stock.changePercent || 0,
+        enabled: true,
+      },
+    ]);
+    setAutoTradeSearch('');
+    setSearchResults([]);
+    setShowDropdown(false);
+  };
 
   const addToAutoTrade = (symbol: string) => {
     const upperSymbol = symbol.toUpperCase().trim();
@@ -134,14 +268,14 @@ export default function AutoTradeCard() {
   const toggleAutoTradeEnabled = (symbol: string) => {
     setAutoTradeStocks(
       autoTradeStocks.map((s) =>
-        s.symbol === symbol ? { ...s, enabled: !s.enabled } : s
-      )
+        s.symbol === symbol ? { ...s, enabled: !s.enabled } : s,
+      ),
     );
   };
 
   return (
-    <Card className="bg-card border-border h-fit lg:row-span-2">
-      <CardHeader className="pb-3">
+    <Card className="bg-dark border-border h-full lg:row-span-2 flex flex-col">
+      <CardHeader className="pb-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-foreground text-lg font-semibold flex items-center gap-2">
             <Zap className="w-5 h-5 text-yellow-500" />
@@ -155,30 +289,97 @@ export default function AutoTradeCard() {
           Stocks enabled for automatic trading based on predictions
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        {/* Search to add stocks */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <CardContent className="flex flex-col flex-1 overflow-hidden">
+        {/* Search to add stocks - WITH AUTOCOMPLETE */}
+        <div className="relative mb-4 flex-shrink-0" ref={dropdownRef}>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
           <input
             type="text"
-            placeholder="Add stock symbol..."
+            placeholder="Search stocks (e.g., TS for Tesla)..."
             value={autoTradeSearch}
-            onChange={(e) => setAutoTradeSearch(e.target.value)}
+            onChange={handleSearchChange}
             onKeyDown={(e) => {
               if (e.key === 'Enter') addToAutoTrade(autoTradeSearch);
+              if (e.key === 'Escape') setShowDropdown(false);
             }}
-            className="w-full bg-muted/30 border border-border rounded-lg py-2 pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+            onFocus={() => {
+              if (searchResults.length > 0) setShowDropdown(true);
+            }}
+            className="w-full bg-muted/30 border border-border rounded-lg py-2 pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary relative z-0"
           />
-          <button
-            onClick={() => addToAutoTrade(autoTradeSearch)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
+
+          {/* Loading spinner */}
+          {isSearching && (
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
+              <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            </div>
+          )}
+
+          {/* Add button (only show when not searching) */}
+          {autoTradeSearch && !isSearching && (
+            <button
+              onClick={() => addToAutoTrade(autoTradeSearch)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors z-10"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Autocomplete Dropdown */}
+          {showDropdown && searchResults.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 z-10 text-black bg-black border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+              {searchResults.map((stock, index) => (
+                <button
+                  key={`${stock.symbol}-${index}`}
+                  onClick={() => selectStock(stock)}
+                  className="w-full px-4 py-3 hover:bg-muted/50 transition-colors text-left border-b border-border last:border-b-0 flex items-center justify-between"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-foreground">
+                        {stock.symbol}
+                      </span>
+                      <span className="text-xs text-muted-foreground px-1.5 py-0.5 bg-muted/50 rounded">
+                        {stock.type}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {stock.name}
+                    </div>
+                  </div>
+
+                  {stock.price !== null && stock.price > 0 && (
+                    <div className="text-right ml-4 flex-shrink-0">
+                      <div className="font-semibold text-foreground">
+                        ${stock.price.toFixed(2)}
+                      </div>
+                      {stock.changePercent !== null && (
+                        <div
+                          className={`text-xs flex items-center justify-end gap-0.5 ${
+                            stock.changePercent >= 0
+                              ? 'text-primary'
+                              : 'text-red-400'
+                          }`}
+                        >
+                          {stock.changePercent >= 0 ? (
+                            <TrendingUp className="w-3 h-3" />
+                          ) : (
+                            <TrendingDown className="w-3 h-3" />
+                          )}
+                          {stock.changePercent >= 0 ? '+' : ''}
+                          {stock.changePercent.toFixed(2)}%
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Stock list */}
-        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+        {/* Stock list - This takes up remaining space and scrolls */}
+        <div className="flex-1 space-y-2 overflow-y-auto min-h-0">
           {autoTradeStocks.map((stock) => (
             <div
               key={stock.symbol}
@@ -252,12 +453,12 @@ export default function AutoTradeCard() {
           )}
         </div>
 
-        {/* Summary footer */}
+        {/* Summary footer - Sticks to bottom */}
         {autoTradeStocks.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-border">
+          <div className="mt-4 pt-4 flex-shrink-0">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Active trades</span>
-              <span className="text-foreground font-medium">
+              <span className="text-foreground font-medium ">
                 {autoTradeStocks.filter((s) => s.enabled).length} of{' '}
                 {autoTradeStocks.length}
               </span>

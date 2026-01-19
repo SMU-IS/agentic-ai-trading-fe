@@ -13,6 +13,7 @@ export default function PortfolioTab() {
     null
   );
 
+
   // Calculate summary stats here to pass down
   const totalValue = mockPortfolioWithHistory.reduce(
     (sum, s) => sum + s.shares * s.currentPrice,

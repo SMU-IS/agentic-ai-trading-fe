@@ -6,7 +6,8 @@ import { mockPredictions } from '@/lib/data';
 import PredictionCard from './PredictionCard';
 import MarketFilters from './MarketFilters';
 import AutoTradeCard from './AutoTradeWatchlist'; // <--- Import this
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileText, Zap } from 'lucide-react';
 import ChatComponent from '../chat/chatbot';
 
 export default function PredictionsTab() {
@@ -47,7 +48,7 @@ export default function PredictionsTab() {
   return (
     <div className="flex flex-col h-[calc(100vh-180px)]">
       {/* Header & Filters */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h1 className="text-foreground text-2xl font-semibold mb-4">
           Prediction Markets
         </h1>
@@ -60,12 +61,32 @@ export default function PredictionsTab() {
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
         />
-      </div>
+      </div> */}
 
       {/* Content Grid */}
       <div className="h-[calc(100vh-140px)] grid grid-cols-1 lg:grid-cols-[320px_1fr_320px] gap-4">
         {/* Left */}
-        <Card className="bg-card border-none flex flex-col overflow-y-auto">
+        <Card className="bg-card border-border flex flex-col overflow-y-auto">
+          <CardHeader className="pb-3 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-foreground text-lg font-semibold">
+                News Watcher
+              </CardTitle>
+              <FileText className="w-5 h-5 text-muted-foreground" />
+            </div>
+          </CardHeader>
+
+          {/* Deep research prompt */}
+          <div className="flex items-start gap-2 p-3 mb-3 m-3 rounded-lg bg-muted/30 border border-border">
+            <Zap className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              <span className="text-primary font-medium">
+                Add a stock into your watchlist
+              </span>{' '}
+              to track for upcoming news and alerts!
+            </p>
+          </div>
+
           {filteredPredictions.map((pred) => (
             <PredictionCard key={pred.id} prediction={pred} />
           ))}
@@ -87,24 +108,6 @@ export default function PredictionsTab() {
             </p>
           </div>
         )}
-      </div>
-
-      {/* Chat Input Area */}
-      <div className="border-t border-border pt-4">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Ask anything about prediction markets"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            className="w-full bg-muted/30 border border-border rounded-lg py-4 pl-4 pr-14 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-          />
-          <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
-        {/* Spacer */}
-        <div className="h-10" />
       </div>
     </div>
   );
