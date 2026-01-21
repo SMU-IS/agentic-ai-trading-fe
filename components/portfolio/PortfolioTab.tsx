@@ -8,6 +8,7 @@ import StockHistoryModal from './StockHistoryModal';
 import { StockWithHistory } from '@/lib/types';
 
 type AccountResponse = {
+  cash: string;
   portfolio_value: string;
 };
 
@@ -27,6 +28,7 @@ export default function PortfolioTab() {
   const [selectedStock, setSelectedStock] = useState<StockWithHistory | null>(
     null,
   );
+  const [cashValue, setCashValue] = useState<number>(0);
   const [totalValue, setTotalValue] = useState<number>(0);
   const [totalCost, setTotalCost] = useState<number>(0);
   const [totalGain, setTotalGain] = useState<number>(0);
@@ -43,6 +45,7 @@ export default function PortfolioTab() {
         if (!accountRes.ok) throw new Error('Failed to fetch account');
         const account: AccountResponse = await accountRes.json();
         setTotalValue(Number(account.portfolio_value));
+        setCashValue(Number(account.cash));
 
         // 2) Positions (for gain/loss and today change)
         const posRes = await fetch(
@@ -81,6 +84,7 @@ export default function PortfolioTab() {
           Your Portfolio
         </h1>
         <SummaryCards
+          cash={cashValue}
           totalValue={totalValue}
           totalGain={totalGain}
           totalCost={totalCost}

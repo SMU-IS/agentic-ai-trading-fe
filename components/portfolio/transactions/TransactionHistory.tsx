@@ -51,7 +51,6 @@ export default function TransactionsModal({
             Loading transactions...
           </div>
         )}
-
         <div className="flex-1 overflow-auto">
           <table className="w-full">
             <thead className="sticky top-0 bg-card">

@@ -20,89 +20,6 @@ export interface StockWithHistory extends Stock {
   purchaseHistory: PurchaseHistory[];
 }
 
-export const mockPortfolioWithHistory: StockWithHistory[] = [
-  {
-    symbol: 'AAPL',
-    name: 'Apple Inc.',
-    shares: 50,
-    avgPrice: 145.0,
-    currentPrice: 178.72,
-    change: 2.34,
-    changePercent: 1.32,
-    purchaseHistory: [
-      { date: '2023-01-15', shares: 20, pricePerShare: 135.5 },
-      { date: '2023-06-22', shares: 15, pricePerShare: 148.0 },
-      { date: '2024-02-10', shares: 15, pricePerShare: 155.25 },
-    ],
-  },
-  {
-    symbol: 'GOOGL',
-    name: 'Alphabet Inc.',
-    shares: 20,
-    avgPrice: 120.0,
-    currentPrice: 141.8,
-    change: -1.2,
-    changePercent: -0.84,
-    purchaseHistory: [
-      { date: '2023-03-08', shares: 10, pricePerShare: 105.0 },
-      { date: '2023-11-20', shares: 10, pricePerShare: 135.0 },
-    ],
-  },
-  {
-    symbol: 'MSFT',
-    name: 'Microsoft Corp.',
-    shares: 35,
-    avgPrice: 280.0,
-    currentPrice: 378.91,
-    change: 4.56,
-    changePercent: 1.22,
-    purchaseHistory: [
-      { date: '2022-12-05', shares: 20, pricePerShare: 250.0 },
-      { date: '2023-08-14', shares: 15, pricePerShare: 320.0 },
-    ],
-  },
-  {
-    symbol: 'NVDA',
-    name: 'NVIDIA Corp.',
-    shares: 15,
-    avgPrice: 450.0,
-    currentPrice: 721.28,
-    change: 12.45,
-    changePercent: 1.76,
-    purchaseHistory: [
-      { date: '2023-04-18', shares: 5, pricePerShare: 280.0 },
-      { date: '2023-09-30', shares: 5, pricePerShare: 450.0 },
-      { date: '2024-01-05', shares: 5, pricePerShare: 620.0 },
-    ],
-  },
-  {
-    symbol: 'TSLA',
-    name: 'Tesla Inc.',
-    shares: 25,
-    avgPrice: 200.0,
-    currentPrice: 248.5,
-    change: -3.8,
-    changePercent: -1.5,
-    purchaseHistory: [
-      { date: '2023-02-28', shares: 15, pricePerShare: 185.0 },
-      { date: '2023-07-12', shares: 10, pricePerShare: 222.5 },
-    ],
-  },
-  {
-    symbol: 'AMZN',
-    name: 'Amazon.com Inc.',
-    shares: 40,
-    avgPrice: 130.0,
-    currentPrice: 178.25,
-    change: 1.89,
-    changePercent: 1.07,
-    purchaseHistory: [
-      { date: '2023-05-03', shares: 25, pricePerShare: 115.0 },
-      { date: '2024-03-15', shares: 15, pricePerShare: 155.0 },
-    ],
-  },
-];
-
 export const generatePerformanceData = () => {
   const data = [];
   const startDate = new Date('2025-05-01');
@@ -246,9 +163,9 @@ export const mockTransactions = [
     name: 'Apple Inc.',
     type: 'buy' as const,
     datetime: '2024-01-15T10:30:00',
-    price: 178.50,
+    price: 178.5,
     shares: 10,
-    totalValue: 1785.00,
+    totalValue: 1785.0,
     reason: 'Strong earnings report exceeded expectations',
   },
   {
@@ -257,9 +174,9 @@ export const mockTransactions = [
     name: 'Tesla Inc.',
     type: 'sell' as const,
     datetime: '2024-01-14T15:45:00',
-    price: 248.30,
+    price: 248.3,
     shares: 5,
-    totalValue: 1241.50,
+    totalValue: 1241.5,
     reason: 'Taking profit after 15% gain',
   },
   // ... more transactions

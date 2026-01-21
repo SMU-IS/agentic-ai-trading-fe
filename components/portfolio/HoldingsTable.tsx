@@ -7,28 +7,23 @@ import { Plus, TrendingUp, TrendingDown, History } from 'lucide-react';
 import { StockWithHistory, Transaction } from '@/lib/types';
 import TransactionsModal from './transactions/TransactionHistory';
 
-interface HoldingsTableProps {
-  stocks: StockWithHistory[];
-  onSelectStock: (stock: StockWithHistory) => void;
-}
-
 const BASE_URL = 'http://localhost:8000/api/v1';
 
-export default function HoldingsTable({
-  stocks,
-  onSelectStock,
-}: HoldingsTableProps) {
+interface HoldingsTableProps {
+  onSelectStock: (stock: StockWithHistory | null) => void;
+}
+
+export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [txLoading, setTxLoading] = useState(false);
   const [txError, setTxError] = useState('');
 
-  // positions from /trading/positions
   const [positions, setPositions] = useState<StockWithHistory[]>([]);
   const [positionsLoading, setPositionsLoading] = useState(false);
   const [positionsError, setPositionsError] = useState('');
 
-  // Fetch positions (holdings) on mount
+  // Fetch positions for holdings
   useEffect(() => {
     const fetchPositions = async () => {
       try {
@@ -37,9 +32,7 @@ export default function HoldingsTable({
 
         const res = await fetch(`${BASE_URL}/trading/positions`, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
 
         if (!res.ok) {
@@ -66,14 +59,14 @@ export default function HoldingsTable({
 
           return {
             symbol: p.symbol,
-            name: p.symbol, // no name field, reuse symbol
-            shares: qty, // keep sign; we'll split longs/shorts later
+            name: p.symbol,
+            shares: qty,
             avgPrice,
             currentPrice,
             change,
-            changePercent: changePercent * 100, // fraction -> %
+            changePercent: changePercent * 100,
             totalPL,
-            purchaseHistory: [],
+            purchaseHistory: [], // will be filled on click from orders API
           };
         });
 
@@ -88,11 +81,8 @@ export default function HoldingsTable({
     fetchPositions();
   }, []);
 
-  // Split into long and short positions
   const longPositions = positions.filter((p) => p.shares >= 0);
   const shortPositions = positions.filter((p) => p.shares < 0);
-
-  // Fetch transactions (unchanged)
   useEffect(() => {
     if (!showTransactionsModal) return;
 
@@ -103,9 +93,7 @@ export default function HoldingsTable({
 
         const res = await fetch(`${BASE_URL}/trading/orders/all`, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
 
         if (!res.ok) {
@@ -113,30 +101,80 @@ export default function HoldingsTable({
           throw new Error(text || 'Failed to fetch orders');
         }
 
-        const data: any[] = await res.json();
+        const orders: any[] = await res.json();
 
-        const mapped: Transaction[] = data.map((o) => {
-          const datetime = o.filled_at || o.submitted_at || o.created_at;
-          const rawPrice = o.filled_avg_price ?? null;
-          const price = rawPrice ? Number(rawPrice) : 0;
-          const qty = Number(o.qty ?? '0');
-          const filledQty = Number(o.filled_qty);
+        type TxRow = {
+          id: string;
+          symbol: string;
+          name: string;
+          type: 'buy' | 'sell';
+          datetime: string;
+          price: number;
+          shares: number;
+          filledQty: number;
+          totalValue: number;
+          reason: string;
+        };
 
-          return {
-            id: o.id,
-            symbol: o.symbol,
-            name: o.symbol,
-            type: o.side as 'buy' | 'sell',
-            datetime,
-            price,
-            shares: qty,
-            filledQty,
-            totalValue: price * qty,
-            reason: `${o.order_type} ${o.order_class} (${o.status})`,
-          };
-        });
+        const allTx: TxRow[] = [];
 
-        setTransactions(mapped);
+        for (const o of orders) {
+          const baseDatetime = o.filled_at || o.submitted_at || o.created_at;
+
+          // parent filled execution (if any)
+          if (o.status === 'filled' && Number(o.filled_qty) !== 0) {
+            const price = Number(o.filled_avg_price ?? 0);
+            const qty = Number(o.qty ?? 0);
+            const filledQty = Number(o.filled_qty ?? 0);
+            const side = o.side as 'buy' | 'sell';
+
+            allTx.push({
+              id: o.id,
+              symbol: o.symbol,
+              name: o.symbol,
+              type: side,
+              datetime: baseDatetime,
+              price,
+              shares: qty,
+              filledQty,
+              totalValue: price * filledQty,
+              reason: `${o.order_type} ${o.order_class} (${o.status})`,
+            });
+          }
+
+          // filled legs (for bracket orders)
+          if (Array.isArray(o.legs)) {
+            for (const leg of o.legs) {
+              if (
+                leg &&
+                leg.status === 'filled' &&
+                Number(leg.filled_qty) !== 0
+              ) {
+                const legDatetime =
+                  leg.filled_at || leg.submitted_at || leg.created_at;
+                const price = Number(leg.filled_avg_price ?? 0);
+                const qty = Number(leg.qty ?? 0);
+                const filledQty = Number(leg.filled_qty ?? 0);
+                const side = leg.side as 'buy' | 'sell';
+
+                allTx.push({
+                  id: leg.id,
+                  symbol: leg.symbol,
+                  name: leg.symbol,
+                  type: side,
+                  datetime: legDatetime,
+                  price,
+                  shares: qty,
+                  filledQty,
+                  totalValue: price * filledQty,
+                  reason: `${leg.order_type} ${leg.order_class} (${leg.status})`,
+                });
+              }
+            }
+          }
+        }
+
+        setTransactions(allTx);
       } catch (err) {
         setTxError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -147,28 +185,122 @@ export default function HoldingsTable({
     fetchTransactions();
   }, [showTransactionsModal]);
 
+  const handleRowClick = async (position: StockWithHistory) => {
+    try {
+      const res = await fetch(`${BASE_URL}/trading/orders/all`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to fetch orders');
+      }
+
+      const orders: any[] = await res.json();
+
+      // Helper: normalize symbol like "BTC/USD" -> "BTCUSD"
+      const normalizeSymbol = (s: string) => s.replace(/[^a-zA-Z]/g, '');
+
+      // Only orders for this symbol
+      const symbolOrders = orders.filter(
+        (o) => normalizeSymbol(o.symbol) === position.symbol,
+      );
+
+      // Collect all filled executions: parent + any legs
+      type FillRow = {
+        date: string;
+        datetime?: string;
+        shares: number;
+        pricePerShare: number;
+        side: 'buy' | 'sell';
+        sourceOrderId: string;
+      };
+
+      const fills: FillRow[] = [];
+
+      for (const o of symbolOrders) {
+        // parent fill
+        if (o.status === 'filled' && Number(o.filled_qty) !== 0) {
+          fills.push({
+            date: o.filled_at || o.submitted_at || o.created_at,
+            datetime: o.filled_at || o.submitted_at || o.created_at,
+            shares: Number(o.filled_qty),
+            pricePerShare: Number(o.filled_avg_price ?? 0),
+            side: o.side as 'buy' | 'sell',
+            sourceOrderId: o.id,
+          });
+        }
+
+        // leg fills (for bracket orders)
+        if (Array.isArray(o.legs)) {
+          for (const leg of o.legs) {
+            if (
+              leg &&
+              leg.status === 'filled' &&
+              Number(leg.filled_qty) !== 0 &&
+              normalizeSymbol(leg.symbol) === position.symbol
+            ) {
+              fills.push({
+                date: leg.filled_at || leg.submitted_at || leg.created_at,
+                datetime: leg.filled_at || leg.submitted_at || leg.created_at,
+                shares: Number(leg.filled_qty),
+                pricePerShare: Number(leg.filled_avg_price ?? 0),
+                side: leg.side as 'buy' | 'sell',
+                sourceOrderId: leg.id,
+              });
+            }
+          }
+        }
+      }
+
+      // Map fills into purchaseHistory, converting sell to negative shares
+      const purchaseHistory =
+        fills.map((f) => ({
+          date: f.date,
+          datetime: f.datetime,
+          shares: f.side === 'sell' ? -f.shares : f.shares,
+          pricePerShare: f.pricePerShare,
+        })) ?? [];
+
+      const totalShares = purchaseHistory.reduce((sum, p) => sum + p.shares, 0);
+      const totalCost = purchaseHistory.reduce(
+        (sum, p) => sum + p.shares * p.pricePerShare,
+        0,
+      );
+      const avgPrice =
+        totalShares !== 0 ? totalCost / totalShares : position.avgPrice;
+
+      const stockWithHistory: StockWithHistory = {
+        ...position,
+        shares: totalShares || position.shares,
+        avgPrice,
+        purchaseHistory,
+      };
+
+      onSelectStock(stockWithHistory);
+    } catch (err) {
+      console.error('Failed to load stock history', err);
+      onSelectStock(position);
+    }
+  };
+
   const renderTableBody = (rows: StockWithHistory[], isShort: boolean) => (
     <tbody>
       {rows.map((stock) => {
         const signedShares = stock.shares;
         const sharesAbs = Math.abs(signedShares);
-
-        // For both longs and shorts, treat "value" as absolute notional
         const value = sharesAbs * stock.currentPrice;
         const cost = sharesAbs * stock.avgPrice;
-
-        // For shorts, P&L is still value - cost if cost carries sign via qty.
-        // Since we use absolute for value/cost, compute P&L directly from API-like logic:
         const gain =
           (stock.currentPrice - stock.avgPrice) *
           (isShort ? -sharesAbs : sharesAbs);
-
         const gainPercent = cost === 0 ? 0 : (gain / cost) * 100;
 
         return (
           <tr
             key={stock.symbol}
-            onClick={() => onSelectStock(stock)}
+            onClick={() => handleRowClick(stock)}
             className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
           >
             <td className="px-6 py-4">
@@ -205,7 +337,6 @@ export default function HoldingsTable({
                 )}
                 <span>
                   {stock.totalPL >= 0 ? '+' : ''}${stock.totalPL.toFixed(2)}
-                  {/* {stock.changePercent.toFixed(2)}% */}
                 </span>
               </div>
             </td>
