@@ -152,11 +152,11 @@ export default function TransactionsModal({
                   <td className="px-4 py-3 text-right">
                     <span
                       className={
-                        transaction.price != 0
-                          ? 'text-teal-300'
-                          : transaction.type === 'buy' && transaction.price != 0
-                            ? 'text-red-600'
-                            : 'text-gray-400'
+                        transaction.filledQty != 0
+                          ? transaction.type === 'buy' && transaction.price >= 0
+                            ? 'text-teal-400'
+                            : 'text-red-400'
+                          : 'text-gray-300'
                       }
                     >
                       {transaction.type === 'buy' ? '-' : '+'}$
