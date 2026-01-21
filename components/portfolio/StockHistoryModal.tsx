@@ -51,7 +51,7 @@ export default function StockHistoryModal({
                     Shares
                   </th>
                   <th className="text-right text-muted-foreground text-sm font-medium px-4 py-3">
-                    Price
+                    Bought Price
                   </th>
                   <th className="text-right text-muted-foreground text-sm font-medium px-4 py-3">
                     Value
