@@ -1,33 +1,78 @@
 'use client';
 
-import { useState } from 'react';
-import { mockPortfolioWithHistory } from '@/lib/data'; // Import from shared file
-import { StockWithHistory } from '@/lib/types';
+import { useEffect, useState } from 'react';
 import SummaryCards from './SummaryCards';
 import PerformanceChart from './PerformanceChart';
 import HoldingsTable from './HoldingsTable';
 import StockHistoryModal from './StockHistoryModal';
+import { StockWithHistory } from '@/lib/types';
+
+type AccountResponse = {
+  portfolio_value: string;
+};
+
+type Position = {
+  symbol: string;
+  qty: string;
+  market_value: string;
+  cost_basis: string;
+  unrealized_pl: string;
+  unrealized_intraday_pl: string;
+  current_price: string;
+  change_today: string;
+  side: 'long' | 'short';
+};
 
 export default function PortfolioTab() {
   const [selectedStock, setSelectedStock] = useState<StockWithHistory | null>(
-    null
+    null,
   );
+  const [totalValue, setTotalValue] = useState<number>(0);
+  const [totalCost, setTotalCost] = useState<number>(0);
+  const [totalGain, setTotalGain] = useState<number>(0);
+  const [todayChange, setTodayChange] = useState<number>(0);
+  const [positions, setPositions] = useState<Position[]>([]);
 
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // 1) Account (Total Value)
+        const accountRes = await fetch(
+          'http://localhost:8000/api/v1/trading/account',
+        );
+        if (!accountRes.ok) throw new Error('Failed to fetch account');
+        const account: AccountResponse = await accountRes.json();
+        setTotalValue(Number(account.portfolio_value));
 
-  // Calculate summary stats here to pass down
-  const totalValue = mockPortfolioWithHistory.reduce(
-    (sum, s) => sum + s.shares * s.currentPrice,
-    0
-  );
-  const totalCost = mockPortfolioWithHistory.reduce(
-    (sum, s) => sum + s.shares * s.avgPrice,
-    0
-  );
-  const totalGain = totalValue - totalCost;
-  const todayChange = mockPortfolioWithHistory.reduce(
-    (sum, s) => sum + s.shares * s.change,
-    0
-  );
+        // 2) Positions (for gain/loss and today change)
+        const posRes = await fetch(
+          'http://localhost:8000/api/v1/trading/positions',
+        );
+        if (!posRes.ok) throw new Error('Failed to fetch positions');
+        const posData: Position[] = await posRes.json();
+        setPositions(posData);
+
+        // Aggregate numbers
+        let cost = 0;
+        let gain = 0;
+        let today = 0;
+
+        for (const p of posData) {
+          cost += Number(p.cost_basis); // total cost basis
+          gain += Number(p.unrealized_pl); // total unrealized P&L (all‑time gain/loss)
+          today += Number(p.unrealized_intraday_pl); // today's P&L
+        }
+
+        setTotalCost(cost);
+        setTotalGain(gain);
+        setTodayChange(today);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -49,7 +94,7 @@ export default function PortfolioTab() {
 
       <div>
         <HoldingsTable
-          stocks={mockPortfolioWithHistory}
+          stocks={positions as any}
           onSelectStock={setSelectedStock}
         />
       </div>

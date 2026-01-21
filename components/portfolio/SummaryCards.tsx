@@ -25,7 +25,7 @@ export default function SummaryCards({
         <CardHeader className="pb-2">
           <CardTitle className="text-muted-foreground text-sm font-medium flex items-center gap-2">
             <Wallet className="w-4 h-4" />
-            Total Value
+            Total Value (USD)
           </CardTitle>
         </CardHeader>
         <CardContent>
