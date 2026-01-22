@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import SummaryCards from './SummaryCards';
-import PerformanceChart from './PerformanceChart';
-import HoldingsTable from './HoldingsTable';
-import StockHistoryModal from './StockHistoryModal';
-import { StockWithHistory } from '@/lib/types';
+import { StockWithHistory } from "@/lib/types";
+import { useEffect, useState } from "react";
+import HoldingsTable from "./HoldingsTable";
+import PerformanceChart from "./PerformanceChart";
+import StockHistoryModal from "./StockHistoryModal";
+import SummaryCards from "./SummaryCards";
 
 type AccountResponse = {
   cash: string;
@@ -21,13 +21,11 @@ type Position = {
   unrealized_intraday_pl: string;
   current_price: string;
   change_today: string;
-  side: 'long' | 'short';
+  side: "long" | "short";
 };
 
 export default function PortfolioTab() {
-  const [selectedStock, setSelectedStock] = useState<StockWithHistory | null>(
-    null,
-  );
+  const [selectedStock, setSelectedStock] = useState<StockWithHistory | null>(null);
   const [cashValue, setCashValue] = useState<number>(0);
   const [totalValue, setTotalValue] = useState<number>(0);
   const [totalCost, setTotalCost] = useState<number>(0);
@@ -39,19 +37,15 @@ export default function PortfolioTab() {
     async function fetchData() {
       try {
         // 1) Account (Total Value)
-        const accountRes = await fetch(
-          'http://localhost:8000/api/v1/trading/account',
-        );
-        if (!accountRes.ok) throw new Error('Failed to fetch account');
+        const accountRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/account`);
+        if (!accountRes.ok) throw new Error("Failed to fetch account");
         const account: AccountResponse = await accountRes.json();
         setTotalValue(Number(account.portfolio_value));
         setCashValue(Number(account.cash));
 
         // 2) Positions (for gain/loss and today change)
-        const posRes = await fetch(
-          'http://localhost:8000/api/v1/trading/positions',
-        );
-        if (!posRes.ok) throw new Error('Failed to fetch positions');
+        const posRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`);
+        if (!posRes.ok) throw new Error("Failed to fetch positions");
         const posData: Position[] = await posRes.json();
         setPositions(posData);
 
@@ -80,9 +74,7 @@ export default function PortfolioTab() {
   return (
     <>
       <div className="mb-8">
-        <h1 className="text-foreground text-3xl font-semibold mb-6">
-          Your Portfolio
-        </h1>
+        <h1 className="text-foreground text-3xl font-semibold mb-6">Your Portfolio</h1>
         <SummaryCards
           cash={cashValue}
           totalValue={totalValue}
@@ -97,10 +89,7 @@ export default function PortfolioTab() {
       </div>
 
       <div>
-        <HoldingsTable
-          stocks={positions as any}
-          onSelectStock={setSelectedStock}
-        />
+        <HoldingsTable stocks={positions as any} onSelectStock={setSelectedStock} />
       </div>
 
       <StockHistoryModal
