@@ -101,7 +101,7 @@ export default function AskAI({ open, onOpenChange }: AskAIProps) {
       />
 
       {/* Bottom sheet container */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+      <div className="fixed bottom-2 left-0 right-0 z-50 pointer-events-none">
         <div className="mx-auto max-w-5xl px-4 pb-4 pointer-events-none">
           <div
             className={`

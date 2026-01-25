@@ -24,6 +24,9 @@ interface AutoTradeStock {
   change: number;
   changePercent: number;
   enabled: boolean;
+  qty: number;
+  side: 'long' | 'short';
+  unrealizedPL: number;
 }
 
 interface StockSearchResult {
@@ -47,36 +50,26 @@ interface FinnhubQuote {
   dp: number; // change %
 }
 
-const mockStockData: Record<
-  string,
-  { name: string; price: number; change: number; changePercent: number }
-> = {
-  AMZN: {
-    name: 'Amazon.com Inc.',
-    price: 178.25,
-    change: 1.89,
-    changePercent: 1.07,
-  },
-  MSFT: {
-    name: 'Microsoft Corp.',
-    price: 378.91,
-    change: 4.56,
-    changePercent: 1.22,
-  },
-  META: {
-    name: 'Meta Platforms',
-    price: 485.3,
-    change: 8.25,
-    changePercent: 1.73,
-  },
-  AMD: { name: 'AMD Inc.', price: 142.5, change: -2.3, changePercent: -1.59 },
-  INTC: {
-    name: 'Intel Corp.',
-    price: 31.25,
-    change: 0.45,
-    changePercent: 1.46,
-  },
-};
+interface PositionResponse {
+  asset_id: string;
+  symbol: string;
+  exchange: string;
+  asset_class: string;
+  asset_marginable: boolean;
+  avg_entry_price: string;
+  qty: string;
+  side: 'long' | 'short';
+  market_value: string;
+  cost_basis: string;
+  unrealized_pl: string;
+  unrealized_plpc: string;
+  unrealized_intraday_pl: string;
+  unrealized_intraday_plpc: string;
+  current_price: string;
+  lastday_price: string;
+  change_today: string;
+  qty_available: string;
+}
 
 export default function AutoTradeCard() {
   const [autoTradeSearch, setAutoTradeSearch] = useState('');
@@ -89,67 +82,64 @@ export default function AutoTradeCard() {
   const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY;
 
   const [autoTradeStocks, setAutoTradeStocks] = useState<AutoTradeStock[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // --- NEW: Load watchlist from backend (placeholder GET) ---
+  // Load positions from your API
   useEffect(() => {
-    const fetchWatchlist = async () => {
+    const fetchPositions = async () => {
       try {
-        const res = await fetch('/api/auto-trade/watchlist', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
+        setIsLoading(true);
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
 
         if (!res.ok) {
-          console.error('Failed to fetch watchlist');
-          // Fallback to local defaults
-          setAutoTradeStocks([
-            {
-              symbol: 'AAPL',
-              name: 'Apple Inc.',
-              currentPrice: 178.72,
-              change: 2.34,
-              changePercent: 1.32,
-              enabled: true,
-            },
-            {
-              symbol: 'NVDA',
-              name: 'NVIDIA Corp.',
-              currentPrice: 721.28,
-              change: 12.45,
-              changePercent: 1.76,
-              enabled: true,
-            },
-            {
-              symbol: 'TSLA',
-              name: 'Tesla Inc.',
-              currentPrice: 248.5,
-              change: -3.8,
-              changePercent: -1.5,
-              enabled: false,
-            },
-            {
-              symbol: 'GOOGL',
-              name: 'Alphabet Inc.',
-              currentPrice: 141.8,
-              change: -1.2,
-              changePercent: -0.84,
-              enabled: true,
-            },
-          ]);
-          return;
+          const text = await res.text();
+          throw new Error(text || 'Failed to fetch positions');
         }
 
-        const data: AutoTradeStock[] = await res.json();
-        setAutoTradeStocks(data);
-      } catch (e) {
-        console.error('Error loading watchlist', e);
+        const data: PositionResponse[] = await res.json();
+
+        // Map API response to AutoTradeStock format
+        const mapped: AutoTradeStock[] = data.map((position) => {
+          const qty = parseFloat(position.qty);
+          const currentPrice = parseFloat(position.current_price);
+          const lastDayPrice = parseFloat(position.lastday_price);
+          const changeToday = parseFloat(position.change_today);
+          const unrealizedPL = parseFloat(position.unrealized_pl);
+
+          return {
+            symbol: position.symbol,
+            name: `${position.symbol} ${position.asset_class === 'crypto' ? 'Crypto' : 'Equity'}`,
+            currentPrice: currentPrice,
+            change: currentPrice - lastDayPrice,
+            changePercent: changeToday * 100, // Convert to percentage
+            enabled: true, // Default to enabled, you can persist this separately
+            qty: Math.abs(qty), // Show absolute quantity
+            side: position.side,
+            unrealizedPL: unrealizedPL,
+          };
+        });
+
+        setAutoTradeStocks(mapped);
+      } catch (error) {
+        console.error('Error loading positions:', error);
+        // Fallback to empty array on error
+        setAutoTradeStocks([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchWatchlist();
+    fetchPositions();
   }, []);
 
-  // NEW: Debounced search function with Finnhub API
+  // Debounced search function with Finnhub API
   const searchStocks = async (query: string) => {
     if (query.length < 1) {
       setSearchResults([]);
@@ -257,6 +247,9 @@ export default function AutoTradeCard() {
         change: stock.change || 0,
         changePercent: stock.changePercent || 0,
         enabled: true,
+        qty: 0,
+        side: 'long',
+        unrealizedPL: 0,
       },
     ]);
     setAutoTradeSearch('');
@@ -273,22 +266,19 @@ export default function AutoTradeCard() {
       return;
     }
 
-    const stockData = mockStockData[upperSymbol] || {
-      name: `${upperSymbol} Corp.`,
-      price: Math.random() * 500 + 50,
-      change: Math.random() * 20 - 10,
-      changePercent: Math.random() * 10 - 5,
-    };
-
+    // Add new stock with placeholder data
     setAutoTradeStocks([
       ...autoTradeStocks,
       {
         symbol: upperSymbol,
-        name: stockData.name,
-        currentPrice: stockData.price,
-        change: stockData.change,
-        changePercent: stockData.changePercent,
+        name: `${upperSymbol} Corp.`,
+        currentPrice: 0,
+        change: 0,
+        changePercent: 0,
         enabled: true,
+        qty: 0,
+        side: 'long',
+        unrealizedPL: 0,
       },
     ]);
     setAutoTradeSearch('');
@@ -298,7 +288,6 @@ export default function AutoTradeCard() {
     setAutoTradeStocks(autoTradeStocks.filter((s) => s.symbol !== symbol));
   };
 
-  // --- NEW: POST trigger when enabling auto-trade ---
   const toggleAutoTradeEnabled = async (symbol: string) => {
     setAutoTradeStocks((prev) =>
       prev.map((s) =>
@@ -309,7 +298,7 @@ export default function AutoTradeCard() {
     const toggled = autoTradeStocks.find((s) => s.symbol === symbol);
     const willBeEnabled = toggled ? !toggled.enabled : false;
 
-    if (!willBeEnabled) return; // only POST when turning ON
+    if (!willBeEnabled) return;
 
     try {
       await fetch('/api/auto-trade/enable', {
@@ -322,29 +311,53 @@ export default function AutoTradeCard() {
     }
   };
 
-  return (
-    <Card className="bg-dark border-border h-full lg:row-span-2 flex flex-col">
-      <CardHeader className="pb-3 flex-shrink-0">
-        <div className="flex items-center justify-between">
+  if (isLoading) {
+    return (
+      <Card className="bg-dark border-border h-full lg:row-span-2 flex flex-col">
+        <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="text-foreground text-lg font-semibold flex items-center gap-2">
             <Zap className="w-5 h-5 text-yellow-500" />
             Auto Trade Watchlist
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center flex-1">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-dark border-border h-full lg:row-span-2 flex flex-col">
+      <CardHeader className="flex-shrink-0 p-3">
+        <div className="flex items-center justify-between pb-2">
+          <CardTitle className="text-foreground text-lg font-semibold flex items-center gap-2 p-3 ">
+            <Zap className="w-5 h-5 text-yellow-500" />
+            Agentic Watchlist
           </CardTitle>
           <span className="text-muted-foreground text-sm">
             {autoTradeStocks.length} stocks
           </span>
         </div>
-        <CardDescription className="text-muted-foreground">
-          Stocks enabled for automatic trading based on predictions
-        </CardDescription>
+
+        {/* Deep research prompt */}
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30 border border-border">
+          <Zap className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            <span className="text-primary font-medium">
+              Add a stock into your watchlist
+            </span>{' '}
+            for automatic trading based on predictions
+          </p>
+        </div>
       </CardHeader>
-      <CardContent className="flex flex-col flex-1 overflow-hidden">
+      <CardContent className="flex flex-col flex-1 overflow-hidden p-3 pt-0">
         {/* Search to add stocks */}
-        <div className="relative mb-4 flex-shrink-0" ref={dropdownRef}>
+        <div className="relative mb-3 flex-shrink-0" ref={dropdownRef}>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
           <input
             type="text"
-            placeholder="Search stocks (e.g., TS for Tesla)..."
+            placeholder="Search stocks...(e.g. TSLA)"
             value={autoTradeSearch}
             onChange={handleSearchChange}
             onKeyDown={(e) => {
@@ -448,17 +461,21 @@ export default function AutoTradeCard() {
                   />
                 </button>
                 <div>
-                  <p className="text-foreground font-medium text-sm">
-                    {stock.symbol}
-                  </p>
-                  <p className="text-muted-foreground text-xs">{stock.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-foreground font-medium text-xs">
+                      {stock.symbol}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-foreground text-sm font-medium">
-                    ${stock.currentPrice.toFixed(2)}
+                  <p className="text-foreground text-xs font-medium">
+                    $
+                    {stock.currentPrice.toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                    })}
                   </p>
                   <p className="text-xs flex items-center justify-end gap-0.5">
                     <span
@@ -491,8 +508,10 @@ export default function AutoTradeCard() {
           {autoTradeStocks.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No stocks in Auto Trade watchlist</p>
-              <p className="text-xs mt-1">Add stocks using the search above</p>
+              <p className="text-sm">No positions found</p>
+              <p className="text-xs mt-1">
+                Add stocks using the search above or create positions
+              </p>
             </div>
           )}
         </div>

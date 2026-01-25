@@ -39,7 +39,7 @@ export default function PredictionsTab() {
       !searchQuery ||
       pred.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       pred.relatedSymbols.some((sym) =>
-        sym.toLowerCase().includes(searchQuery.toLowerCase())
+        sym.toLowerCase().includes(searchQuery.toLowerCase()),
       );
 
     return matchesWatchlist && matchesCategory && matchesSearch;
@@ -77,7 +77,7 @@ export default function PredictionsTab() {
           </CardHeader>
 
           {/* Deep research prompt */}
-          <div className="flex items-start gap-2 p-3 mb-3 m-3 rounded-lg bg-muted/30 border border-border">
+          {/* <div className="flex items-start gap-2 p-3 mb-3 m-3 rounded-lg bg-muted/30 border border-border">
             <Zap className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
             <p className="text-xs text-muted-foreground">
               <span className="text-primary font-medium">
@@ -85,7 +85,7 @@ export default function PredictionsTab() {
               </span>{' '}
               to track for upcoming news and alerts!
             </p>
-          </div>
+          </div> */}
 
           {filteredPredictions.map((pred) => (
             <PredictionCard key={pred.id} prediction={pred} />
