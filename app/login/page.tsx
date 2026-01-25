@@ -30,14 +30,14 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL ?? "http://localhost:8000";
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL ?? "http://localhost:8000/api/v1";
 
       if (isSignUp) {
         if (password !== confirmPassword) {
           throw new Error("Passwords do not match");
         }
 
-        const registerRes = await fetch(`${baseUrl}/api/v1/user/auth/register`, {
+        const registerRes = await fetch(`${baseUrl}/user/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -55,7 +55,7 @@ export default function LoginPage() {
         await signIn(email, password);
       } else {
         // MANUAL LOGIN LOGIC
-        const loginRes = await fetch(`${baseUrl}/api/v1/user/auth/login`, {
+        const loginRes = await fetch(`${baseUrl}/user/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
