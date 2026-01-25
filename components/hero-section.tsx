@@ -7,7 +7,7 @@ export function HeroSection() {
   return (
     <section
       className="flex flex-col items-center text-center relative mx-auto rounded-2xl overflow-hidden my-6 py-0 px-4
-         w-full h-[400px] md:w-[1220px] md:h-[600px] lg:h-[810px] md:px-0"
+         w-full h-[400px] md:w-[1220px] md:h-[550px] lg:h-[750px] md:px-0"
     >
       {/* SVG Background */}
       <div className="absolute inset-0 z-0">
@@ -571,12 +571,13 @@ export function HeroSection() {
       </div>
 
       <div className="relative z-10 space-y-4 md:space-y-5 lg:space-y-6 mb-6 md:mb-7 lg:mb-9 max-w-md md:max-w-[500px] lg:max-w-[588px] mt-16 md:mt-[120px] lg:mt-[160px] px-4">
-        <h1 className="text-foreground text-3xl md:text-4xl lg:text-6xl font-semibold leading-tight">
-          AI Agent Investing.
+        <h1 className="text-foreground text-3xl md:text-4xl lg:text-5xl font-semibold leading-tight">
+          Introducing Agent M.
         </h1>
         <p className="text-muted-foreground text-base md:text-base lg:text-lg font-medium leading-relaxed max-w-lg mx-auto">
-          Optimize your investing workflow with intelligent AI agents that
-          analyse news, review, and make sensible stock purchases for you.
+          While you sleep, <b>Agent M</b> crawls through insider news, uses AI
+          to detect real signals from noise, and executes high‑conviction trades
+          so your portfolio is always working.
         </p>
       </div>
 

@@ -104,8 +104,8 @@ export function FAQSection() {
             Frequently Asked Questions
           </h2>
           <p className="self-stretch text-center text-muted-foreground text-sm font-medium leading-[18.20px] break-words">
-            Everything you need to know about Pointer and how it can transform
-            your development workflow
+            Everything you need to know about Agent M and how it can transform
+            your trading experience.
           </p>
         </div>
       </div>
