@@ -10,6 +10,7 @@ import AskAI from './chat/AskAI';
 import LiquidateModal from './chat/menuChatModal';
 import { Sparkles } from 'lucide-react';
 import { getCompanyName } from '@/lib/tickerMap'; // Import the utility
+import StockLogo from '@/components/StockLogo'; // Add this import at top
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`;
 
@@ -375,6 +376,9 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
           >
             <td className="px-6 py-4">
+              <StockLogo symbol={stock.symbol} name={stock.name} size="md" />
+            </td>{' '}
+            <td className="px-6 py-4">
               <div>
                 <p className="text-foreground font-medium">{stock.symbol}</p>
                 <p className="text-muted-foreground text-sm">{stock.name}</p>
@@ -473,6 +477,9 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
               <tr className="border-b border-border">
                 <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
                   Symbol
+                </th>{' '}
+                <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
+                  Stock
                 </th>
                 <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4 hidden sm:table-cell">
                   Qty
