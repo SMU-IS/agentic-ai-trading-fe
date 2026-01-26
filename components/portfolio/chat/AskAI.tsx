@@ -1,96 +1,228 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Send, ArrowUp } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, ArrowUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import StreamingText from './StreamingText';
 
 interface AskAIProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  contextData?: any;
 }
 
 type ChatMessage = {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
+  isStreaming?: boolean;
 };
 
-export default function AskAI({ open, onOpenChange }: AskAIProps) {
+export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
+  const hasAutoSentRef = useRef(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    if (open && contextData && !hasAutoSentRef.current) {
+      hasAutoSentRef.current = true;
+
+      let autoMessage = '';
+
+      if (contextData.shares !== undefined) {
+        autoMessage =
+          `I have a position in ${contextData.symbol}:\n` +
+          `- Current Price: $${contextData.currentPrice.toFixed(2)}\n` +
+          `- Shares: ${Math.abs(contextData.shares)}\n` +
+          `- Avg Entry Price: $${contextData.avgPrice.toFixed(2)}\n` +
+          `- Total P/L: ${contextData.totalPL >= 0 ? '+' : ''}$${contextData.totalPL.toFixed(2)} (${contextData.changePercent.toFixed(2)}%)\n\n` +
+          `Can you analyze this position and provide insights?`;
+      } else if (contextData.type) {
+        const txDate = new Date(contextData.datetime).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        autoMessage =
+          `I have a transaction for ${contextData.symbol}:\n` +
+          `- Type: ${contextData.type.toUpperCase()}\n` +
+          `- Date: ${txDate}\n` +
+          `- Price: $${contextData.price.toFixed(2)}\n` +
+          `- Quantity: ${contextData.filledQty} shares\n` +
+          `- Total Value: $${contextData.totalValue.toFixed(2)}\n` +
+          `- Order Type: ${contextData.reason}\n\n` +
+          `Can you analyze this transaction and provide insights?`;
+      }
+
+      if (autoMessage) {
+        handleSendMessage(autoMessage);
+      }
+    }
+  }, [open, contextData]);
+
+  useEffect(() => {
+    if (!open) {
+      hasAutoSentRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    }
+  }, [open]);
+
+  const handleSendMessage = async (messageText?: string) => {
+    const textToSend = messageText || input.trim();
+    if (!textToSend || loading) return;
+
+    const userMessageId = `user-${Date.now()}`;
+    const assistantMessageId = `assistant-${Date.now()}`;
 
     const userMessage: ChatMessage = {
+      id: userMessageId,
       role: 'user',
-      content: input.trim(),
+      content: textToSend,
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+
+    if (!messageText) {
+      setInput('');
+    }
+
     setLoading(true);
     setError(null);
+    setStreamingMessageId(assistantMessageId);
+
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
 
     try {
-      const res = await fetch('http://localhost:8000/api/v1/rag/chat', {
+      const response = await fetch('http://localhost:8000/api/v1/rag/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: 'Bearer test',
         },
         body: JSON.stringify({
-          message: input.trim(),
+          message: textToSend,
+          context: contextData,
         }),
+        signal: abortControllerRef.current.signal,
       });
 
-      if (!res.ok) {
-        let errorDetail = `HTTP ${res.status}: ${res.statusText}`;
-        try {
-          const errorData = await res.json();
-          if (errorData.detail) {
-            if (typeof errorData.detail === 'object') {
-              errorDetail = `${errorData.detail.type || 'Error'}: ${errorData.detail.error || errorData.detail.message || JSON.stringify(errorData.detail)}`;
-              console.error('Backend traceback:', errorDetail);
-
-              if (errorData.detail.traceback) {
-                console.error('Backend traceback:', errorData.detail.traceback);
-              }
-            } else {
-              errorDetail = errorData.detail;
-            }
-          }
-        } catch {
-          errorDetail = await res.text();
-        }
-        throw new Error(errorDetail);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data = await res.json();
-      const aiContent: string =
-        data.answer ??
-        data.content ??
-        data.messages?.[data.messages.length - 1]?.content ??
-        'Sorry, I could not generate a response.';
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      // Add empty assistant message
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: aiContent },
+        {
+          id: assistantMessageId,
+          role: 'assistant',
+          content: '',
+          isStreaming: true,
+        },
       ]);
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'Unexpected error talking to Ask AI',
+
+      let accumulatedContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+
+        // Parse the chunk (adjust based on your API's response format)
+        try {
+          const lines = chunk.split('\n').filter((line) => line.trim());
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.content || data.delta || data.answer) {
+                const newContent = data.content || data.delta || data.answer;
+                accumulatedContent += newContent;
+
+                // Update the streaming message
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? { ...msg, content: accumulatedContent }
+                      : msg,
+                  ),
+                );
+              }
+            }
+          }
+        } catch (parseError) {
+          // If not JSON, treat as plain text
+          accumulatedContent += chunk;
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? { ...msg, content: accumulatedContent }
+                : msg,
+            ),
+          );
+        }
+      }
+
+      // Mark streaming as complete
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId ? { ...msg, isStreaming: false } : msg,
+        ),
+      );
+    } catch (e: any) {
+      if (e.name === 'AbortError') {
+        setError('Request cancelled');
+      } else {
+        setError(
+          e instanceof Error ? e.message : 'Unexpected error talking to Ask AI',
+        );
+      }
+
+      // Remove the streaming message on error
+      setMessages((prev) =>
+        prev.filter((msg) => msg.id !== assistantMessageId),
       );
     } finally {
       setLoading(false);
+      setStreamingMessageId(null);
+      abortControllerRef.current = null;
     }
+  };
+
+  const handleSend = () => {
+    handleSendMessage();
   };
 
   return (
     <>
-      {/* Backdrop overlay with fade animation */}
       <div
         className={`
           fixed inset-0 z-40 bg-black/40 backdrop-blur-sm
@@ -100,7 +232,6 @@ export default function AskAI({ open, onOpenChange }: AskAIProps) {
         onClick={() => onOpenChange(false)}
       />
 
-      {/* Bottom sheet container */}
       <div className="fixed bottom-2 left-0 right-0 z-50 pointer-events-none">
         <div className="mx-auto max-w-5xl px-4 pb-4 pointer-events-none">
           <div
@@ -119,23 +250,21 @@ export default function AskAI({ open, onOpenChange }: AskAIProps) {
                 : 'cubic-bezier(0.7, 0, 0.84, 0)',
             }}
           >
-            {/* Animated gradient border wrapper */}
             <div className="relative rounded-2xl p-[2px]">
-              {/* Spinning gradient border (behind the card) */}
               <div className="absolute inset-0 rounded-2xl overflow-hidden">
                 <div className="absolute inset-[-100%] bg-gradient-conic-smooth animate-spin-border" />
               </div>
 
-              {/* Actual card content (on top, covers the center) */}
-              <Card className="relative bg-black backdrop-blur-xl border-0 shadow-2xl rounded-2xl overflow-hidden">
-                {/* Header */}
+              <Card className="relative bg-neutral-900 backdrop-blur-xl border-0 shadow-2xl rounded-2xl overflow-hidden">
                 <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-border">
                   <div>
                     <p className="text-sm font-medium text-foreground">
                       Ask Agent M.
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Ask about your holdings, risk, or what to do next.
+                      {contextData?.symbol
+                        ? `Analyzing ${contextData.symbol}`
+                        : 'Ask about your holdings, risk, or what to do next.'}
                     </p>
                   </div>
                   <button
@@ -148,26 +277,22 @@ export default function AskAI({ open, onOpenChange }: AskAIProps) {
                   </button>
                 </div>
 
-                {/* Messages */}
                 <div className="max-h-64 overflow-y-auto px-4 py-3 space-y-2 text-sm">
-                  {messages.length === 0 && !error && (
+                  {messages.length === 0 && !error && !loading && (
                     <p className="text-muted-foreground text-xs">
-                      Try: "Why is my portfolio down today?" or "What should I
-                      do with my largest position?"
+                      {contextData
+                        ? 'Loading analysis...'
+                        : 'Try: "Why is my portfolio down today?" or "What should I do with my largest position?"'}
                     </p>
                   )}
 
-                  {messages.map((m, idx) => (
+                  {messages.map((m) => (
                     <div
-                      key={idx}
+                      key={m.id}
                       className={`
                         flex animate-slide-up
                         ${m.role === 'user' ? 'justify-end' : 'justify-start'}
                       `}
-                      style={{
-                        animationDelay: `${idx * 50}ms`,
-                        animationFillMode: 'backwards',
-                      }}
                     >
                       <div
                         className={`px-3 py-2 rounded-xl max-w-[80%] ${
@@ -176,7 +301,17 @@ export default function AskAI({ open, onOpenChange }: AskAIProps) {
                             : 'bg-muted text-foreground'
                         }`}
                       >
-                        {m.content}
+                        {m.role === 'assistant' && m.isStreaming ? (
+                          <StreamingText
+                            text={m.content}
+                            isStreaming={true}
+                            speed={20}
+                          />
+                        ) : (
+                          <span className="whitespace-pre-wrap">
+                            {m.content}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -186,13 +321,14 @@ export default function AskAI({ open, onOpenChange }: AskAIProps) {
                       {error}
                     </p>
                   )}
+
+                  <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input row */}
                 <div className="flex items-center gap-2 px-4 pb-3 pt-2 border-t border-border">
                   <div className="flex-1 flex items-center gap-2">
                     <input
-                      className="flex-1 text-sm bg-border border-border rounded-xl px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-green-500 transition-all"
+                      className="flex-1 text-sm bg-border border-border rounded-xl px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-gray-600 focus-visible:border-gray-600 transition-all"
                       placeholder={
                         loading
                           ? 'Thinking...'
@@ -212,7 +348,7 @@ export default function AskAI({ open, onOpenChange }: AskAIProps) {
                       size="icon"
                       className="rounded-xl transition-transform hover:scale-110 active:scale-95"
                       onClick={handleSend}
-                      disabled={loading}
+                      disabled={loading || !input.trim()}
                     >
                       <ArrowUp className="w-4 h-4" />
                     </Button>

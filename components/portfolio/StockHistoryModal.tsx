@@ -41,7 +41,7 @@ export default function StockHistoryModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-card border-border">
+      <DialogContent className="sm:max-w-[600px] bg-black border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center gap-3">
             <span className="text-2xl font-semibold">{stock.symbol}</span>

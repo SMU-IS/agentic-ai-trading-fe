@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, TrendingUp, TrendingDown, History } from 'lucide-react';
+import { TrendingUp, TrendingDown, History, DollarSign } from 'lucide-react';
 import { StockWithHistory, Transaction } from '@/lib/types';
 import TransactionsModal from './transactions/TransactionHistory';
 import AskAI from './chat/AskAI';
+import LiquidateModal from './chat/menuChatModal';
 import { Sparkles } from 'lucide-react';
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`;
@@ -15,77 +16,106 @@ interface HoldingsTableProps {
   onSelectStock: (stock: StockWithHistory | null) => void;
 }
 
+interface ContextMenuPosition {
+  x: number;
+  y: number;
+  stock: StockWithHistory;
+}
+
 export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [txLoading, setTxLoading] = useState(false);
   const [txError, setTxError] = useState('');
   const [showAskAI, setShowAskAI] = useState(false);
+  const [askAISymbol, setAskAISymbol] = useState<string | null>(null);
+  const [askAIData, setAskAIData] = useState<any>(null);
+
+  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(
+    null,
+  );
+  const [liquidateStock, setLiquidateStock] = useState<StockWithHistory | null>(
+    null,
+  );
 
   const [positions, setPositions] = useState<StockWithHistory[]>([]);
   const [positionsLoading, setPositionsLoading] = useState(false);
   const [positionsError, setPositionsError] = useState('');
 
-  // Fetch positions for holdings
+  // Close context menu when clicking outside
   useEffect(() => {
-    const fetchPositions = async () => {
-      try {
-        setPositionsLoading(true);
-        setPositionsError('');
+    const handleClick = () => setContextMenu(null);
+    const handleScroll = () => setContextMenu(null);
 
-        const res = await fetch(`${BASE_URL}/trading/positions`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
+    if (contextMenu) {
+      document.addEventListener('click', handleClick);
+      document.addEventListener('scroll', handleScroll, true);
+      return () => {
+        document.removeEventListener('click', handleClick);
+        document.removeEventListener('scroll', handleScroll, true);
+      };
+    }
+  }, [contextMenu]);
 
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || 'Failed to fetch positions');
-        }
+  // Fetch positions for holdings
+  const fetchPositions = async () => {
+    try {
+      setPositionsLoading(true);
+      setPositionsError('');
 
-        const data: any[] = await res.json();
+      const res = await fetch(`${BASE_URL}/trading/positions`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-        const mapped: StockWithHistory[] = data.map((p) => {
-          const qty = Number(p.qty ?? '0');
-          const currentPrice = Number(p.current_price ?? 0);
-          const avgPrice = Number(p.avg_entry_price ?? 0);
-          const changePercent = Number(
-            p.unrealized_intraday_plpc ??
-              p.change_today ??
-              p.unrealized_plpc ??
-              0,
-          );
-          const change = Number(
-            p.unrealized_intraday_pl ?? p.unrealized_pl ?? 0,
-          );
-          const totalPL = Number(p.unrealized_pl ?? 0);
-
-          return {
-            symbol: p.symbol,
-            name: p.symbol,
-            shares: qty,
-            avgPrice,
-            currentPrice,
-            change,
-            changePercent: changePercent * 100,
-            totalPL,
-            purchaseHistory: [], // will be filled on click from orders API
-          };
-        });
-
-        setPositions(mapped);
-      } catch (err) {
-        setPositionsError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setPositionsLoading(false);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to fetch positions');
       }
-    };
 
+      const data: any[] = await res.json();
+
+      const mapped: StockWithHistory[] = data.map((p) => {
+        const qty = Number(p.qty ?? '0');
+        const currentPrice = Number(p.current_price ?? 0);
+        const avgPrice = Number(p.avg_entry_price ?? 0);
+        const changePercent = Number(
+          p.unrealized_intraday_plpc ??
+            p.change_today ??
+            p.unrealized_plpc ??
+            0,
+        );
+        const change = Number(p.unrealized_intraday_pl ?? p.unrealized_pl ?? 0);
+        const totalPL = Number(p.unrealized_pl ?? 0);
+
+        return {
+          symbol: p.symbol,
+          name: p.symbol,
+          shares: qty,
+          avgPrice,
+          currentPrice,
+          change,
+          changePercent: changePercent * 100,
+          totalPL,
+          purchaseHistory: [],
+        };
+      });
+
+      setPositions(mapped);
+    } catch (err) {
+      setPositionsError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setPositionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPositions();
   }, []);
 
   const longPositions = positions.filter((p) => p.shares >= 0);
   const shortPositions = positions.filter((p) => p.shares < 0);
+
   useEffect(() => {
     if (!showTransactionsModal) return;
 
@@ -124,7 +154,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         for (const o of orders) {
           const baseDatetime = o.filled_at || o.submitted_at || o.created_at;
 
-          // parent filled execution (if any)
           if (o.status === 'filled' && Number(o.filled_qty) !== 0) {
             const price = Number(o.filled_avg_price ?? 0);
             const qty = Number(o.qty ?? 0);
@@ -145,7 +174,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             });
           }
 
-          // filled legs (for bracket orders)
           if (Array.isArray(o.legs)) {
             for (const leg of o.legs) {
               if (
@@ -202,15 +230,12 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
       const orders: any[] = await res.json();
 
-      // Helper: normalize symbol like "BTC/USD" -> "BTCUSD"
       const normalizeSymbol = (s: string) => s.replace(/[^a-zA-Z]/g, '');
 
-      // Only orders for this symbol
       const symbolOrders = orders.filter(
         (o) => normalizeSymbol(o.symbol) === position.symbol,
       );
 
-      // Collect all filled executions: parent + any legs
       type FillRow = {
         date: string;
         datetime?: string;
@@ -223,7 +248,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
       const fills: FillRow[] = [];
 
       for (const o of symbolOrders) {
-        // parent fill
         if (o.status === 'filled' && Number(o.filled_qty) !== 0) {
           fills.push({
             date: o.filled_at || o.submitted_at || o.created_at,
@@ -235,7 +259,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           });
         }
 
-        // leg fills (for bracket orders)
         if (Array.isArray(o.legs)) {
           for (const leg of o.legs) {
             if (
@@ -257,7 +280,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         }
       }
 
-      // Map fills into purchaseHistory, converting sell to negative shares
       const purchaseHistory =
         fills.map((f) => ({
           date: f.date,
@@ -288,6 +310,50 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
     }
   };
 
+  const handleContextMenu = (e: React.MouseEvent, stock: StockWithHistory) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      stock,
+    });
+  };
+
+  const handleLiquidateClick = (stock: StockWithHistory) => {
+    setContextMenu(null);
+    setLiquidateStock(stock);
+  };
+
+  const handleLiquidateSuccess = () => {
+    // Refresh positions after successful order
+    fetchPositions();
+  };
+
+  const handleAskAIAboutStock = (stock: StockWithHistory) => {
+    setContextMenu(null);
+
+    // Prepare stock data to pass to AskAI
+    const stockData = {
+      symbol: stock.symbol,
+      name: stock.name,
+      shares: stock.shares,
+      avgPrice: stock.avgPrice,
+      currentPrice: stock.currentPrice,
+      totalPL: stock.totalPL,
+      changePercent: stock.changePercent,
+      purchaseHistory: stock.purchaseHistory,
+    };
+
+    setAskAIData(stockData);
+    setShowAskAI(true);
+  };
+
+  const handleAskAIFromTransactions = (transactionData: any) => {
+    setAskAIData(transactionData);
+    setShowAskAI(true);
+    // Don't close the transaction modal
+  };
+
   const renderTableBody = (rows: StockWithHistory[], isShort: boolean) => (
     <tbody>
       {rows.map((stock) => {
@@ -304,6 +370,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           <tr
             key={stock.symbol}
             onClick={() => handleRowClick(stock)}
+            onContextMenu={(e) => handleContextMenu(e, stock)}
             className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
           >
             <td className="px-6 py-4">
@@ -387,14 +454,16 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           </Button>
           <Button
             className="bg-teal-600 text-white hover:bg-teal-600 rounded-full shadow-lg hover:shadow-teal-500/30 transition-all"
-            onClick={() => setShowAskAI(true)}
+            onClick={() => {
+              setAskAISymbol(null);
+              setShowAskAI(true);
+            }}
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Ask AI
           </Button>
         </div>
       </div>
-
       {/* Long positions table */}
       <Card className="bg-card border-border overflow-hidden mb-8">
         <div className="overflow-x-auto">
@@ -428,7 +497,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           </table>
         </div>
       </Card>
-
       {/* Short positions table */}
       {shortPositions.length > 0 && (
         <>
@@ -469,7 +537,44 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           </Card>
         </>
       )}
-
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed z-50 bg-black/85 border border-border rounded-lg shadow-xl py-1 min-w-[200px]"
+          style={{
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y}px`,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => handleLiquidateClick(contextMenu.stock)}
+            className="w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-blue-500/10 hover:text-blue-400 transition-colors flex items-center gap-2"
+          >
+            <DollarSign className="w-4 h-4" />
+            Manage Position
+          </button>
+          <div className="border-t border-border my-1" />
+          <button
+            onClick={() => handleAskAIAboutStock(contextMenu.stock)}
+            className="w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-teal-500/10 hover:text-teal-400 transition-colors flex items-center gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            Ask AI about {contextMenu.stock.symbol}
+          </button>
+        </div>
+      )}
+      {/* Liquidate Modal */}
+      {liquidateStock && (
+        <LiquidateModal
+          open={!!liquidateStock}
+          onOpenChange={(open) => !open && setLiquidateStock(null)}
+          symbol={liquidateStock.symbol}
+          currentPrice={liquidateStock.currentPrice}
+          currentShares={liquidateStock.shares}
+          onSuccess={handleLiquidateSuccess}
+        />
+      )}
       {/* Transactions Modal */}
       <TransactionsModal
         open={showTransactionsModal}
@@ -477,10 +582,18 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         transactions={transactions}
         loading={txLoading}
         error={txError}
+        onRefresh={fetchPositions}
+        onAskAI={handleAskAIFromTransactions}
       />
-
       {/* Ask AI bottom sheet */}
-      <AskAI open={showAskAI} onOpenChange={setShowAskAI} />
+      <AskAI
+        open={showAskAI}
+        onOpenChange={(open) => {
+          setShowAskAI(open);
+          if (!open) setAskAIData(null); // Clear data when closing
+        }}
+        contextData={askAIData}
+      />{' '}
     </>
   );
 }

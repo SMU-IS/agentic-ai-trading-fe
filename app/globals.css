@@ -50,3 +50,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes typing-cursor {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.typing-cursor {
+  animation: typing-cursor 1s infinite;
+}
