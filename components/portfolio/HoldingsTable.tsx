@@ -9,6 +9,7 @@ import TransactionsModal from './transactions/TransactionHistory';
 import AskAI from './chat/AskAI';
 import LiquidateModal from './chat/menuChatModal';
 import { Sparkles } from 'lucide-react';
+import { getCompanyName } from '@/lib/tickerMap'; // Import the utility
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`;
 
@@ -90,7 +91,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
         return {
           symbol: p.symbol,
-          name: p.symbol,
+          name: getCompanyName(p.symbol),
           shares: qty,
           avgPrice,
           currentPrice,
@@ -163,7 +164,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             allTx.push({
               id: o.id,
               symbol: o.symbol,
-              name: o.symbol,
+              name: getCompanyName(o.symbol),
               type: side,
               datetime: baseDatetime,
               price,
@@ -191,7 +192,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 allTx.push({
                   id: leg.id,
                   symbol: leg.symbol,
-                  name: leg.symbol,
+                  name: getCompanyName(leg.symbol),
                   type: side,
                   datetime: legDatetime,
                   price,
@@ -335,7 +336,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
     // Prepare stock data to pass to AskAI
     const stockData = {
       symbol: stock.symbol,
-      name: stock.name,
+      name: getCompanyName(stock.symbol),
       shares: stock.shares,
       avgPrice: stock.avgPrice,
       currentPrice: stock.currentPrice,
@@ -543,7 +544,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           className="fixed z-50 bg-black/85 border border-border rounded-lg shadow-xl py-1 min-w-[200px]"
           style={{
             left: `${contextMenu.x}px`,
-            top: `${contextMenu.y}px`,
+            top: `${contextMenu.y - 100}px`,
           }}
           onClick={(e) => e.stopPropagation()}
         >
