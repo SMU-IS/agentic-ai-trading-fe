@@ -84,6 +84,92 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }, [open]);
 
+  // Mock streaming function
+  const simulateStreamingResponse = async (
+    userMessage: string,
+    assistantMessageId: string,
+    signal: AbortSignal,
+  ) => {
+    // Generate mock response based on context
+    let mockResponse = '';
+
+    if (contextData?.symbol) {
+      if (contextData.shares !== undefined) {
+        // Holdings analysis
+        const isProfit = contextData.totalPL >= 0;
+        mockResponse =
+          `Based on your ${contextData.symbol} position, here's my analysis:\n\n` +
+          `📊 Performance Overview:\n` +
+          `Your position is currently ${isProfit ? 'profitable' : 'in a loss'} with a ${Math.abs(contextData.changePercent).toFixed(2)}% ${isProfit ? 'gain' : 'loss'}. ` +
+          `This ${isProfit ? 'suggests good entry timing' : 'may present a buying opportunity if fundamentals remain strong'}.\n\n` +
+          `💡 Key Insights:\n` +
+          `• Average entry price: $${contextData.avgPrice.toFixed(2)}\n` +
+          `• Current market price: $${contextData.currentPrice.toFixed(2)}\n` +
+          `• Position size: ${Math.abs(contextData.shares)} shares\n\n` +
+          `🎯 Recommendation:\n` +
+          `${isProfit ? 'Consider taking partial profits if this represents a significant gain. You might want to set a trailing stop loss to protect your gains.' : 'If you believe in the long-term prospects, this could be an opportunity to average down. However, reassess the fundamental reasons for your initial investment.'}\n\n` +
+          `Would you like me to analyze any specific aspect of this position?`;
+      } else if (contextData.type) {
+        // Transaction analysis
+        const isBuy = contextData.type === 'buy';
+        mockResponse =
+          `Let me analyze this ${contextData.type.toUpperCase()} transaction for ${contextData.symbol}:\n\n` +
+          `📝 Transaction Details:\n` +
+          `You ${isBuy ? 'acquired' : 'sold'} ${contextData.filledQty} shares at $${contextData.price.toFixed(2)} per share, ` +
+          `for a total of $${contextData.totalValue.toFixed(2)}.\n\n` +
+          `⏰ Timing Analysis:\n` +
+          `This transaction was executed on ${new Date(contextData.datetime).toLocaleDateString()}. ` +
+          `${isBuy ? "As a buyer, you'll want to monitor if the price continues to trend upward." : 'As a seller, this locked in your position at this price point.'}\n\n` +
+          `💭 Strategic Considerations:\n` +
+          `${isBuy ? '• Monitor for confirmation that your entry was well-timed\n• Consider setting a stop-loss to manage risk\n• Track any upcoming earnings or news that could affect the stock' : '• Evaluate if the exit timing aligns with your investment goals\n• Consider tax implications of this sale\n• Review if you want to reallocate the capital'}\n\n` +
+          `What else would you like to know about this transaction?`;
+      }
+    } else {
+      // General questions
+      mockResponse =
+        `That's a great question! Let me help you with that.\n\n` +
+        `Based on current market conditions and your portfolio structure, here are some insights:\n\n` +
+        `📈 Market Overview:\n` +
+        `The market has been experiencing volatility recently. It's important to maintain a diversified portfolio and stay focused on your long-term investment goals.\n\n` +
+        `💼 Portfolio Strategy:\n` +
+        `• Review your asset allocation regularly\n` +
+        `• Consider rebalancing if any position grows too large\n` +
+        `• Keep some cash reserves for opportunities\n` +
+        `• Don't let emotions drive your investment decisions\n\n` +
+        `🎯 Next Steps:\n` +
+        `I recommend reviewing your largest positions and ensuring they still align with your investment thesis. ` +
+        `Would you like me to analyze any specific holdings?\n\n` +
+        `Feel free to ask me about specific stocks or strategies!`;
+    }
+
+    // Stream the response character by character
+    const words = mockResponse.split(' ');
+    let accumulatedContent = '';
+
+    for (let i = 0; i < words.length; i++) {
+      if (signal.aborted) {
+        throw new Error('AbortError');
+      }
+
+      // Add word with space (except for last word)
+      accumulatedContent += words[i] + (i < words.length - 1 ? ' ' : '');
+
+      // Update the streaming message
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId
+            ? { ...msg, content: accumulatedContent }
+            : msg,
+        ),
+      );
+
+      // Random delay between 30-80ms for more natural feel
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.random() * 50 + 30),
+      );
+    }
+  };
+
   const handleSendMessage = async (messageText?: string) => {
     const textToSend = messageText || input.trim();
     if (!textToSend || loading) return;
@@ -111,30 +197,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     abortControllerRef.current = new AbortController();
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/rag/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer test',
-        },
-        body: JSON.stringify({
-          message: textToSend,
-          context: contextData,
-        }),
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (!reader) {
-        throw new Error('No response body');
-      }
-
       // Add empty assistant message
       setMessages((prev) => [
         ...prev,
@@ -146,50 +208,12 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
         },
       ]);
 
-      let accumulatedContent = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-
-        // Parse the chunk (adjust based on your API's response format)
-        try {
-          const lines = chunk.split('\n').filter((line) => line.trim());
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = JSON.parse(line.slice(6));
-
-              if (data.content || data.delta || data.answer) {
-                const newContent = data.content || data.delta || data.answer;
-                accumulatedContent += newContent;
-
-                // Update the streaming message
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantMessageId
-                      ? { ...msg, content: accumulatedContent }
-                      : msg,
-                  ),
-                );
-              }
-            }
-          }
-        } catch (parseError) {
-          // If not JSON, treat as plain text
-          accumulatedContent += chunk;
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantMessageId
-                ? { ...msg, content: accumulatedContent }
-                : msg,
-            ),
-          );
-        }
-      }
+      // Simulate streaming with mock data
+      await simulateStreamingResponse(
+        textToSend,
+        assistantMessageId,
+        abortControllerRef.current.signal,
+      );
 
       // Mark streaming as complete
       setMessages((prev) =>
@@ -198,7 +222,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
         ),
       );
     } catch (e: any) {
-      if (e.name === 'AbortError') {
+      if (e.message === 'AbortError') {
         setError('Request cancelled');
       } else {
         setError(
@@ -277,7 +301,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   </button>
                 </div>
 
-                <div className="max-h-64 overflow-y-auto px-4 py-3 space-y-2 text-sm">
+                <div className="max-h-96 overflow-y-scroll px-4 py-3 space-y-2 text-sm">
                   {messages.length === 0 && !error && !loading && (
                     <p className="text-muted-foreground text-xs">
                       {contextData
@@ -298,7 +322,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                         className={`px-3 py-2 rounded-xl max-w-[80%] ${
                           m.role === 'user'
                             ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-foreground'
+                            : 'bg-transparent text-foreground'
                         }`}
                       >
                         {m.role === 'assistant' && m.isStreaming ? (
