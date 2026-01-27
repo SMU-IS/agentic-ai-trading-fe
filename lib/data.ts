@@ -41,6 +41,7 @@ export const generatePerformanceData = () => {
       value: Number.parseFloat(value.toFixed(2)),
     });
   }
+  console.log('historical', data);
   return data;
 };
 

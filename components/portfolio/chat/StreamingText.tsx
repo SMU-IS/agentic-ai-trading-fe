@@ -11,7 +11,7 @@ interface StreamingTextProps {
 export default function StreamingText({
   text,
   isStreaming = false,
-  speed = 30,
+  speed = 20,
 }: StreamingTextProps) {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);

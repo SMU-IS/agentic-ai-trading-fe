@@ -464,7 +464,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
               setShowAskAI(true);
             }}
           >
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Sparkles className="w-4 h-4" />
             Ask AI
           </Button>
         </div>

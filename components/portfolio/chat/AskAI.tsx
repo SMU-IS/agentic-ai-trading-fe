@@ -41,7 +41,10 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
       let autoMessage = '';
 
-      if (contextData.shares !== undefined) {
+      if (
+        contextData.avgPrice !== undefined &&
+        contextData.currentPrice !== undefined
+      ) {
         autoMessage =
           `I have a position in ${contextData.symbol}:\n` +
           `- Current Price: $${contextData.currentPrice.toFixed(2)}\n` +
@@ -111,21 +114,49 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     abortControllerRef.current = new AbortController();
 
     try {
+      // Extract tickers from contextData
+      let tickers: string[] = [];
+
+      if (contextData) {
+        // Single stock/transaction context
+        if (contextData.symbol) {
+          tickers = [contextData.symbol];
+        }
+        // Multiple items (e.g., portfolio view)
+        else if (Array.isArray(contextData)) {
+          tickers = contextData
+            .map((item: any) => item.symbol)
+            .filter((symbol): symbol is string => Boolean(symbol));
+        }
+      }
+
+      // Remove duplicates
+      tickers = [...new Set(tickers)];
+
+      // Build payload matching backend schema
+      const payload = {
+        message: textToSend,
+        tickers: tickers,
+      };
+
+      console.log('Sending to backend:', payload); // Debug log
+
       const response = await fetch('http://localhost:8000/api/v1/rag/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: 'Bearer test',
         },
-        body: JSON.stringify({
-          message: textToSend,
-          context: contextData,
-        }),
+        body: JSON.stringify(payload),
         signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Backend error:', errorData);
+        throw new Error(
+          `HTTP ${response.status}: ${errorData.detail || response.statusText}`,
+        );
       }
 
       const reader = response.body?.getReader();
