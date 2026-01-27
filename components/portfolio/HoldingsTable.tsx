@@ -458,7 +458,26 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             Transactions
           </Button>
           <Button
-            className="bg-teal-600 text-white hover:bg-teal-600 rounded-full shadow-lg hover:shadow-teal-500/30 transition-all"
+            className="
+  relative
+  backdrop-blur-lg
+  bg-gradient-to-r from-teal-900/20 to-cyan-200/20
+  hover:from-teal-500/30 hover:to-cyan-900/10
+  border border-white/30
+  text-white
+  font-semibold
+  px-5 py-3
+  rounded-full
+  shadow-[0_8px_32px_0_rgba(20,184,166,0.4)]
+  hover:shadow-[0_8px_32px_0_rgba(20,184,166,0.6)]
+  transition-all duration-300
+  before:absolute before:inset-0
+  before:rounded-full
+  before:bg-gradient-to-r before:from-teal-500/0 before:via-white/20 before:to-teal-500/0
+  before:opacity-0 hover:before:opacity-100
+  before:transition-opacity before:duration-500
+"
+            // className="bg-teal-600 text-white hover:bg-teal-600 rounded-full shadow-lg hover:shadow-teal-500/30 transition-all"
             onClick={() => {
               setAskAISymbol(null);
               setShowAskAI(true);
