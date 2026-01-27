@@ -31,6 +31,8 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`;
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -41,10 +43,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
       let autoMessage = '';
 
-      if (
-        contextData.avgPrice !== undefined &&
-        contextData.currentPrice !== undefined
-      ) {
+      if (contextData.shares !== undefined) {
         autoMessage =
           `I have a position in ${contextData.symbol}:\n` +
           `- Current Price: $${contextData.currentPrice.toFixed(2)}\n` +
@@ -87,6 +86,159 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }, [open]);
 
+  // SSE streaming function with proper parsing for token-based responses
+  const streamBackendResponse = async (
+    userMessage: string,
+    tickers: string[],
+    assistantMessageId: string,
+    signal: AbortSignal,
+  ) => {
+    const response = await fetch(`${BASE_URL}/rag/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer test',
+      },
+      body: JSON.stringify({
+        message: userMessage,
+        tickers: tickers,
+      }),
+      signal: signal,
+    });
+
+    console.log('res', response);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    let accumulatedContent = '';
+    let buffer = '';
+    let hasReceivedFirstToken = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      const events = buffer.split('\n\n');
+      buffer = events.pop() || '';
+
+      for (const event of events) {
+        if (!event.trim()) continue;
+
+        const lines = event.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+
+            if (data.trim() === '[DONE]') {
+              continue;
+            }
+
+            try {
+              const parsed = JSON.parse(data);
+
+              if (parsed.error) {
+                throw new Error(parsed.error);
+              }
+
+              const token = parsed.token || '';
+
+              if (token) {
+                // First token received - remove thinking indicator
+                if (!hasReceivedFirstToken) {
+                  hasReceivedFirstToken = true;
+                }
+
+                accumulatedContent += token;
+
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? {
+                          ...msg,
+                          content: accumulatedContent,
+                          isStreaming: true,
+                        }
+                      : msg,
+                  ),
+                );
+              }
+            } catch (parseError) {
+              if (data.trim() && data.trim() !== '[DONE]') {
+                if (!hasReceivedFirstToken) {
+                  hasReceivedFirstToken = true;
+                }
+                accumulatedContent += data;
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? {
+                          ...msg,
+                          content: accumulatedContent,
+                          isStreaming: true,
+                        }
+                      : msg,
+                  ),
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (buffer.trim()) {
+      const lines = buffer.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data.trim() && data.trim() !== '[DONE]') {
+            try {
+              const parsed = JSON.parse(data);
+              const token = parsed.token || '';
+              if (token) {
+                accumulatedContent += token;
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? {
+                          ...msg,
+                          content: accumulatedContent,
+                          isStreaming: true,
+                        }
+                      : msg,
+                  ),
+                );
+              }
+            } catch {
+              accumulatedContent += data;
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, content: accumulatedContent, isStreaming: true }
+                    : msg,
+                ),
+              );
+            }
+          }
+        }
+      }
+    }
+  };
+
   const handleSendMessage = async (messageText?: string) => {
     const textToSend = messageText || input.trim();
     if (!textToSend || loading) return;
@@ -110,63 +262,26 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     setError(null);
     setStreamingMessageId(assistantMessageId);
 
-    // Create abort controller for this request
     abortControllerRef.current = new AbortController();
 
     try {
-      // Extract tickers from contextData
       let tickers: string[] = [];
 
       if (contextData) {
-        // Single stock/transaction context
         if (contextData.symbol) {
           tickers = [contextData.symbol];
-        }
-        // Multiple items (e.g., portfolio view)
-        else if (Array.isArray(contextData)) {
+        } else if (Array.isArray(contextData)) {
           tickers = contextData
             .map((item: any) => item.symbol)
             .filter((symbol): symbol is string => Boolean(symbol));
         }
       }
 
-      // Remove duplicates
       tickers = [...new Set(tickers)];
 
-      // Build payload matching backend schema
-      const payload = {
-        message: textToSend,
-        tickers: tickers,
-      };
+      console.log('Sending to backend:', { message: textToSend, tickers });
 
-      console.log('Sending to backend:', payload); // Debug log
-
-      const response = await fetch('http://localhost:8000/api/v1/rag/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer test',
-        },
-        body: JSON.stringify(payload),
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Backend error:', errorData);
-        throw new Error(
-          `HTTP ${response.status}: ${errorData.detail || response.statusText}`,
-        );
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (!reader) {
-        throw new Error('No response body');
-      }
-
-      // Add empty assistant message
+      // Add assistant message with "Thinking..." placeholder
       setMessages((prev) => [
         ...prev,
         {
@@ -177,59 +292,20 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
         },
       ]);
 
-      let accumulatedContent = '';
+      await streamBackendResponse(
+        textToSend,
+        tickers,
+        assistantMessageId,
+        abortControllerRef.current.signal,
+      );
 
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-
-        // Parse the chunk (adjust based on your API's response format)
-        try {
-          const lines = chunk.split('\n').filter((line) => line.trim());
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = JSON.parse(line.slice(6));
-
-              if (data.content || data.delta || data.answer) {
-                const newContent = data.content || data.delta || data.answer;
-                accumulatedContent += newContent;
-
-                // Update the streaming message
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantMessageId
-                      ? { ...msg, content: accumulatedContent }
-                      : msg,
-                  ),
-                );
-              }
-            }
-          }
-        } catch (parseError) {
-          // If not JSON, treat as plain text
-          accumulatedContent += chunk;
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantMessageId
-                ? { ...msg, content: accumulatedContent }
-                : msg,
-            ),
-          );
-        }
-      }
-
-      // Mark streaming as complete
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMessageId ? { ...msg, isStreaming: false } : msg,
         ),
       );
     } catch (e: any) {
-      if (e.name === 'AbortError') {
+      if (e.name === 'AbortError' || e.message === 'AbortError') {
         setError('Request cancelled');
       } else {
         setError(
@@ -237,7 +313,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
         );
       }
 
-      // Remove the streaming message on error
       setMessages((prev) =>
         prev.filter((msg) => msg.id !== assistantMessageId),
       );
@@ -308,7 +383,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   </button>
                 </div>
 
-                <div className="max-h-64 overflow-y-auto px-4 py-3 space-y-2 text-sm">
+                <div className="max-h-96 overflow-y-scroll px-4 py-3 space-y-2 text-sm">
                   {messages.length === 0 && !error && !loading && (
                     <p className="text-muted-foreground text-xs">
                       {contextData
@@ -329,10 +404,16 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                         className={`px-3 py-2 rounded-xl max-w-[80%] ${
                           m.role === 'user'
                             ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-foreground'
+                            : 'bg-transparent text-foreground'
                         }`}
                       >
-                        {m.role === 'assistant' && m.isStreaming ? (
+                        {m.role === 'assistant' &&
+                        m.isStreaming &&
+                        !m.content ? (
+                          <span className="text-muted-foreground animate-pulse">
+                            Thinking...
+                          </span>
+                        ) : m.role === 'assistant' && m.isStreaming ? (
                           <StreamingText
                             text={m.content}
                             isStreaming={true}
