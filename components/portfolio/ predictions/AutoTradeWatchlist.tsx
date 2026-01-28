@@ -1,5 +1,6 @@
 'use client';
 
+import StockLogo from '@/components/StockLogo';
 import {
   Card,
   CardContent,
@@ -16,6 +17,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { getCompanyName } from '@/lib/tickerMap';
 
 interface AutoTradeStock {
   symbol: string;
@@ -397,6 +399,13 @@ export default function AutoTradeCard() {
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-foreground">
                         {stock.symbol}
+                      </span>{' '}
+                      <span className="font-semibold text-foreground">
+                        <StockLogo
+                          symbol={stock.symbol}
+                          name={stock.name}
+                          size="md"
+                        />
                       </span>
                       <span className="text-xs text-muted-foreground px-1.5 py-0.5 bg-muted/50 rounded">
                         {stock.type}
@@ -448,7 +457,7 @@ export default function AutoTradeCard() {
               }`}
             >
               <div className="flex items-center gap-3">
-                <button
+                {/* <button
                   onClick={() => toggleAutoTradeEnabled(stock.symbol)}
                   className={`w-10 h-6 rounded-full relative transition-colors ${
                     stock.enabled ? 'bg-primary' : 'bg-muted'
@@ -459,11 +468,16 @@ export default function AutoTradeCard() {
                       stock.enabled ? 'left-5' : 'left-1'
                     }`}
                   />
-                </button>
+                </button> */}
+
+                <StockLogo symbol={stock.symbol} name={stock.name} size="md" />
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex text-left flex-col items-start gap-1">
                     <p className="text-foreground font-medium text-xs">
                       {stock.symbol}
+                    </p>{' '}
+                    <p className="text-foreground/50 font-medium text-xs">
+                      {getCompanyName(stock.symbol)}
                     </p>
                   </div>
                 </div>
