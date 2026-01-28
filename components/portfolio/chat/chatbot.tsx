@@ -13,6 +13,197 @@ import {
 } from 'lucide-react';
 import StreamingText from './StreamingText';
 
+function MarkdownStreamingContent({
+  content,
+  isStreaming,
+}: {
+  content: string;
+  isStreaming: boolean;
+}) {
+  const [displayedText, setDisplayedText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const animationFrameRef = useRef<number>();
+  const lastUpdateRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!isStreaming) {
+      setDisplayedText(content);
+      setCurrentIndex(content.length);
+      return;
+    }
+
+    if (currentIndex > content.length) {
+      setCurrentIndex(0);
+      setDisplayedText('');
+    }
+
+    const speed = 20;
+
+    const animate = (timestamp: number) => {
+      if (lastUpdateRef.current === 0) {
+        lastUpdateRef.current = timestamp;
+      }
+
+      const elapsed = timestamp - lastUpdateRef.current;
+
+      if (elapsed >= speed && currentIndex < content.length) {
+        const nextIndex = Math.min(currentIndex + 1, content.length);
+        setDisplayedText(content.slice(0, nextIndex));
+        setCurrentIndex(nextIndex);
+        lastUpdateRef.current = timestamp;
+      }
+
+      if (currentIndex < content.length) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [content, currentIndex, isStreaming]);
+
+  const parseMarkdown = (text: string) => {
+    const parts: JSX.Element[] = [];
+    let buffer = '';
+    let i = 0;
+
+    while (i < text.length) {
+      if (text[i] === '*' && text[i + 1] === '*') {
+        if (buffer) {
+          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
+          buffer = '';
+        }
+
+        let j = i + 2;
+        let boldText = '';
+        let foundClosing = false;
+
+        while (j < text.length - 1) {
+          if (text[j] === '*' && text[j + 1] === '*') {
+            boldText = text.slice(i + 2, j);
+            foundClosing = true;
+            j += 2;
+            break;
+          }
+          j++;
+        }
+
+        if (foundClosing) {
+          parts.push(
+            <strong key={`bold-${parts.length}`} className="font-semibold">
+              {boldText}
+            </strong>,
+          );
+          i = j;
+        } else {
+          buffer += text.slice(i, j);
+          i = j;
+        }
+      } else if (
+        text[i] === '*' &&
+        text[i + 1] !== '*' &&
+        (i === 0 || text[i - 1] !== '*')
+      ) {
+        if (buffer) {
+          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
+          buffer = '';
+        }
+
+        let j = i + 1;
+        let italicText = '';
+        let foundClosing = false;
+
+        while (j < text.length) {
+          if (
+            text[j] === '*' &&
+            (j === text.length - 1 || text[j + 1] !== '*')
+          ) {
+            italicText = text.slice(i + 1, j);
+            foundClosing = true;
+            j += 1;
+            break;
+          }
+          j++;
+        }
+
+        if (foundClosing) {
+          parts.push(
+            <em key={`italic-${parts.length}`} className="italic">
+              {italicText}
+            </em>,
+          );
+          i = j;
+        } else {
+          buffer += text.slice(i, j);
+          i = j;
+        }
+      } else if (text[i] === '`') {
+        if (buffer) {
+          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
+          buffer = '';
+        }
+
+        let j = i + 1;
+        let codeText = '';
+        let foundClosing = false;
+
+        while (j < text.length) {
+          if (text[j] === '`') {
+            codeText = text.slice(i + 1, j);
+            foundClosing = true;
+            j += 1;
+            break;
+          }
+          j++;
+        }
+
+        if (foundClosing) {
+          parts.push(
+            <code
+              key={`code-${parts.length}`}
+              className="px-1 py-0.5 bg-muted rounded text-xs font-mono"
+            >
+              {codeText}
+            </code>,
+          );
+          i = j;
+        } else {
+          buffer += text.slice(i, j);
+          i = j;
+        }
+      } else if (text[i] === '\n') {
+        if (buffer) {
+          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
+          buffer = '';
+        }
+        parts.push(<br key={`br-${parts.length}`} />);
+        i++;
+      } else {
+        buffer += text[i];
+        i++;
+      }
+    }
+
+    if (buffer) {
+      parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
+    }
+
+    return parts;
+  };
+
+  return (
+    <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+      {parseMarkdown(displayedText)}
+      {isStreaming && <span className="animate-pulse">|</span>}
+    </div>
+  );
+}
+
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -38,15 +229,16 @@ export default function ChatComponent() {
 
   const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`;
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    // Use requestAnimationFrame to ensure scroll happens after render
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({
+        behavior: 'auto',
+        block: 'end',
+      });
+    });
   }, [chatMessages]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
@@ -55,7 +247,6 @@ export default function ChatComponent() {
     };
   }, []);
 
-  // SSE streaming function - same as AskAI
   const streamBackendResponse = async (
     userMessage: string,
     assistantMessageId: string,
@@ -69,7 +260,7 @@ export default function ChatComponent() {
       },
       body: JSON.stringify({
         message: userMessage,
-        tickers: [], // Empty array for general chat, no specific tickers
+        tickers: [],
       }),
       signal: signal,
     });
@@ -220,7 +411,6 @@ export default function ChatComponent() {
     abortControllerRef.current = new AbortController();
 
     try {
-      // Add empty assistant message
       setChatMessages((prev) => [
         ...prev,
         {
@@ -231,14 +421,12 @@ export default function ChatComponent() {
         },
       ]);
 
-      // Stream from backend
       await streamBackendResponse(
         messageToSend,
         assistantMessageId,
         abortControllerRef.current.signal,
       );
 
-      // Mark streaming as complete
       setChatMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMessageId ? { ...msg, isStreaming: false } : msg,
@@ -277,39 +465,6 @@ export default function ChatComponent() {
     });
   };
 
-  const renderMessageContent = (content: string, isStreaming: boolean) => {
-    const parts = content.split(/(\*\*[^*]+\*\*|•[^\n]+)/);
-
-    return (
-      <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-        {parts.map((part, i) => {
-          if (part.startsWith('**') && part.endsWith('**')) {
-            return (
-              <strong key={i} className="font-semibold">
-                <StreamingText
-                  text={part.slice(2, -2)}
-                  isStreaming={isStreaming}
-                />
-              </strong>
-            );
-          }
-          if (part.startsWith('•')) {
-            return (
-              <span key={i} className="block ml-2 text-muted-foreground">
-                <StreamingText text={part} isStreaming={isStreaming} />
-              </span>
-            );
-          }
-          return (
-            <span key={i}>
-              <StreamingText text={part} isStreaming={isStreaming} />
-            </span>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <Card className="bg-card border-border flex flex-col overflow-hidden h-full min-h-[500px]">
       <CardHeader className="pb-3 flex-shrink-0 flex flex-row items-center justify-between">
@@ -326,7 +481,6 @@ export default function ChatComponent() {
         </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
-        {/* Chat messages */}
         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
           {chatMessages.map((message) => (
             <div
@@ -337,16 +491,15 @@ export default function ChatComponent() {
             >
               {message.role === 'assistant' ? (
                 <div className="max-w-[90%] space-y-2">
-                  {/* Show "Thinking..." while waiting for first token */}
                   {message.isStreaming && !message.content ? (
                     <span className="text-sm text-muted-foreground animate-pulse">
                       Thinking...
                     </span>
                   ) : (
-                    renderMessageContent(
-                      message.content,
-                      message.isStreaming || false,
-                    )
+                    <MarkdownStreamingContent
+                      content={message.content}
+                      isStreaming={message.isStreaming || false}
+                    />
                   )}
 
                   {message.sources && message.sources.length > 0 && (
@@ -363,7 +516,6 @@ export default function ChatComponent() {
                     </div>
                   )}
 
-                  {/* Action buttons - show after streaming completes */}
                   {!message.isStreaming && message.content && (
                     <div className="flex items-center gap-2 pt-1">
                       <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
@@ -396,7 +548,6 @@ export default function ChatComponent() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Chat input */}
         <div className="p-4 border-t border-border">
           <div className="relative">
             <input
