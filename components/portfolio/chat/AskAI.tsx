@@ -20,18 +20,14 @@ function MarkdownStreamingContent({
 
   useEffect(() => {
     if (!isStreaming) {
-      // When streaming stops, show all content immediately
       setDisplayedText(content);
       setCurrentIndex(content.length);
       return;
     }
-
-    // Reset if content changed (new message)
     if (currentIndex > content.length) {
       setCurrentIndex(0);
       setDisplayedText('');
     }
-
     // Streaming animation
     const speed = 20; // milliseconds per character
 
@@ -63,7 +59,6 @@ function MarkdownStreamingContent({
     };
   }, [content, currentIndex, isStreaming]);
 
-  // Parse markdown in real-time
   const parseMarkdown = (text: string) => {
     const parts: JSX.Element[] = [];
     let buffer = '';
@@ -77,7 +72,6 @@ function MarkdownStreamingContent({
           parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
           buffer = '';
         }
-
         // Find closing **
         let j = i + 2;
         let boldText = '';
@@ -294,7 +288,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }, [open]);
 
-  // SSE streaming function with proper parsing for token-based responses
   const streamBackendResponse = async (
     userMessage: string,
     tickers: string[],
@@ -365,7 +358,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
               const token = parsed.token || '';
 
               if (token) {
-                // First token received - remove thinking indicator
                 if (!hasReceivedFirstToken) {
                   hasReceivedFirstToken = true;
                 }
@@ -489,7 +481,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
       console.log('Sending to backend:', { message: textToSend, tickers });
 
-      // Add assistant message with "Thinking..." placeholder
       setMessages((prev) => [
         ...prev,
         {
@@ -618,9 +609,14 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                         {m.role === 'assistant' &&
                         m.isStreaming &&
                         !m.content ? (
-                          <span className="text-muted-foreground animate-pulse">
-                            Thinking...
-                          </span>
+                          <div className="flex flex-row gap-2 justify-start items-center">
+                            <span
+                              className={`w-2 h-2 rounded-full bg-teal-300 animate-pulse`}
+                            />
+                            <span className="text-muted-foreground animate-pulse">
+                              Thinking...
+                            </span>
+                          </div>
                         ) : m.role === 'assistant' ? (
                           <MarkdownStreamingContent
                             content={m.content}
@@ -647,11 +643,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   <div className="flex-1 flex items-center gap-2">
                     <input
                       className="flex-1 text-sm bg-border border-border rounded-xl px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-gray-600 focus-visible:border-gray-600 transition-all"
-                      placeholder={
-                        loading
-                          ? 'Thinking...'
-                          : 'Ask anything about your portfolio...'
-                      }
+                      placeholder={'Ask anything about your portfolio...'}
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={(e) => {

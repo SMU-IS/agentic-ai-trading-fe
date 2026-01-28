@@ -398,14 +398,14 @@ export default function AutoTradeCard() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-foreground">
-                        {stock.symbol}
-                      </span>{' '}
-                      <span className="font-semibold text-foreground">
                         <StockLogo
                           symbol={stock.symbol}
                           name={stock.name}
                           size="md"
                         />
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        {stock.symbol}
                       </span>
                       <span className="text-xs text-muted-foreground px-1.5 py-0.5 bg-muted/50 rounded">
                         {stock.type}

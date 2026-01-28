@@ -528,12 +528,12 @@ export default function ChatComponent() {
                       >
                         <Copy className="w-4 h-4" />
                       </button>
-                      <button className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors">
+                      {/* <button className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors">
                         <ThumbsUp className="w-4 h-4" />
                       </button>
                       <button className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors">
                         <ThumbsDown className="w-4 h-4" />
-                      </button>
+                      </button> */}
                     </div>
                   )}
                 </div>

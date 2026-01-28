@@ -504,7 +504,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                   Qty
                 </th>
                 <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4">
-                  Bought Price
+                  Avg. Bought Price
                 </th>
                 <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4">
                   Current Price
@@ -539,10 +539,13 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                       Symbol
                     </th>
                     <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4 hidden sm:table-cell">
+                      Stock
+                    </th>
+                    <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4 hidden sm:table-cell">
                       Qty
                     </th>
                     <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4">
-                      Sold Price
+                      Avg. Sold Price
                     </th>
                     <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4">
                       Current Price
