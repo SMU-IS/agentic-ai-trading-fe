@@ -34,6 +34,9 @@ export default function ChatComponent() {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -43,92 +46,228 @@ export default function ChatComponent() {
     scrollToBottom();
   }, [chatMessages]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // SSE streaming function - same as AskAI
+  const streamBackendResponse = async (
+    userMessage: string,
+    assistantMessageId: string,
+    signal: AbortSignal,
+  ) => {
+    const response = await fetch(`${BASE_URL}/rag/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer test',
+      },
+      body: JSON.stringify({
+        message: userMessage,
+        tickers: [], // Empty array for general chat, no specific tickers
+      }),
+      signal: signal,
+    });
+
+    console.log('res', response);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    let accumulatedContent = '';
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      const events = buffer.split('\n\n');
+      buffer = events.pop() || '';
+
+      for (const event of events) {
+        if (!event.trim()) continue;
+
+        const lines = event.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+
+            if (data.trim() === '[DONE]') {
+              continue;
+            }
+
+            try {
+              const parsed = JSON.parse(data);
+
+              if (parsed.error) {
+                throw new Error(parsed.error);
+              }
+
+              const token = parsed.token || '';
+
+              if (token) {
+                accumulatedContent += token;
+
+                setChatMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? {
+                          ...msg,
+                          content: accumulatedContent,
+                          isStreaming: true,
+                        }
+                      : msg,
+                  ),
+                );
+              }
+            } catch (parseError) {
+              if (data.trim() && data.trim() !== '[DONE]') {
+                accumulatedContent += data;
+                setChatMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? {
+                          ...msg,
+                          content: accumulatedContent,
+                          isStreaming: true,
+                        }
+                      : msg,
+                  ),
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (buffer.trim()) {
+      const lines = buffer.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data.trim() && data.trim() !== '[DONE]') {
+            try {
+              const parsed = JSON.parse(data);
+              const token = parsed.token || '';
+              if (token) {
+                accumulatedContent += token;
+                setChatMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? {
+                          ...msg,
+                          content: accumulatedContent,
+                          isStreaming: true,
+                        }
+                      : msg,
+                  ),
+                );
+              }
+            } catch {
+              accumulatedContent += data;
+              setChatMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, content: accumulatedContent, isStreaming: true }
+                    : msg,
+                ),
+              );
+            }
+          }
+        }
+      }
+    }
+  };
+
   const sendChatMessage = async () => {
     if (!chatInput.trim() || isLoading) return;
 
+    const userMessageId = `user-${Date.now()}`;
+    const assistantMessageId = `assistant-${Date.now()}`;
+
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: userMessageId,
       role: 'user',
       content: chatInput,
       isStreaming: false,
     };
 
     setChatMessages((prev) => [...prev, userMessage]);
+
+    const messageToSend = chatInput;
     setChatInput('');
     setIsLoading(true);
 
+    abortControllerRef.current = new AbortController();
+
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API_URL}/chatbot/query`,
+      // Add empty assistant message
+      setChatMessages((prev) => [
+        ...prev,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: chatInput,
-            user_id: 'current_user', // Replace with actual user ID from auth
-          }),
+          id: assistantMessageId,
+          role: 'assistant',
+          content: '',
+          isStreaming: true,
         },
+      ]);
+
+      // Stream from backend
+      await streamBackendResponse(
+        messageToSend,
+        assistantMessageId,
+        abortControllerRef.current.signal,
       );
 
-      if (!response.ok) {
-        throw new Error('Failed to get response from chatbot');
+      // Mark streaming as complete
+      setChatMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId ? { ...msg, isStreaming: false } : msg,
+        ),
+      );
+    } catch (e: any) {
+      console.error('Error sending message:', e);
+
+      if (e.name === 'AbortError' || e.message === 'AbortError') {
+        setChatMessages((prev) =>
+          prev.filter((msg) => msg.id !== assistantMessageId),
+        );
+      } else {
+        setChatMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? {
+                  ...msg,
+                  content:
+                    'I apologize, but I encountered an error processing your request. Please try again.',
+                  isStreaming: false,
+                }
+              : msg,
+          ),
+        );
       }
-
-      const data = await response.json();
-
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content:
-          data.response ||
-          data.answer ||
-          'I apologize, but I could not process your request.',
-        sources: data.sources || [],
-        isStreaming: true,
-      };
-
-      setChatMessages((prev) => [...prev, assistantMessage]);
-
-      // After streaming completes, update to non-streaming
-      setTimeout(
-        () => {
-          setChatMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantMessage.id
-                ? { ...msg, isStreaming: false }
-                : msg,
-            ),
-          );
-        },
-        assistantMessage.content.length * 30 + 100,
-      );
-    } catch (error) {
-      console.error('Error sending message:', error);
-
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content:
-          'I apologize, but I encountered an error processing your request. Please try again.',
-        isStreaming: true,
-      };
-
-      setChatMessages((prev) => [...prev, errorMessage]);
-
-      setTimeout(
-        () => {
-          setChatMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === errorMessage.id ? { ...msg, isStreaming: false } : msg,
-            ),
-          );
-        },
-        errorMessage.content.length * 30 + 100,
-      );
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -198,9 +337,16 @@ export default function ChatComponent() {
             >
               {message.role === 'assistant' ? (
                 <div className="max-w-[90%] space-y-2">
-                  {renderMessageContent(
-                    message.content,
-                    message.isStreaming || false,
+                  {/* Show "Thinking..." while waiting for first token */}
+                  {message.isStreaming && !message.content ? (
+                    <span className="text-sm text-muted-foreground animate-pulse">
+                      Thinking...
+                    </span>
+                  ) : (
+                    renderMessageContent(
+                      message.content,
+                      message.isStreaming || false,
+                    )
                   )}
 
                   {message.sources && message.sources.length > 0 && (
@@ -218,7 +364,7 @@ export default function ChatComponent() {
                   )}
 
                   {/* Action buttons - show after streaming completes */}
-                  {!message.isStreaming && (
+                  {!message.isStreaming && message.content && (
                     <div className="flex items-center gap-2 pt-1">
                       <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
                         <Bookmark className="w-3.5 h-3.5" />
@@ -246,31 +392,6 @@ export default function ChatComponent() {
               )}
             </div>
           ))}
-
-          {/* Loading indicator */}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="max-w-[90%] space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="flex gap-1">
-                    <span
-                      className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                      style={{ animationDelay: '0ms' }}
-                    />
-                    <span
-                      className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                      style={{ animationDelay: '150ms' }}
-                    />
-                    <span
-                      className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                      style={{ animationDelay: '300ms' }}
-                    />
-                  </div>
-                  <span>Agent M is thinking...</span>
-                </div>
-              </div>
-            </div>
-          )}
 
           <div ref={messagesEndRef} />
         </div>

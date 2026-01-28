@@ -6,6 +6,214 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import StreamingText from './StreamingText';
 
+function MarkdownStreamingContent({
+  content,
+  isStreaming,
+}: {
+  content: string;
+  isStreaming: boolean;
+}) {
+  const [displayedText, setDisplayedText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const animationFrameRef = useRef<number>();
+  const lastUpdateRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!isStreaming) {
+      // When streaming stops, show all content immediately
+      setDisplayedText(content);
+      setCurrentIndex(content.length);
+      return;
+    }
+
+    // Reset if content changed (new message)
+    if (currentIndex > content.length) {
+      setCurrentIndex(0);
+      setDisplayedText('');
+    }
+
+    // Streaming animation
+    const speed = 20; // milliseconds per character
+
+    const animate = (timestamp: number) => {
+      if (lastUpdateRef.current === 0) {
+        lastUpdateRef.current = timestamp;
+      }
+
+      const elapsed = timestamp - lastUpdateRef.current;
+
+      if (elapsed >= speed && currentIndex < content.length) {
+        const nextIndex = Math.min(currentIndex + 1, content.length);
+        setDisplayedText(content.slice(0, nextIndex));
+        setCurrentIndex(nextIndex);
+        lastUpdateRef.current = timestamp;
+      }
+
+      if (currentIndex < content.length) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [content, currentIndex, isStreaming]);
+
+  // Parse markdown in real-time
+  const parseMarkdown = (text: string) => {
+    const parts: JSX.Element[] = [];
+    let buffer = '';
+    let i = 0;
+
+    while (i < text.length) {
+      // Check for bold: **text**
+      if (text[i] === '*' && text[i + 1] === '*') {
+        // Save any buffer text first
+        if (buffer) {
+          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
+          buffer = '';
+        }
+
+        // Find closing **
+        let j = i + 2;
+        let boldText = '';
+        let foundClosing = false;
+
+        while (j < text.length - 1) {
+          if (text[j] === '*' && text[j + 1] === '*') {
+            boldText = text.slice(i + 2, j);
+            foundClosing = true;
+            j += 2;
+            break;
+          }
+          j++;
+        }
+
+        if (foundClosing) {
+          parts.push(
+            <strong key={`bold-${parts.length}`} className="font-semibold">
+              {boldText}
+            </strong>,
+          );
+          i = j;
+        } else {
+          // No closing **, treat as regular text (still streaming)
+          buffer += text.slice(i, j);
+          i = j;
+        }
+      }
+      // Check for italic: *text* (single asterisk, not **)
+      else if (
+        text[i] === '*' &&
+        text[i + 1] !== '*' &&
+        (i === 0 || text[i - 1] !== '*')
+      ) {
+        if (buffer) {
+          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
+          buffer = '';
+        }
+
+        let j = i + 1;
+        let italicText = '';
+        let foundClosing = false;
+
+        while (j < text.length) {
+          if (
+            text[j] === '*' &&
+            (j === text.length - 1 || text[j + 1] !== '*')
+          ) {
+            italicText = text.slice(i + 1, j);
+            foundClosing = true;
+            j += 1;
+            break;
+          }
+          j++;
+        }
+
+        if (foundClosing) {
+          parts.push(
+            <em key={`italic-${parts.length}`} className="italic">
+              {italicText}
+            </em>,
+          );
+          i = j;
+        } else {
+          buffer += text.slice(i, j);
+          i = j;
+        }
+      }
+      // Check for inline code: `text`
+      else if (text[i] === '`') {
+        if (buffer) {
+          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
+          buffer = '';
+        }
+
+        let j = i + 1;
+        let codeText = '';
+        let foundClosing = false;
+
+        while (j < text.length) {
+          if (text[j] === '`') {
+            codeText = text.slice(i + 1, j);
+            foundClosing = true;
+            j += 1;
+            break;
+          }
+          j++;
+        }
+
+        if (foundClosing) {
+          parts.push(
+            <code
+              key={`code-${parts.length}`}
+              className="px-1 py-0.5 bg-muted rounded text-xs font-mono"
+            >
+              {codeText}
+            </code>,
+          );
+          i = j;
+        } else {
+          buffer += text.slice(i, j);
+          i = j;
+        }
+      }
+      // Check for newlines
+      else if (text[i] === '\n') {
+        if (buffer) {
+          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
+          buffer = '';
+        }
+        parts.push(<br key={`br-${parts.length}`} />);
+        i++;
+      }
+      // Regular character
+      else {
+        buffer += text[i];
+        i++;
+      }
+    }
+
+    // Add any remaining buffer
+    if (buffer) {
+      parts.push(<span key={`text-${parts.length}`}>{buffer}</span>);
+    }
+
+    return parts;
+  };
+
+  return (
+    <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+      {parseMarkdown(displayedText)}
+      {isStreaming && <span className="animate-pulse">|</span>}
+    </div>
+  );
+}
+
 interface AskAIProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -396,14 +604,14 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                     <div
                       key={m.id}
                       className={`
-                        flex animate-slide-up
-                        ${m.role === 'user' ? 'justify-end' : 'justify-start'}
-                      `}
+      flex animate-slide-up
+      ${m.role === 'user' ? 'justify-end' : 'justify-start'}
+    `}
                     >
                       <div
                         className={`px-3 py-2 rounded-xl max-w-[80%] ${
                           m.role === 'user'
-                            ? 'bg-primary text-primary-foreground'
+                            ? 'bg-teal-300 text-primary-foreground'
                             : 'bg-transparent text-foreground'
                         }`}
                       >
@@ -413,11 +621,10 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                           <span className="text-muted-foreground animate-pulse">
                             Thinking...
                           </span>
-                        ) : m.role === 'assistant' && m.isStreaming ? (
-                          <StreamingText
-                            text={m.content}
-                            isStreaming={true}
-                            speed={20}
+                        ) : m.role === 'assistant' ? (
+                          <MarkdownStreamingContent
+                            content={m.content}
+                            isStreaming={m.isStreaming || false}
                           />
                         ) : (
                           <span className="whitespace-pre-wrap">
@@ -433,7 +640,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       {error}
                     </p>
                   )}
-
                   <div ref={messagesEndRef} />
                 </div>
 
