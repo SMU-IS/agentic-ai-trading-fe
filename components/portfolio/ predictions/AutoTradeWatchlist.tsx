@@ -1,13 +1,13 @@
-'use client'
+"use client"
 
-import StockLogo from '@/components/StockLogo'
+import StockLogo from "@/components/StockLogo"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from "@/components/ui/card"
 import {
   Plus,
   Search,
@@ -15,9 +15,9 @@ import {
   TrendingDown,
   TrendingUp,
   Zap,
-} from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { getCompanyName } from '@/lib/tickerMap'
+} from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { getCompanyName } from "@/lib/tickerMap"
 
 interface AutoTradeStock {
   symbol: string
@@ -27,7 +27,7 @@ interface AutoTradeStock {
   changePercent: number
   enabled: boolean
   qty: number
-  side: 'long' | 'short'
+  side: "long" | "short"
   unrealizedPL: number
 }
 
@@ -60,7 +60,7 @@ interface PositionResponse {
   asset_marginable: boolean
   avg_entry_price: string
   qty: string
-  side: 'long' | 'short'
+  side: "long" | "short"
   market_value: string
   cost_basis: string
   unrealized_pl: string
@@ -74,7 +74,7 @@ interface PositionResponse {
 }
 
 export default function AutoTradeCard() {
-  const [autoTradeSearch, setAutoTradeSearch] = useState('')
+  const [autoTradeSearch, setAutoTradeSearch] = useState("")
   const [searchResults, setSearchResults] = useState<StockSearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
@@ -95,14 +95,14 @@ export default function AutoTradeCard() {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
           {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
           },
         )
 
         if (!res.ok) {
           const text = await res.text()
-          throw new Error(text || 'Failed to fetch positions')
+          throw new Error(text || "Failed to fetch positions")
         }
 
         const data: PositionResponse[] = await res.json()
@@ -117,7 +117,7 @@ export default function AutoTradeCard() {
 
           return {
             symbol: position.symbol,
-            name: `${position.symbol} ${position.asset_class === 'crypto' ? 'Crypto' : 'Equity'}`,
+            name: `${position.symbol} ${position.asset_class === "crypto" ? "Crypto" : "Equity"}`,
             currentPrice: currentPrice,
             change: currentPrice - lastDayPrice,
             changePercent: changeToday * 100, // Convert to percentage
@@ -130,7 +130,7 @@ export default function AutoTradeCard() {
 
         setAutoTradeStocks(mapped)
       } catch (error) {
-        console.error('Error loading positions:', error)
+        console.error("Error loading positions:", error)
         // Fallback to empty array on error
         setAutoTradeStocks([])
       } finally {
@@ -226,15 +226,15 @@ export default function AutoTradeCard() {
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
   const selectStock = (stock: StockSearchResult) => {
     const upperSymbol = stock.symbol.toUpperCase().trim()
 
     if (autoTradeStocks.some((s) => s.symbol === upperSymbol)) {
-      setAutoTradeSearch('')
+      setAutoTradeSearch("")
       setSearchResults([])
       setShowDropdown(false)
       return
@@ -250,11 +250,11 @@ export default function AutoTradeCard() {
         changePercent: stock.changePercent || 0,
         enabled: true,
         qty: 0,
-        side: 'long',
+        side: "long",
         unrealizedPL: 0,
       },
     ])
-    setAutoTradeSearch('')
+    setAutoTradeSearch("")
     setSearchResults([])
     setShowDropdown(false)
   }
@@ -264,7 +264,7 @@ export default function AutoTradeCard() {
     if (!upperSymbol) return
 
     if (autoTradeStocks.some((s) => s.symbol === upperSymbol)) {
-      setAutoTradeSearch('')
+      setAutoTradeSearch("")
       return
     }
 
@@ -279,11 +279,11 @@ export default function AutoTradeCard() {
         changePercent: 0,
         enabled: true,
         qty: 0,
-        side: 'long',
+        side: "long",
         unrealizedPL: 0,
       },
     ])
-    setAutoTradeSearch('')
+    setAutoTradeSearch("")
   }
 
   const removeFromAutoTrade = (symbol: string) => {
@@ -303,13 +303,13 @@ export default function AutoTradeCard() {
     if (!willBeEnabled) return
 
     try {
-      await fetch('/api/auto-trade/enable', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/auto-trade/enable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbol }),
       })
     } catch (e) {
-      console.error('Failed to notify auto-trade enable', e)
+      console.error("Failed to notify auto-trade enable", e)
     }
   }
 
@@ -348,7 +348,7 @@ export default function AutoTradeCard() {
           <p className="text-xs text-muted-foreground">
             <span className="font-medium text-primary">
               Add a stock into your watchlist
-            </span>{' '}
+            </span>{" "}
             for automatic trading based on predictions
           </p>
         </div>
@@ -363,8 +363,8 @@ export default function AutoTradeCard() {
             value={autoTradeSearch}
             onChange={handleSearchChange}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') addToAutoTrade(autoTradeSearch)
-              if (e.key === 'Escape') setShowDropdown(false)
+              if (e.key === "Enter") addToAutoTrade(autoTradeSearch)
+              if (e.key === "Escape") setShowDropdown(false)
             }}
             onFocus={() => {
               if (searchResults.length > 0) setShowDropdown(true)
@@ -425,8 +425,8 @@ export default function AutoTradeCard() {
                         <div
                           className={`flex items-center justify-end gap-0.5 text-xs ${
                             stock.changePercent >= 0
-                              ? 'text-primary'
-                              : 'text-red-400'
+                              ? "text-primary"
+                              : "text-red-400"
                           }`}
                         >
                           {stock.changePercent >= 0 ? (
@@ -434,7 +434,7 @@ export default function AutoTradeCard() {
                           ) : (
                             <TrendingDown className="h-3 w-3" />
                           )}
-                          {stock.changePercent >= 0 ? '+' : ''}
+                          {stock.changePercent >= 0 ? "+" : ""}
                           {stock.changePercent.toFixed(2)}%
                         </div>
                       )}
@@ -452,8 +452,8 @@ export default function AutoTradeCard() {
               key={stock.symbol}
               className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
                 stock.enabled
-                  ? 'border-primary/30 bg-primary/5'
-                  : 'border-border bg-muted/20'
+                  ? "border-primary/30 bg-primary/5"
+                  : "border-border bg-muted/20"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -475,7 +475,7 @@ export default function AutoTradeCard() {
                   <div className="flex flex-col items-start gap-1 text-left">
                     <p className="text-xs font-medium text-foreground">
                       {stock.symbol}
-                    </p>{' '}
+                    </p>{" "}
                     <p className="text-xs font-medium text-foreground/50">
                       {getCompanyName(stock.symbol)}
                     </p>
@@ -487,7 +487,7 @@ export default function AutoTradeCard() {
                 <div className="text-right">
                   <p className="text-xs font-medium text-foreground">
                     $
-                    {stock.currentPrice.toLocaleString('en-US', {
+                    {stock.currentPrice.toLocaleString("en-US", {
                       minimumFractionDigits: 2,
                     })}
                   </p>
@@ -495,8 +495,8 @@ export default function AutoTradeCard() {
                     <span
                       className={
                         stock.changePercent >= 0
-                          ? 'text-primary'
-                          : 'text-red-400'
+                          ? "text-primary"
+                          : "text-red-400"
                       }
                     >
                       {stock.changePercent >= 0 ? (
@@ -504,7 +504,7 @@ export default function AutoTradeCard() {
                       ) : (
                         <TrendingDown className="mr-0.5 inline h-3 w-3" />
                       )}
-                      {stock.changePercent >= 0 ? '+' : ''}
+                      {stock.changePercent >= 0 ? "+" : ""}
                       {stock.changePercent.toFixed(2)}%
                     </span>
                   </p>
@@ -535,7 +535,7 @@ export default function AutoTradeCard() {
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Active trades</span>
               <span className="font-medium text-foreground">
-                {autoTradeStocks.filter((s) => s.enabled).length} of{' '}
+                {autoTradeStocks.filter((s) => s.enabled).length} of{" "}
                 {autoTradeStocks.length}
               </span>
             </div>

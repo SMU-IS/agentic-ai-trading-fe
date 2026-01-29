@@ -1,13 +1,13 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from "@/components/ui/card"
 import {
   Area,
   AreaChart,
@@ -16,10 +16,10 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
-} from 'recharts'
-import { ChartContainer } from '@/components/ui/chart'
+} from "recharts"
+import { ChartContainer } from "@/components/ui/chart"
 
-type TimePeriod = 'Daily' | 'Weekly' | 'Monthly'
+type TimePeriod = "Daily" | "Weekly" | "Monthly"
 
 interface PortfolioHistoryPoint {
   date: string
@@ -27,7 +27,7 @@ interface PortfolioHistoryPoint {
 }
 
 export default function PerformanceChart() {
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("Weekly")
   const [performanceData, setPerformanceData] = useState<
     PortfolioHistoryPoint[]
   >([])
@@ -44,13 +44,13 @@ export default function PerformanceChart() {
         )
 
         if (!response.ok) {
-          throw new Error('Failed to fetch portfolio history')
+          throw new Error("Failed to fetch portfolio history")
         }
 
         const data = await response.json()
         setPerformanceData(data.historical || [])
       } catch (err) {
-        console.error('Error fetching portfolio history:', err)
+        console.error("Error fetching portfolio history:", err)
         setError(true)
         setPerformanceData([])
       } finally {
@@ -66,15 +66,15 @@ export default function PerformanceChart() {
     let startDate: Date
 
     switch (timePeriod) {
-      case 'Daily':
+      case "Daily":
         startDate = new Date(now)
         startDate.setDate(startDate.getDate() - 7) // Last 7 days
         break
-      case 'Weekly':
+      case "Weekly":
         startDate = new Date(now)
         startDate.setDate(startDate.getDate() - 30) // Last 30 days
         break
-      case 'Monthly':
+      case "Monthly":
         startDate = new Date(now)
         startDate.setMonth(startDate.getMonth() - 3) // Last 3 months
         break
@@ -109,23 +109,23 @@ export default function PerformanceChart() {
     const date = new Date(dateStr)
 
     // For Daily view, show day and month
-    if (timePeriod === 'Daily') {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
+    if (timePeriod === "Daily") {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
       })
     }
 
     // For Weekly view, show day and month
-    if (timePeriod === 'Weekly') {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
+    if (timePeriod === "Weekly") {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
       })
     }
 
     // For Monthly view, show month and year
-    const month = date.toLocaleDateString('en-US', { month: 'short' })
+    const month = date.toLocaleDateString("en-US", { month: "short" })
     const year = date.getFullYear()
 
     if (date.getMonth() === 0) {
@@ -137,32 +137,32 @@ export default function PerformanceChart() {
   const formatTooltipLabel = (label: string) => {
     const date = new Date(label)
 
-    if (timePeriod === 'Daily' || timePeriod === 'Weekly') {
-      return date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
+    if (timePeriod === "Daily" || timePeriod === "Weekly") {
+      return date.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
       })
     }
 
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     })
   }
 
   const getDescription = () => {
     switch (timePeriod) {
-      case 'Daily':
-        return 'Last 7 days performance'
-      case 'Weekly':
-        return 'Last 30 days performance'
-      case 'Monthly':
-        return 'Last 3 months performance'
+      case "Daily":
+        return "Last 7 days performance"
+      case "Weekly":
+        return "Last 30 days performance"
+      case "Monthly":
+        return "Last 3 months performance"
       default:
-        return 'Portfolio performance overview'
+        return "Portfolio performance overview"
     }
   }
 
@@ -178,14 +178,14 @@ export default function PerformanceChart() {
           </CardDescription>
         </div>
         <div className="flex items-center overflow-hidden rounded-lg border border-border">
-          {(['Daily', 'Weekly', 'Monthly'] as TimePeriod[]).map((period) => (
+          {(["Daily", "Weekly", "Monthly"] as TimePeriod[]).map((period) => (
             <button
               key={period}
               onClick={() => setTimePeriod(period)}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 timePeriod === period
-                  ? 'bg-card text-foreground'
-                  : 'bg-muted/30 text-muted-foreground hover:text-foreground'
+                  ? "bg-card text-foreground"
+                  : "bg-muted/30 text-muted-foreground hover:text-foreground"
               }`}
             >
               {period}
@@ -227,8 +227,8 @@ export default function PerformanceChart() {
           <ChartContainer
             config={{
               value: {
-                label: 'Portfolio Value',
-                color: 'hsl(221, 83%, 53%)',
+                label: "Portfolio Value",
+                color: "hsl(221, 83%, 53%)",
               },
             }}
             className="h-[350px] w-full"
@@ -267,19 +267,19 @@ export default function PerformanceChart() {
                   dataKey="date"
                   tickFormatter={formatXAxisDate}
                   tick={{
-                    fill: 'hsl(var(--muted-foreground))',
+                    fill: "hsl(var(--muted-foreground))",
                     fontSize: 12,
                   }}
                   axisLine={false}
                   tickLine={false}
                   interval="preserveStartEnd"
-                  minTickGap={timePeriod === 'Daily' ? 30 : 40}
+                  minTickGap={timePeriod === "Daily" ? 30 : 40}
                 />
                 <YAxis
                   domain={getYAxisDomain()}
                   tickFormatter={(val) => `$${(val / 1000).toFixed(1)}K`}
                   tick={{
-                    fill: 'hsl(var(--muted-foreground))',
+                    fill: "hsl(var(--muted-foreground))",
                     fontSize: 12,
                   }}
                   axisLine={false}
@@ -289,20 +289,20 @@ export default function PerformanceChart() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    padding: '8px 12px',
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
                   }}
                   labelStyle={{
-                    color: 'hsl(var(--foreground))',
+                    color: "hsl(var(--foreground))",
                     fontWeight: 500,
                     marginBottom: 4,
                   }}
-                  itemStyle={{ color: 'hsl(var(--muted-foreground))' }}
+                  itemStyle={{ color: "hsl(var(--muted-foreground))" }}
                   formatter={(value: number) => [
-                    `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                    'Value',
+                    `$${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                    "Value",
                   ]}
                   labelFormatter={formatTooltipLabel}
                 />

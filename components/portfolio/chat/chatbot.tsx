@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   BarChart3,
   Bookmark,
@@ -9,8 +9,8 @@ import {
   Send,
   ThumbsDown,
   ThumbsUp,
-} from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+} from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
 function MarkdownStreamingContent({
   content,
@@ -19,7 +19,7 @@ function MarkdownStreamingContent({
   content: string
   isStreaming: boolean
 }) {
-  const [displayedText, setDisplayedText] = useState('')
+  const [displayedText, setDisplayedText] = useState("")
   const [currentIndex, setCurrentIndex] = useState(0)
   const animationFrameRef = useRef<number>()
   const lastUpdateRef = useRef<number>(0)
@@ -33,7 +33,7 @@ function MarkdownStreamingContent({
 
     if (currentIndex > content.length) {
       setCurrentIndex(0)
-      setDisplayedText('')
+      setDisplayedText("")
     }
 
     const speed = 20
@@ -68,22 +68,22 @@ function MarkdownStreamingContent({
 
   const parseMarkdown = (text: string) => {
     const parts: JSX.Element[] = []
-    let buffer = ''
+    let buffer = ""
     let i = 0
 
     while (i < text.length) {
-      if (text[i] === '*' && text[i + 1] === '*') {
+      if (text[i] === "*" && text[i + 1] === "*") {
         if (buffer) {
           parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
-          buffer = ''
+          buffer = ""
         }
 
         let j = i + 2
-        let boldText = ''
+        let boldText = ""
         let foundClosing = false
 
         while (j < text.length - 1) {
-          if (text[j] === '*' && text[j + 1] === '*') {
+          if (text[j] === "*" && text[j + 1] === "*") {
             boldText = text.slice(i + 2, j)
             foundClosing = true
             j += 2
@@ -104,23 +104,23 @@ function MarkdownStreamingContent({
           i = j
         }
       } else if (
-        text[i] === '*' &&
-        text[i + 1] !== '*' &&
-        (i === 0 || text[i - 1] !== '*')
+        text[i] === "*" &&
+        text[i + 1] !== "*" &&
+        (i === 0 || text[i - 1] !== "*")
       ) {
         if (buffer) {
           parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
-          buffer = ''
+          buffer = ""
         }
 
         let j = i + 1
-        let italicText = ''
+        let italicText = ""
         let foundClosing = false
 
         while (j < text.length) {
           if (
-            text[j] === '*' &&
-            (j === text.length - 1 || text[j + 1] !== '*')
+            text[j] === "*" &&
+            (j === text.length - 1 || text[j + 1] !== "*")
           ) {
             italicText = text.slice(i + 1, j)
             foundClosing = true
@@ -141,18 +141,18 @@ function MarkdownStreamingContent({
           buffer += text.slice(i, j)
           i = j
         }
-      } else if (text[i] === '`') {
+      } else if (text[i] === "`") {
         if (buffer) {
           parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
-          buffer = ''
+          buffer = ""
         }
 
         let j = i + 1
-        let codeText = ''
+        let codeText = ""
         let foundClosing = false
 
         while (j < text.length) {
-          if (text[j] === '`') {
+          if (text[j] === "`") {
             codeText = text.slice(i + 1, j)
             foundClosing = true
             j += 1
@@ -175,10 +175,10 @@ function MarkdownStreamingContent({
           buffer += text.slice(i, j)
           i = j
         }
-      } else if (text[i] === '\n') {
+      } else if (text[i] === "\n") {
         if (buffer) {
           parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
-          buffer = ''
+          buffer = ""
         }
         parts.push(<br key={`br-${parts.length}`} />)
         i++
@@ -205,18 +205,18 @@ function MarkdownStreamingContent({
 
 interface ChatMessage {
   id: string
-  role: 'user' | 'assistant'
+  role: "user" | "assistant"
   content: string
   sources?: string[]
   isStreaming?: boolean
 }
 
 export default function ChatComponent() {
-  const [chatInput, setChatInput] = useState('')
+  const [chatInput, setChatInput] = useState("")
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
-      id: '1',
-      role: 'assistant',
+      id: "1",
+      role: "assistant",
       content:
         "Hello! I'm Agent M, your AI trading assistant. I can help you analyze markets, track your portfolio, or answer questions about prediction markets. How can I help you today?",
       isStreaming: false,
@@ -232,8 +232,8 @@ export default function ChatComponent() {
     // Use requestAnimationFrame to ensure scroll happens after render
     requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({
-        behavior: 'auto',
-        block: 'end',
+        behavior: "auto",
+        block: "end",
       })
     })
   }, [chatMessages])
@@ -252,10 +252,10 @@ export default function ChatComponent() {
     signal: AbortSignal,
   ) => {
     const response = await fetch(`${BASE_URL}/rag/chat`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer test',
+        "Content-Type": "application/json",
+        Authorization: "Bearer test",
       },
       body: JSON.stringify({
         message: userMessage,
@@ -273,11 +273,11 @@ export default function ChatComponent() {
     const decoder = new TextDecoder()
 
     if (!reader) {
-      throw new Error('No response body')
+      throw new Error("No response body")
     }
 
-    let accumulatedContent = ''
-    let buffer = ''
+    let accumulatedContent = ""
+    let buffer = ""
 
     while (true) {
       const { done, value } = await reader.read()
@@ -286,19 +286,19 @@ export default function ChatComponent() {
 
       buffer += decoder.decode(value, { stream: true })
 
-      const events = buffer.split('\n\n')
-      buffer = events.pop() || ''
+      const events = buffer.split("\n\n")
+      buffer = events.pop() || ""
 
       for (const event of events) {
         if (!event.trim()) continue
 
-        const lines = event.split('\n')
+        const lines = event.split("\n")
 
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
+          if (line.startsWith("data: ")) {
             const data = line.slice(6)
 
-            if (data.trim() === '[DONE]') {
+            if (data.trim() === "[DONE]") {
               continue
             }
 
@@ -309,7 +309,7 @@ export default function ChatComponent() {
                 throw new Error(parsed.error)
               }
 
-              const token = parsed.token || ''
+              const token = parsed.token || ""
 
               if (token) {
                 accumulatedContent += token
@@ -327,7 +327,7 @@ export default function ChatComponent() {
                 )
               }
             } catch (parseError) {
-              if (data.trim() && data.trim() !== '[DONE]') {
+              if (data.trim() && data.trim() !== "[DONE]") {
                 accumulatedContent += data
                 setChatMessages((prev) =>
                   prev.map((msg) =>
@@ -348,14 +348,14 @@ export default function ChatComponent() {
     }
 
     if (buffer.trim()) {
-      const lines = buffer.split('\n')
+      const lines = buffer.split("\n")
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
+        if (line.startsWith("data: ")) {
           const data = line.slice(6)
-          if (data.trim() && data.trim() !== '[DONE]') {
+          if (data.trim() && data.trim() !== "[DONE]") {
             try {
               const parsed = JSON.parse(data)
-              const token = parsed.token || ''
+              const token = parsed.token || ""
               if (token) {
                 accumulatedContent += token
                 setChatMessages((prev) =>
@@ -394,7 +394,7 @@ export default function ChatComponent() {
 
     const userMessage: ChatMessage = {
       id: userMessageId,
-      role: 'user',
+      role: "user",
       content: chatInput,
       isStreaming: false,
     }
@@ -402,7 +402,7 @@ export default function ChatComponent() {
     setChatMessages((prev) => [...prev, userMessage])
 
     const messageToSend = chatInput
-    setChatInput('')
+    setChatInput("")
     setIsLoading(true)
 
     abortControllerRef.current = new AbortController()
@@ -412,8 +412,8 @@ export default function ChatComponent() {
         ...prev,
         {
           id: assistantMessageId,
-          role: 'assistant',
-          content: '',
+          role: "assistant",
+          content: "",
           isStreaming: true,
         },
       ])
@@ -430,9 +430,9 @@ export default function ChatComponent() {
         ),
       )
     } catch (e: any) {
-      console.error('Error sending message:', e)
+      console.error("Error sending message:", e)
 
-      if (e.name === 'AbortError' || e.message === 'AbortError') {
+      if (e.name === "AbortError" || e.message === "AbortError") {
         setChatMessages((prev) =>
           prev.filter((msg) => msg.id !== assistantMessageId),
         )
@@ -443,7 +443,7 @@ export default function ChatComponent() {
               ? {
                   ...msg,
                   content:
-                    'I apologize, but I encountered an error processing your request. Please try again.',
+                    "I apologize, but I encountered an error processing your request. Please try again.",
                   isStreaming: false,
                 }
               : msg,
@@ -480,9 +480,9 @@ export default function ChatComponent() {
           {chatMessages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              {message.role === 'assistant' ? (
+              {message.role === "assistant" ? (
                 <div className="max-w-[90%] space-y-2">
                   {message.isStreaming && !message.content ? (
                     <span className="animate-pulse text-sm text-muted-foreground">
@@ -549,7 +549,7 @@ export default function ChatComponent() {
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault()
                   sendChatMessage()
                 }

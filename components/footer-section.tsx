@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import { Twitter, Github, Linkedin } from 'lucide-react'
+import { Twitter, Github, Linkedin } from "lucide-react"
 
 export function FooterSection() {
   return (

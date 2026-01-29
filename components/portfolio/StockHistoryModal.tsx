@@ -1,12 +1,12 @@
-'use client'
+"use client"
 
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { StockWithHistory } from '@/lib/types'
+} from "@/components/ui/dialog"
+import { StockWithHistory } from "@/lib/types"
 
 interface StockHistoryModalProps {
   stock: StockWithHistory | null
@@ -78,15 +78,15 @@ export default function StockHistoryModal({
                     className="border-b border-border last:border-0"
                   >
                     <td className="px-4 py-3 text-foreground">
-                      {new Date(purchase.date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
+                      {new Date(purchase.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
                       })}
                       <p className="text-xs text-muted-foreground">
-                        {new Date(purchase.date).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
+                        {new Date(purchase.date).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </p>
                     </td>
@@ -100,7 +100,7 @@ export default function StockHistoryModal({
                       $
                       {(
                         purchase.shares * purchase.pricePerShare
-                      ).toLocaleString('en-US', {
+                      ).toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                       })}
                     </td>
@@ -120,7 +120,7 @@ export default function StockHistoryModal({
                   </td>
                   <td className="px-4 py-3 text-right font-medium text-foreground">
                     $
-                    {(stock.shares * stock.avgPrice).toLocaleString('en-US', {
+                    {(stock.shares * stock.avgPrice).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
                     })}
                   </td>
@@ -134,7 +134,7 @@ export default function StockHistoryModal({
               <span className="text-muted-foreground">Current Value</span>
               <span className="font-semibold text-foreground">
                 $
-                {currentVal.toLocaleString('en-US', {
+                {currentVal.toLocaleString("en-US", {
                   minimumFractionDigits: 2,
                 })}
               </span>
@@ -143,14 +143,14 @@ export default function StockHistoryModal({
               <span className="text-muted-foreground">Total Gain/Loss</span>
               <span
                 className={`font-semibold ${
-                  gainVal >= 0 ? 'text-primary' : 'text-red-500'
+                  gainVal >= 0 ? "text-primary" : "text-red-500"
                 }`}
               >
-                {gainVal >= 0 ? '+' : ''}$
-                {gainVal.toLocaleString('en-US', {
+                {gainVal >= 0 ? "+" : ""}$
+                {gainVal.toLocaleString("en-US", {
                   minimumFractionDigits: 2,
-                })}{' '}
-                ({gainVal >= 0 ? '+' : ''}
+                })}{" "}
+                ({gainVal >= 0 ? "+" : ""}
                 {gainPct.toFixed(2)}%)
               </span>
             </div>

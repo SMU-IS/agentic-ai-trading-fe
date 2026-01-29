@@ -1,7 +1,7 @@
-import React from 'react'
-import { Button } from '@/components/ui/button'
-import { Header } from './header'
-import Link from 'next/link'
+import React from "react"
+import { Button } from "@/components/ui/button"
+import { Header } from "./header"
+import Link from "next/link"
 
 export function HeroSection() {
   return (
@@ -19,7 +19,7 @@ export function HeroSection() {
           <g clipPath="url(#clip0_186_1134)">
             <mask
               id="mask0_186_1134"
-              style={{ maskType: 'alpha' }}
+              style={{ maskType: "alpha" }}
               maskUnits="userSpaceOnUse"
               x="10"
               y="-1"
@@ -375,7 +375,7 @@ export function HeroSection() {
             </g>
 
             <g
-              style={{ mixBlendMode: 'lighten' }}
+              style={{ mixBlendMode: "lighten" }}
               filter="url(#filter2_f_186_1134)"
             >
               <path
@@ -385,7 +385,7 @@ export function HeroSection() {
             </g>
 
             <g
-              style={{ mixBlendMode: 'overlay' }}
+              style={{ mixBlendMode: "overlay" }}
               filter="url(#filter3_f_186_1134)"
             >
               <path

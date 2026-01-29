@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import { Search, X } from 'lucide-react'
+import { Search, X } from "lucide-react"
 // import { predictionCategories } from '@/lib/data';
 
 interface MarketFiltersProps {
@@ -25,7 +25,7 @@ export default function MarketFilters({
     if (!watchlistSymbols.includes(upperSymbol) && upperSymbol.length > 0) {
       setWatchlistSymbols([...watchlistSymbols, upperSymbol])
     }
-    setSearchQuery('')
+    setSearchQuery("")
   }
 
   const removeFromWatchlist = (symbol: string) => {
@@ -43,7 +43,7 @@ export default function MarketFilters({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && searchQuery.length > 0) {
+            if (e.key === "Enter" && searchQuery.length > 0) {
               addToWatchlist(searchQuery)
             }
           }}

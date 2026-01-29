@@ -1,27 +1,27 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { ArrowRight } from 'lucide-react'
-import { mockPredictions } from '@/lib/data'
-import PredictionCard from './PredictionCard'
-import MarketFilters from './MarketFilters'
-import AutoTradeCard from './AutoTradeWatchlist' // <--- Import this
-import { Card, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Zap } from 'lucide-react'
-import ChatComponent from '../chat/chatbot'
+import { useState } from "react"
+import { ArrowRight } from "lucide-react"
+import { mockPredictions } from "@/lib/data"
+import PredictionCard from "./PredictionCard"
+import MarketFilters from "./MarketFilters"
+import AutoTradeCard from "./AutoTradeWatchlist" // <--- Import this
+import { Card, CardHeader, CardTitle } from "@/components/ui/card"
+import { FileText, Zap } from "lucide-react"
+import ChatComponent from "../chat/chatbot"
 
 export default function PredictionsTab() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('Finance')
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("Finance")
   const [watchlistSymbols, setWatchlistSymbols] = useState([
-    'AAPL',
-    'NVDA',
-    'TSLA',
-    'GOOGL',
-    'AMZN',
-    'MSFT',
+    "AAPL",
+    "NVDA",
+    "TSLA",
+    "GOOGL",
+    "AMZN",
+    "MSFT",
   ])
-  const [chatInput, setChatInput] = useState('')
+  const [chatInput, setChatInput] = useState("")
 
   // Filter Logic
   const filteredPredictions = mockPredictions.filter((pred) => {
@@ -32,7 +32,7 @@ export default function PredictionsTab() {
 
     // 2. Filter by Category
     const matchesCategory =
-      selectedCategory === 'Finance' || pred.category === selectedCategory
+      selectedCategory === "Finance" || pred.category === selectedCategory
 
     // 3. Filter by Search Query
     const matchesSearch =

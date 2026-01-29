@@ -1,14 +1,14 @@
-import { HeroSection } from '@/components/hero-section'
-import { DashboardPreview } from '@/components/dashboard-preview'
-import { SocialProof } from '@/components/social-proof'
-import { BentoSection } from '@/components/bento-section'
-import { LargeTestimonial } from '@/components/large-testimonial'
-import { PricingSection } from '@/components/pricing-section'
-import { TestimonialGridSection } from '@/components/testimonial-grid-section'
-import { FAQSection } from '@/components/faq-section'
-import { CTASection } from '@/components/cta-section'
-import { FooterSection } from '@/components/footer-section'
-import { AnimatedSection } from '@/components/animated-section'
+import { HeroSection } from "@/components/hero-section"
+import { DashboardPreview } from "@/components/dashboard-preview"
+import { SocialProof } from "@/components/social-proof"
+import { BentoSection } from "@/components/bento-section"
+import { LargeTestimonial } from "@/components/large-testimonial"
+import { PricingSection } from "@/components/pricing-section"
+import { TestimonialGridSection } from "@/components/testimonial-grid-section"
+import { FAQSection } from "@/components/faq-section"
+import { CTASection } from "@/components/cta-section"
+import { FooterSection } from "@/components/footer-section"
+import { AnimatedSection } from "@/components/animated-section"
 
 export default function LandingPage() {
   return (

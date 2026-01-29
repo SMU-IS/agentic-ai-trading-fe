@@ -1,25 +1,25 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
+import { useState } from "react"
 
 interface StockLogoProps {
   symbol: string
   name?: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: "sm" | "md" | "lg"
   className?: string
 }
 
 const SIZE_CLASSES = {
-  sm: 'w-6 h-6 text-xs',
-  md: 'w-8 h-8 text-sm',
-  lg: 'w-10 h-10 text-base',
+  sm: "w-6 h-6 text-xs",
+  md: "w-8 h-8 text-sm",
+  lg: "w-10 h-10 text-base",
 }
 
 export default function StockLogo({
   symbol,
   name,
-  size = 'md',
-  className = '',
+  size = "md",
+  className = "",
 }: StockLogoProps) {
   const [imageError, setImageError] = useState(false)
   const sizeClass = SIZE_CLASSES[size]

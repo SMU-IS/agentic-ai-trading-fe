@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react"
 
 interface StreamingTextProps {
   text: string
@@ -13,12 +13,12 @@ export default function StreamingText({
   isStreaming = false,
   speed = 20,
 }: StreamingTextProps) {
-  const [displayedText, setDisplayedText] = useState('')
+  const [displayedText, setDisplayedText] = useState("")
   const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
     if (text !== displayedText + text.slice(currentIndex)) {
-      setDisplayedText('')
+      setDisplayedText("")
       setCurrentIndex(0)
     }
   }, [text])

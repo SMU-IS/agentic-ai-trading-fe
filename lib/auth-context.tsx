@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import {
   createContext,
@@ -6,13 +6,13 @@ import {
   useState,
   useEffect,
   type ReactNode,
-} from 'react'
+} from "react"
 
 export interface User {
   id: string
   username: string
   email?: string
-  provider: 'credentials' | 'twitter'
+  provider: "credentials" | "twitter"
 }
 
 interface AuthContextType {
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Check for existing session on mount (mock implementation)
   useEffect(() => {
-    const storedUser = sessionStorage.getItem('pointer_user')
+    const storedUser = sessionStorage.getItem("pointer_user")
     if (storedUser) {
       setUser(JSON.parse(storedUser))
     }
@@ -42,35 +42,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (username: string, password: string) => {
     // Mock signup - in production, this would call an API
     if (username.length < 3) {
-      throw new Error('Username must be at least 3 characters')
+      throw new Error("Username must be at least 3 characters")
     }
     if (password.length < 6) {
-      throw new Error('Password must be at least 6 characters')
+      throw new Error("Password must be at least 6 characters")
     }
 
     const newUser: User = {
       id: crypto.randomUUID(),
       username,
-      provider: 'credentials',
+      provider: "credentials",
     }
 
-    sessionStorage.setItem('pointer_user', JSON.stringify(newUser))
+    sessionStorage.setItem("pointer_user", JSON.stringify(newUser))
     setUser(newUser)
   }
 
   const signIn = async (username: string, password: string) => {
     // Mock signin - in production, this would verify credentials
     if (!username || !password) {
-      throw new Error('Please enter username and password')
+      throw new Error("Please enter username and password")
     }
 
     const newUser: User = {
       id: crypto.randomUUID(),
       username,
-      provider: 'credentials',
+      provider: "credentials",
     }
 
-    sessionStorage.setItem('pointer_user', JSON.stringify(newUser))
+    sessionStorage.setItem("pointer_user", JSON.stringify(newUser))
     setUser(newUser)
   }
 
@@ -78,16 +78,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Mock Twitter OAuth - in production, this would redirect to Twitter
     const mockTwitterUser: User = {
       id: crypto.randomUUID(),
-      username: 'twitter_user',
-      provider: 'twitter',
+      username: "twitter_user",
+      provider: "twitter",
     }
 
-    sessionStorage.setItem('pointer_user', JSON.stringify(mockTwitterUser))
+    sessionStorage.setItem("pointer_user", JSON.stringify(mockTwitterUser))
     setUser(mockTwitterUser)
   }
 
   const signOut = () => {
-    sessionStorage.removeItem('pointer_user')
+    sessionStorage.removeItem("pointer_user")
     setUser(null)
   }
 
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error("useAuth must be used within an AuthProvider")
   }
   return context
 }

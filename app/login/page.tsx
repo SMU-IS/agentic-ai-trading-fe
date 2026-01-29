@@ -1,24 +1,24 @@
-'use client'
+"use client"
 
-import type React from 'react'
+import type React from "react"
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useAuth } from '@/lib/auth-context'
-import { Eye, EyeOff } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useAuth } from "@/lib/auth-context"
+import { Eye, EyeOff } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(true)
-  const [email, setEmail] = useState('')
-  const [fullname, setFullname] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [email, setEmail] = useState("")
+  const [fullname, setFullname] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
   const { signIn, signInWithTwitter } = useAuth()
@@ -26,21 +26,21 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    setError("")
     setIsLoading(true)
 
     try {
       const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_API_URL ?? 'http://localhost:8000/api/v1'
+        process.env.NEXT_PUBLIC_BASE_API_URL ?? "http://localhost:8000/api/v1"
 
       if (isSignUp) {
         if (password !== confirmPassword) {
-          throw new Error('Passwords do not match')
+          throw new Error("Passwords do not match")
         }
 
         const registerRes = await fetch(`${baseUrl}/user/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: email,
             full_name: fullname,
@@ -50,15 +50,15 @@ export default function LoginPage() {
 
         if (!registerRes.ok) {
           const errorText = await registerRes.text()
-          throw new Error(errorText || 'Failed to register')
+          throw new Error(errorText || "Failed to register")
         }
 
         await signIn(email, password)
       } else {
         // MANUAL LOGIN LOGIC
         const loginRes = await fetch(`${baseUrl}/user/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: email,
             password: password,
@@ -88,7 +88,7 @@ export default function LoginPage() {
               errorMessage = errorJson.message
             } else if (errorJson.error) {
               errorMessage = errorJson.error
-            } else if (typeof errorJson === 'string') {
+            } else if (typeof errorJson === "string") {
               errorMessage = errorJson
             }
           } catch {
@@ -108,29 +108,29 @@ export default function LoginPage() {
 
         // Optionally store it for later API calls
         if (accessToken) {
-          localStorage.setItem('access_token', accessToken)
+          localStorage.setItem("access_token", accessToken)
         }
         // Step 2: Update auth context
         await signIn(email, password)
       }
 
       // Navigate only after context state is fully updated
-      router.push('/portfolio')
+      router.push("/portfolio")
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleTwitterSignIn = async () => {
-    setError('')
+    setError("")
     setIsLoading(true)
     try {
       await signInWithTwitter()
-      router.push('/portfolio')
+      router.push("/portfolio")
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
     }
@@ -155,12 +155,12 @@ export default function LoginPage() {
         <div className="rounded-2xl border border-border bg-card p-8 shadow-lg">
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-2xl font-semibold text-foreground">
-              {isSignUp ? 'Create your account' : 'Welcome back'}
+              {isSignUp ? "Create your account" : "Welcome back"}
             </h1>
             <p className="text-sm text-muted-foreground">
               {isSignUp
-                ? 'Start managing your portfolio with AI-powered insights'
-                : 'Sign in to access your portfolio'}
+                ? "Start managing your portfolio with AI-powered insights"
+                : "Sign in to access your portfolio"}
             </p>
           </div>
 
@@ -230,7 +230,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -257,7 +257,7 @@ export default function LoginPage() {
                 </Label>
                 <Input
                   id="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Confirm your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -275,24 +275,24 @@ export default function LoginPage() {
               disabled={isLoading}
             >
               {isLoading
-                ? 'Loading...'
+                ? "Loading..."
                 : isSignUp
-                  ? 'Create Account'
-                  : 'Sign In'}
+                  ? "Create Account"
+                  : "Sign In"}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             <button
               type="button"
               onClick={() => {
                 setIsSignUp(!isSignUp)
-                setError('')
+                setError("")
               }}
               className="font-medium text-primary hover:underline"
             >
-              {isSignUp ? 'Sign in' : 'Sign up'}
+              {isSignUp ? "Sign in" : "Sign up"}
             </button>
           </p>
         </div>

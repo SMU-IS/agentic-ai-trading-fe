@@ -1,34 +1,34 @@
-'use client'
+"use client"
 
-import type React from 'react'
-import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import type React from "react"
+import { useState } from "react"
+import { ChevronDown } from "lucide-react"
 
 const faqData = [
   {
-    question: 'What is Agent M and who is it for?',
+    question: "What is Agent M and who is it for?",
     answer:
-      'Agent M aims to deliver a fully autonomous investment companion that continuously ingests real-time market data, financial news, and internet sentiment, then translates them into timely, personalised buy/sell decisions executed via external brokerage APIs on behalf of retail investors.',
+      "Agent M aims to deliver a fully autonomous investment companion that continuously ingests real-time market data, financial news, and internet sentiment, then translates them into timely, personalised buy/sell decisions executed via external brokerage APIs on behalf of retail investors.",
   },
   {
-    question: 'How does the system help retail investors in practice?',
+    question: "How does the system help retail investors in practice?",
     answer:
-      'It addresses time delay and information overload by automatically scraping and analysing financial news, extracting investment-relevant events and sentiment, and then either answering user queries via a RAG chatbot or autonomously executing trades within user-defined risk limits.',
+      "It addresses time delay and information overload by automatically scraping and analysing financial news, extracting investment-relevant events and sentiment, and then either answering user queries via a RAG chatbot or autonomously executing trades within user-defined risk limits.",
   },
   {
-    question: 'What kind of analytics and dashboard features will users see?',
+    question: "What kind of analytics and dashboard features will users see?",
     answer:
-      'Users get a trading dashboard that visualises real-time sentiment indicators per stock, profit and loss trends over time, current portfolio holdings, trade logs, and portfolio positions, allowing them to monitor performance and understand how news affects their investments.',
+      "Users get a trading dashboard that visualises real-time sentiment indicators per stock, profit and loss trends over time, current portfolio holdings, trade logs, and portfolio positions, allowing them to monitor performance and understand how news affects their investments.",
   },
   {
-    question: 'How does the RAG Trading Agent decide when to buy or sell?',
+    question: "How does the RAG Trading Agent decide when to buy or sell?",
     answer:
-      'The RAG Trading Agent uses a pipeline where scraped news and social media posts are preprocessed, checked for credibility, analysed for sentiment, embedded, and retrieved via RAG; it then makes automated trading decisions using weighted sentiment and user-set risk guardrails before executing orders through broker APIs.',
+      "The RAG Trading Agent uses a pipeline where scraped news and social media posts are preprocessed, checked for credibility, analysed for sentiment, embedded, and retrieved via RAG; it then makes automated trading decisions using weighted sentiment and user-set risk guardrails before executing orders through broker APIs.",
   },
   {
-    question: 'How do you ensure accuracy of the trade decisions?',
+    question: "How do you ensure accuracy of the trade decisions?",
     answer:
-      'The team will conduct multiple rounds of functional testing, data validation testing, and user acceptance testing across all modules, and has identified risks such as scraping failures, anti-bot blocking, unreliable data sources, hallucinations, and stakeholder misalignment, each with mitigation strategies like modular scrapers, use of official APIs, curated sources, RAG-based validation, and regular stakeholder communication.',
+      "The team will conduct multiple rounds of functional testing, data validation testing, and user acceptance testing across all modules, and has identified risks such as scraping failures, anti-bot blocking, unreliable data sources, hallucinations, and stakeholder misalignment, each with mitigation strategies like modular scrapers, use of official APIs, curated sources, RAG-based validation, and regular stakeholder communication.",
   },
 ]
 
@@ -56,23 +56,23 @@ const FAQItem = ({ question, answer, isOpen, onToggle }: FAQItemProps) => {
         <div className="flex items-center justify-center">
           <ChevronDown
             className={`text-muted-foreground-dark h-6 w-6 transition-all duration-500 ease-out ${
-              isOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'
+              isOpen ? "rotate-180 scale-110" : "rotate-0 scale-100"
             }`}
           />
         </div>
       </div>
       <div
         className={`overflow-hidden transition-all duration-500 ease-out ${
-          isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
         }`}
         style={{
-          transitionProperty: 'max-height, opacity, padding',
-          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          transitionProperty: "max-height, opacity, padding",
+          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
         <div
           className={`px-5 transition-all duration-500 ease-out ${
-            isOpen ? 'translate-y-0 pb-[18px] pt-2' : '-translate-y-2 pb-0 pt-0'
+            isOpen ? "translate-y-0 pb-[18px] pt-2" : "-translate-y-2 pb-0 pt-0"
           }`}
         >
           <div className="break-words text-sm font-normal leading-6 text-foreground/80">

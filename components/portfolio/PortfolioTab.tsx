@@ -1,12 +1,12 @@
-'use client'
+"use client"
 
-import { StockWithHistory } from '@/lib/types'
-import { useEffect, useState } from 'react'
-import HoldingsTable from './HoldingsTable'
-import PerformanceChart from './PerformanceChart'
-import StockHistoryModal from './StockHistoryModal'
-import SummaryCards from './SummaryCards'
-import { getCompanyName } from '@/lib/tickerMap'
+import { StockWithHistory } from "@/lib/types"
+import { useEffect, useState } from "react"
+import HoldingsTable from "./HoldingsTable"
+import PerformanceChart from "./PerformanceChart"
+import StockHistoryModal from "./StockHistoryModal"
+import SummaryCards from "./SummaryCards"
+import { getCompanyName } from "@/lib/tickerMap"
 
 type AccountResponse = {
   cash: string
@@ -22,7 +22,7 @@ type Position = {
   unrealized_intraday_pl: string
   current_price: string
   change_today: string
-  side: 'long' | 'short'
+  side: "long" | "short"
 }
 
 export default function PortfolioTab() {
@@ -46,7 +46,7 @@ export default function PortfolioTab() {
         const accountRes = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/account`,
         )
-        if (!accountRes.ok) throw new Error('Failed to fetch account')
+        if (!accountRes.ok) throw new Error("Failed to fetch account")
         const account: AccountResponse = await accountRes.json()
         setTotalValue(Number(account.portfolio_value))
         setCashValue(Number(account.cash))
@@ -56,7 +56,7 @@ export default function PortfolioTab() {
         const posRes = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
         )
-        if (!posRes.ok) throw new Error('Failed to fetch positions')
+        if (!posRes.ok) throw new Error("Failed to fetch positions")
         const posData: Position[] = await posRes.json()
         setPositions(posData)
 
@@ -102,17 +102,17 @@ export default function PortfolioTab() {
             <div className="flex items-center gap-2">
               <span
                 className={`h-2 w-2 rounded-full ${
-                  tradingAccStatus ? 'animate-pulse bg-teal-500' : 'bg-red-500'
+                  tradingAccStatus ? "animate-pulse bg-teal-500" : "bg-red-500"
                 }`}
               />
               <p
                 className={`text-xs ${
-                  tradingAccStatus ? 'text-teal-500' : 'text-red-500'
+                  tradingAccStatus ? "text-teal-500" : "text-red-500"
                 }`}
               >
                 {tradingAccStatus
-                  ? 'Agent M is connected to Alpaca Trading'
-                  : 'Alpaca Trading connection failed, please try again later'}
+                  ? "Agent M is connected to Alpaca Trading"
+                  : "Alpaca Trading connection failed, please try again later"}
               </p>
             </div>
           )}
@@ -188,13 +188,13 @@ function HoldingsTableSkeleton() {
       {/* Table Header */}
       <div className="grid grid-cols-7 gap-4 border-b border-border bg-muted/30 px-6 py-3">
         {[
-          'Stock',
-          'Shares',
-          'Avg Price',
-          'Current Price',
-          'Market Value',
-          'Gain/Loss',
-          'Today',
+          "Stock",
+          "Shares",
+          "Avg Price",
+          "Current Price",
+          "Market Value",
+          "Gain/Loss",
+          "Today",
         ].map((_, i) => (
           <div key={i} className="h-4 animate-pulse rounded bg-gray-700" />
         ))}

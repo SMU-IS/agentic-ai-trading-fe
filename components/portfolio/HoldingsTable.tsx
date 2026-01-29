@@ -1,16 +1,16 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { TrendingUp, TrendingDown, History, DollarSign } from 'lucide-react'
-import { StockWithHistory, Transaction } from '@/lib/types'
-import TransactionsModal from './transactions/TransactionHistory'
-import AskAI from './chat/AskAI'
-import LiquidateModal from './chat/menuChatModal'
-import { Sparkles } from 'lucide-react'
-import { getCompanyName } from '@/lib/tickerMap' // Import the utility
-import StockLogo from '@/components/StockLogo' // Add this import at top
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { TrendingUp, TrendingDown, History, DollarSign } from "lucide-react"
+import { StockWithHistory, Transaction } from "@/lib/types"
+import TransactionsModal from "./transactions/TransactionHistory"
+import AskAI from "./chat/AskAI"
+import LiquidateModal from "./chat/menuChatModal"
+import { Sparkles } from "lucide-react"
+import { getCompanyName } from "@/lib/tickerMap" // Import the utility
+import StockLogo from "@/components/StockLogo" // Add this import at top
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`
 
@@ -28,7 +28,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const [showTransactionsModal, setShowTransactionsModal] = useState(false)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [txLoading, setTxLoading] = useState(false)
-  const [txError, setTxError] = useState('')
+  const [txError, setTxError] = useState("")
   const [showAskAI, setShowAskAI] = useState(false)
   const [askAISymbol, setAskAISymbol] = useState<string | null>(null)
   const [askAIData, setAskAIData] = useState<any>(null)
@@ -42,7 +42,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
   const [positions, setPositions] = useState<StockWithHistory[]>([])
   const [positionsLoading, setPositionsLoading] = useState(false)
-  const [positionsError, setPositionsError] = useState('')
+  const [positionsError, setPositionsError] = useState("")
 
   // Close context menu when clicking outside
   useEffect(() => {
@@ -50,11 +50,11 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
     const handleScroll = () => setContextMenu(null)
 
     if (contextMenu) {
-      document.addEventListener('click', handleClick)
-      document.addEventListener('scroll', handleScroll, true)
+      document.addEventListener("click", handleClick)
+      document.addEventListener("scroll", handleScroll, true)
       return () => {
-        document.removeEventListener('click', handleClick)
-        document.removeEventListener('scroll', handleScroll, true)
+        document.removeEventListener("click", handleClick)
+        document.removeEventListener("scroll", handleScroll, true)
       }
     }
   }, [contextMenu])
@@ -63,22 +63,22 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const fetchPositions = async () => {
     try {
       setPositionsLoading(true)
-      setPositionsError('')
+      setPositionsError("")
 
       const res = await fetch(`${BASE_URL}/trading/positions`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
       })
 
       if (!res.ok) {
         const text = await res.text()
-        throw new Error(text || 'Failed to fetch positions')
+        throw new Error(text || "Failed to fetch positions")
       }
 
       const data: any[] = await res.json()
 
       const mapped: StockWithHistory[] = data.map((p) => {
-        const qty = Number(p.qty ?? '0')
+        const qty = Number(p.qty ?? "0")
         const currentPrice = Number(p.current_price ?? 0)
         const avgPrice = Number(p.avg_entry_price ?? 0)
         const changePercent = Number(
@@ -105,7 +105,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
       setPositions(mapped)
     } catch (err) {
-      setPositionsError(err instanceof Error ? err.message : 'Unknown error')
+      setPositionsError(err instanceof Error ? err.message : "Unknown error")
     } finally {
       setPositionsLoading(false)
     }
@@ -124,16 +124,16 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
     const fetchTransactions = async () => {
       try {
         setTxLoading(true)
-        setTxError('')
+        setTxError("")
 
         const res = await fetch(`${BASE_URL}/trading/orders/all`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
         })
 
         if (!res.ok) {
           const text = await res.text()
-          throw new Error(text || 'Failed to fetch orders')
+          throw new Error(text || "Failed to fetch orders")
         }
 
         const orders: any[] = await res.json()
@@ -142,7 +142,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           id: string
           symbol: string
           name: string
-          type: 'buy' | 'sell'
+          type: "buy" | "sell"
           datetime: string
           price: number
           shares: number
@@ -156,11 +156,11 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         for (const o of orders) {
           const baseDatetime = o.filled_at || o.submitted_at || o.created_at
 
-          if (o.status === 'filled' && Number(o.filled_qty) !== 0) {
+          if (o.status === "filled" && Number(o.filled_qty) !== 0) {
             const price = Number(o.filled_avg_price ?? 0)
             const qty = Number(o.qty ?? 0)
             const filledQty = Number(o.filled_qty ?? 0)
-            const side = o.side as 'buy' | 'sell'
+            const side = o.side as "buy" | "sell"
 
             allTx.push({
               id: o.id,
@@ -180,7 +180,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             for (const leg of o.legs) {
               if (
                 leg &&
-                leg.status === 'filled' &&
+                leg.status === "filled" &&
                 Number(leg.filled_qty) !== 0
               ) {
                 const legDatetime =
@@ -188,7 +188,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 const price = Number(leg.filled_avg_price ?? 0)
                 const qty = Number(leg.qty ?? 0)
                 const filledQty = Number(leg.filled_qty ?? 0)
-                const side = leg.side as 'buy' | 'sell'
+                const side = leg.side as "buy" | "sell"
 
                 allTx.push({
                   id: leg.id,
@@ -209,7 +209,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
         setTransactions(allTx)
       } catch (err) {
-        setTxError(err instanceof Error ? err.message : 'Unknown error')
+        setTxError(err instanceof Error ? err.message : "Unknown error")
       } finally {
         setTxLoading(false)
       }
@@ -221,18 +221,18 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const handleRowClick = async (position: StockWithHistory) => {
     try {
       const res = await fetch(`${BASE_URL}/trading/orders/all`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
       })
 
       if (!res.ok) {
         const text = await res.text()
-        throw new Error(text || 'Failed to fetch orders')
+        throw new Error(text || "Failed to fetch orders")
       }
 
       const orders: any[] = await res.json()
 
-      const normalizeSymbol = (s: string) => s.replace(/[^a-zA-Z]/g, '')
+      const normalizeSymbol = (s: string) => s.replace(/[^a-zA-Z]/g, "")
 
       const symbolOrders = orders.filter(
         (o) => normalizeSymbol(o.symbol) === position.symbol,
@@ -243,20 +243,20 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         datetime?: string
         shares: number
         pricePerShare: number
-        side: 'buy' | 'sell'
+        side: "buy" | "sell"
         sourceOrderId: string
       }
 
       const fills: FillRow[] = []
 
       for (const o of symbolOrders) {
-        if (o.status === 'filled' && Number(o.filled_qty) !== 0) {
+        if (o.status === "filled" && Number(o.filled_qty) !== 0) {
           fills.push({
             date: o.filled_at || o.submitted_at || o.created_at,
             datetime: o.filled_at || o.submitted_at || o.created_at,
             shares: Number(o.filled_qty),
             pricePerShare: Number(o.filled_avg_price ?? 0),
-            side: o.side as 'buy' | 'sell',
+            side: o.side as "buy" | "sell",
             sourceOrderId: o.id,
           })
         }
@@ -265,7 +265,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           for (const leg of o.legs) {
             if (
               leg &&
-              leg.status === 'filled' &&
+              leg.status === "filled" &&
               Number(leg.filled_qty) !== 0 &&
               normalizeSymbol(leg.symbol) === position.symbol
             ) {
@@ -274,7 +274,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 datetime: leg.filled_at || leg.submitted_at || leg.created_at,
                 shares: Number(leg.filled_qty),
                 pricePerShare: Number(leg.filled_avg_price ?? 0),
-                side: leg.side as 'buy' | 'sell',
+                side: leg.side as "buy" | "sell",
                 sourceOrderId: leg.id,
               })
             }
@@ -286,7 +286,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         fills.map((f) => ({
           date: f.date,
           datetime: f.datetime,
-          shares: f.side === 'sell' ? -f.shares : f.shares,
+          shares: f.side === "sell" ? -f.shares : f.shares,
           pricePerShare: f.pricePerShare,
         })) ?? []
 
@@ -307,7 +307,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
       onSelectStock(stockWithHistory)
     } catch (err) {
-      console.error('Failed to load stock history', err)
+      console.error("Failed to load stock history", err)
       onSelectStock(position)
     }
   }
@@ -377,7 +377,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           >
             <td className="px-6 py-4">
               <StockLogo symbol={stock.symbol} name={stock.name} size="md" />
-            </td>{' '}
+            </td>{" "}
             <td className="px-6 py-4">
               <div>
                 <p className="font-medium text-foreground">{stock.symbol}</p>
@@ -389,20 +389,20 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             </td>
             <td className="px-6 py-4 text-right text-foreground">
               $
-              {stock.avgPrice.toLocaleString('en-US', {
+              {stock.avgPrice.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
             </td>
             <td className="px-6 py-4 text-right text-foreground">
               $
-              {stock.currentPrice.toLocaleString('en-US', {
+              {stock.currentPrice.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
             </td>
             <td className="px-6 py-4 text-right">
               <div
                 className={`flex items-center justify-end gap-1 ${
-                  stock.totalPL >= 0 ? 'text-primary' : 'text-red-500'
+                  stock.totalPL >= 0 ? "text-primary" : "text-red-500"
                 }`}
               >
                 {stock.totalPL >= 0 ? (
@@ -411,28 +411,28 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                   <TrendingDown className="h-4 w-4" />
                 )}
                 <span>
-                  {stock.totalPL >= 0 ? '+' : ''}${stock.totalPL.toFixed(2)}
+                  {stock.totalPL >= 0 ? "+" : ""}${stock.totalPL.toFixed(2)}
                 </span>
               </div>
             </td>
             <td className="hidden px-6 py-4 text-right text-foreground md:table-cell">
               $
-              {value.toLocaleString('en-US', {
+              {value.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
             </td>
             <td className="hidden px-6 py-4 text-right lg:table-cell">
-              <div className={gain >= 0 ? 'text-primary' : 'text-red-500'}>
+              <div className={gain >= 0 ? "text-primary" : "text-red-500"}>
                 <p>
-                  {gain >= 0 ? '+' : ''}$
-                  {gain.toLocaleString('en-US', {
+                  {gain >= 0 ? "+" : ""}$
+                  {gain.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
                   })}
                 </p>
                 <p
-                  className={`text-sm ${gain >= 0 ? 'text-teal-300' : 'text-red-300'}`}
+                  className={`text-sm ${gain >= 0 ? "text-teal-300" : "text-red-300"}`}
                 >
-                  {gain >= 0 ? '+' : ''}
+                  {gain >= 0 ? "+" : ""}
                   {gainPercent.toFixed(2)}%
                 </p>
               </div>
@@ -478,7 +478,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
               <tr className="border-b border-border">
                 <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                   Symbol
-                </th>{' '}
+                </th>{" "}
                 <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                   Stock
                 </th>
@@ -605,7 +605,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           if (!open) setAskAIData(null) // Clear data when closing
         }}
         contextData={askAIData}
-      />{' '}
+      />{" "}
     </>
   )
 }

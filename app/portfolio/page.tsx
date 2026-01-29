@@ -1,22 +1,22 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/auth-context'
-import { Button } from '@/components/ui/button'
-import { LogOut, Wallet, LineChart } from 'lucide-react'
-import PortfolioTab from '@/components/portfolio/PortfolioTab'
-import PredictionsTab from '@/components/portfolio/ predictions/PredictionsTab'
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
+import { Button } from "@/components/ui/button"
+import { LogOut, Wallet, LineChart } from "lucide-react"
+import PortfolioTab from "@/components/portfolio/PortfolioTab"
+import PredictionsTab from "@/components/portfolio/ predictions/PredictionsTab"
 
 export default function PortfolioPage() {
   const { user, isLoading, signOut } = useAuth()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'portfolio' | 'predictions'>(
-    'portfolio',
+  const [activeTab, setActiveTab] = useState<"portfolio" | "predictions">(
+    "portfolio",
   )
 
   useEffect(() => {
-    if (!isLoading && !user) router.push('/login')
+    if (!isLoading && !user) router.push("/login")
   }, [user, isLoading, router])
 
   if (isLoading)
@@ -38,14 +38,14 @@ export default function PortfolioPage() {
             </span>
             <div className="ml-4 flex items-center gap-1">
               <NavButton
-                active={activeTab === 'portfolio'}
-                onClick={() => setActiveTab('portfolio')}
+                active={activeTab === "portfolio"}
+                onClick={() => setActiveTab("portfolio")}
                 icon={<Wallet className="mr-1.5 h-4 w-4" />}
                 label="Portfolio"
               />
               <NavButton
-                active={activeTab === 'predictions'}
-                onClick={() => setActiveTab('predictions')}
+                active={activeTab === "predictions"}
+                onClick={() => setActiveTab("predictions")}
                 icon={<LineChart className="mr-1.5 h-4 w-4" />}
                 label="Predictions"
               />
@@ -60,7 +60,7 @@ export default function PortfolioPage() {
               size="sm"
               onClick={() => {
                 signOut()
-                router.push('/')
+                router.push("/")
               }}
             >
               <LogOut className="mr-2 h-4 w-4" /> Sign out
@@ -70,7 +70,7 @@ export default function PortfolioPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {activeTab === 'portfolio' ? <PortfolioTab /> : <PredictionsTab />}
+        {activeTab === "portfolio" ? <PortfolioTab /> : <PredictionsTab />}
       </main>
     </div>
   )
@@ -83,8 +83,8 @@ function NavButton({ active, onClick, icon, label }: any) {
       onClick={onClick}
       className={`flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
         active
-          ? 'bg-secondary text-secondary-foreground'
-          : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+          ? "bg-secondary text-secondary-foreground"
+          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
       }`}
     >
       {icon} {label}

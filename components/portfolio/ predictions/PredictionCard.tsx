@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import { Card, CardContent } from '@/components/ui/card'
-import { BarChart3, TrendingUp, TrendingDown } from 'lucide-react'
-import { PredictionCard as PredictionType } from '@/lib/types'
+import { Card, CardContent } from "@/components/ui/card"
+import { BarChart3, TrendingUp, TrendingDown } from "lucide-react"
+import { PredictionCard as PredictionType } from "@/lib/types"
 
 interface PredictionCardProps {
   prediction: PredictionType
@@ -37,8 +37,8 @@ export default function PredictionCard({ prediction }: PredictionCardProps) {
                 <span
                   className={`inline-flex items-center gap-0.5 rounded px-2 py-0.5 text-xs font-medium ${
                     option.change >= 0
-                      ? 'bg-primary/10 text-primary'
-                      : 'bg-red-500/10 text-red-400'
+                      ? "bg-primary/10 text-primary"
+                      : "bg-red-500/10 text-red-400"
                   }`}
                 >
                   {option.change >= 0 ? (
@@ -46,7 +46,7 @@ export default function PredictionCard({ prediction }: PredictionCardProps) {
                   ) : (
                     <TrendingDown className="h-3 w-3" />
                   )}
-                  {option.change >= 0 ? '+' : ''}
+                  {option.change >= 0 ? "+" : ""}
                   {Math.abs(option.change).toFixed(1)}%
                 </span>
               </div>

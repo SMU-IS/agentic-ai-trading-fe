@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export function CTASection() {
   return (
@@ -14,7 +14,7 @@ export function CTASection() {
         >
           <mask
             id="mask0_182_1049"
-            style={{ maskType: 'alpha' }}
+            style={{ maskType: "alpha" }}
             maskUnits="userSpaceOnUse"
             x="269"
             y="27"

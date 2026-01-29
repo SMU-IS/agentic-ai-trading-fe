@@ -1,22 +1,22 @@
-'use client'
+"use client"
 
-import type React from 'react'
+import type React from "react"
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet'
-import { Menu } from 'lucide-react'
-import Link from 'next/link'
+} from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
+import Link from "next/link"
 
 export function Header() {
   const navItems = [
-    { name: 'Features', href: '#features-section' },
-    { name: 'FAQ', href: '#faq-section' },
+    { name: "Features", href: "#features-section" },
+    { name: "FAQ", href: "#faq-section" },
   ]
 
   const handleScroll = (
@@ -27,7 +27,7 @@ export function Header() {
     const targetId = href.substring(1)
     const targetElement = document.getElementById(targetId)
     if (targetElement) {
-      targetElement.scrollIntoView({ behavior: 'smooth' })
+      targetElement.scrollIntoView({ behavior: "smooth" })
     }
   }
 

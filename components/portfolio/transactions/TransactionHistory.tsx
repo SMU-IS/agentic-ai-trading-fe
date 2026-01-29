@@ -1,22 +1,22 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { ArrowUpDown, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
-import { Sparkles } from 'lucide-react'
-import LiquidateModal from '../chat/menuChatModal'
+} from "@/components/ui/dialog"
+import { ArrowUpDown, TrendingUp, TrendingDown, DollarSign } from "lucide-react"
+import { Sparkles } from "lucide-react"
+import LiquidateModal from "../chat/menuChatModal"
 
 interface Transaction {
   id: string
   symbol: string
   name: string
-  type: 'buy' | 'sell'
+  type: "buy" | "sell"
   datetime: string
   price: number
   shares: number
@@ -70,11 +70,11 @@ export default function TransactionsModal({
     if (!contextMenu) return
 
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setContextMenu(null)
+      if (e.key === "Escape") setContextMenu(null)
     }
 
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
+    document.addEventListener("keydown", handleEscape)
+    return () => document.removeEventListener("keydown", handleEscape)
   }, [contextMenu])
 
   const handleContextMenu = (e: React.MouseEvent, transaction: Transaction) => {
@@ -99,7 +99,7 @@ export default function TransactionsModal({
       symbol: transaction.symbol,
       currentPrice: transaction.price,
       currentShares:
-        transaction.type === 'buy'
+        transaction.type === "buy"
           ? transaction.filledQty
           : -transaction.filledQty,
     })
@@ -202,12 +202,12 @@ export default function TransactionsModal({
                       <td className="px-4 py-3">
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                            transaction.type === 'buy'
-                              ? 'bg-primary/20 text-primary'
-                              : 'bg-red-500/20 text-red-500'
+                            transaction.type === "buy"
+                              ? "bg-primary/20 text-primary"
+                              : "bg-red-500/20 text-red-500"
                           }`}
                         >
-                          {transaction.type === 'buy' ? (
+                          {transaction.type === "buy" ? (
                             <TrendingUp className="mr-1 h-3 w-3" />
                           ) : (
                             <TrendingDown className="mr-1 h-3 w-3" />
@@ -219,20 +219,20 @@ export default function TransactionsModal({
                         <div>
                           <p className="text-sm text-foreground">
                             {new Date(transaction.datetime).toLocaleDateString(
-                              'en-US',
+                              "en-US",
                               {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
                               },
                             )}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(transaction.datetime).toLocaleTimeString(
-                              'en-US',
+                              "en-US",
                               {
-                                hour: '2-digit',
-                                minute: '2-digit',
+                                hour: "2-digit",
+                                minute: "2-digit",
                               },
                             )}
                           </p>
@@ -240,7 +240,7 @@ export default function TransactionsModal({
                       </td>
                       <td className="px-4 py-3 text-right text-foreground">
                         $
-                        {transaction.price.toLocaleString('en-US', {
+                        {transaction.price.toLocaleString("en-US", {
                           minimumFractionDigits: 2,
                         })}
                       </td>
@@ -254,15 +254,15 @@ export default function TransactionsModal({
                         <span
                           className={
                             transaction.filledQty != 0
-                              ? transaction.type === 'buy' &&
+                              ? transaction.type === "buy" &&
                                 transaction.price >= 0
-                                ? 'text-teal-400'
-                                : 'text-red-400'
-                              : 'text-gray-300'
+                                ? "text-teal-400"
+                                : "text-red-400"
+                              : "text-gray-300"
                           }
                         >
-                          {transaction.type === 'buy' ? '-' : '+'}$
-                          {transaction.totalValue.toLocaleString('en-US', {
+                          {transaction.type === "buy" ? "-" : "+"}$
+                          {transaction.totalValue.toLocaleString("en-US", {
                             minimumFractionDigits: 2,
                           })}
                         </span>
@@ -272,11 +272,11 @@ export default function TransactionsModal({
                           <span
                             className={
                               transaction.price != 0
-                                ? 'text-white'
-                                : transaction.type === 'buy' &&
+                                ? "text-white"
+                                : transaction.type === "buy" &&
                                     transaction.price != 0
-                                  ? 'text-white'
-                                  : 'text-gray-400'
+                                  ? "text-white"
+                                  : "text-gray-400"
                             }
                           >
                             {transaction.reason}
@@ -309,9 +309,9 @@ export default function TransactionsModal({
                   <span className="ml-2 font-medium text-primary">
                     $
                     {transactions
-                      .filter((t) => t.type === 'buy')
+                      .filter((t) => t.type === "buy")
                       .reduce((sum, t) => sum + t.totalValue, 0)
-                      .toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      .toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div>
@@ -319,9 +319,9 @@ export default function TransactionsModal({
                   <span className="ml-2 font-medium text-red-500">
                     $
                     {transactions
-                      .filter((t) => t.type === 'sell')
+                      .filter((t) => t.type === "sell")
                       .reduce((sum, t) => sum + t.totalValue, 0)
-                      .toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      .toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
@@ -360,7 +360,7 @@ export default function TransactionsModal({
                 left: `${contextMenu.x}px`,
                 top: `${contextMenu.y - 100}px`,
                 zIndex: 99999,
-                pointerEvents: 'auto',
+                pointerEvents: "auto",
               }}
             >
               <button
@@ -368,7 +368,7 @@ export default function TransactionsModal({
                   handleLiquidateClick(e, contextMenu.transaction)
                 }
                 className="flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-red-500/10 hover:text-red-400"
-                style={{ pointerEvents: 'auto' }}
+                style={{ pointerEvents: "auto" }}
               >
                 <DollarSign className="h-4 w-4" />
                 Place Order for {contextMenu.transaction.symbol}
@@ -377,7 +377,7 @@ export default function TransactionsModal({
               <button
                 onClick={(e) => handleAskAI(e, contextMenu.transaction)}
                 className="flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-teal-500/10 hover:text-teal-400"
-                style={{ pointerEvents: 'auto' }}
+                style={{ pointerEvents: "auto" }}
               >
                 <Sparkles className="h-4 w-4" />
                 Ask AI about {contextMenu.transaction.symbol}

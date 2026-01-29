@@ -1,7 +1,7 @@
-'use client'
+"use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Wallet, TrendingUp, TrendingDown } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Wallet, TrendingUp, TrendingDown } from "lucide-react"
 
 interface SummaryCardsProps {
   cash: number
@@ -34,12 +34,12 @@ export default function SummaryCards({
         <CardContent>
           <p className="text-3xl font-semibold text-foreground">
             $
-            {totalValue.toLocaleString('en-US', {
+            {totalValue.toLocaleString("en-US", {
               minimumFractionDigits: 2,
             })}
           </p>
         </CardContent>
-      </Card>{' '}
+      </Card>{" "}
       <Card className="border-border bg-card">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -50,7 +50,7 @@ export default function SummaryCards({
         <CardContent>
           <p className="text-3xl font-semibold text-foreground">
             $
-            {cash.toLocaleString('en-US', {
+            {cash.toLocaleString("en-US", {
               minimumFractionDigits: 2,
             })}
           </p>
@@ -72,21 +72,21 @@ export default function SummaryCards({
             )}
             <p
               className={`text-3xl font-semibold ${
-                totalGain >= 0 ? 'text-primary' : 'text-red-500'
+                totalGain >= 0 ? "text-primary" : "text-red-500"
               }`}
             >
-              {totalGain >= 0 ? '+' : ''}$
-              {totalGain.toLocaleString('en-US', {
+              {totalGain >= 0 ? "+" : ""}$
+              {totalGain.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
             </p>
           </div>
           <p
             className={`text-sm ${
-              totalGain >= 0 ? 'text-primary' : 'text-red-500'
+              totalGain >= 0 ? "text-primary" : "text-red-500"
             }`}
           >
-            {totalGain >= 0 ? '+' : ''}
+            {totalGain >= 0 ? "+" : ""}
             {totalGainPercent.toFixed(2)}% all time
           </p>
         </CardContent>
@@ -107,21 +107,21 @@ export default function SummaryCards({
             )}
             <p
               className={`text-3xl font-semibold ${
-                todayChange >= 0 ? 'text-primary' : 'text-red-500'
+                todayChange >= 0 ? "text-primary" : "text-red-500"
               }`}
             >
-              {todayChange >= 0 ? '+' : ''}$
-              {todayChange.toLocaleString('en-US', {
+              {todayChange >= 0 ? "+" : ""}$
+              {todayChange.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
             </p>
           </div>
           <p
             className={`text-sm ${
-              todayChange >= 0 ? 'text-primary' : 'text-red-500'
+              todayChange >= 0 ? "text-primary" : "text-red-500"
             }`}
           >
-            {totalGain >= 0 ? '+' : ''}
+            {totalGain >= 0 ? "+" : ""}
             {todayChangePercent.toFixed(2)}% change
           </p>
         </CardContent>

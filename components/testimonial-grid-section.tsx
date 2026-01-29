@@ -1,87 +1,87 @@
-import Image from 'next/image'
+import Image from "next/image"
 
 const testimonials = [
   {
     quote:
-      'The real-time code suggestions from Pointer feel like having a senior engineer reviewing every line of code as you write. The accuracy of its recommendations has improved our overall code quality, reduced review time.',
-    name: 'Annette Black',
-    company: 'Sony',
-    avatar: '/images/avatars/annette-black.png',
-    type: 'large-teal',
+      "The real-time code suggestions from Pointer feel like having a senior engineer reviewing every line of code as you write. The accuracy of its recommendations has improved our overall code quality, reduced review time.",
+    name: "Annette Black",
+    company: "Sony",
+    avatar: "/images/avatars/annette-black.png",
+    type: "large-teal",
   },
   {
     quote:
-      'Integrating Pointer into our stack was smooth, and the MCP server connections saved us days of configuration work',
-    name: 'Dianne Russell',
+      "Integrating Pointer into our stack was smooth, and the MCP server connections saved us days of configuration work",
+    name: "Dianne Russell",
     company: "McDonald's",
-    avatar: '/images/avatars/dianne-russell.png',
-    type: 'small-dark',
+    avatar: "/images/avatars/dianne-russell.png",
+    type: "small-dark",
   },
   {
     quote:
-      'Pointer’s multi-agent coding feature has been a game changer. We’re fixing complex bugs in hours instead of spending entire sprints on them.',
-    name: 'Cameron Williamson',
-    company: 'IBM',
-    avatar: '/images/avatars/cameron-williamson.png',
-    type: 'small-dark',
+      "Pointer’s multi-agent coding feature has been a game changer. We’re fixing complex bugs in hours instead of spending entire sprints on them.",
+    name: "Cameron Williamson",
+    company: "IBM",
+    avatar: "/images/avatars/cameron-williamson.png",
+    type: "small-dark",
   },
   {
     quote:
-      'We no longer juggle multiple tools. Pointer brought all our integrations together in one place, which simplified our entire workflow.',
-    name: 'Robert Fox',
-    company: 'MasterCard',
-    avatar: '/images/avatars/robert-fox.png',
-    type: 'small-dark',
+      "We no longer juggle multiple tools. Pointer brought all our integrations together in one place, which simplified our entire workflow.",
+    name: "Robert Fox",
+    company: "MasterCard",
+    avatar: "/images/avatars/robert-fox.png",
+    type: "small-dark",
   },
   {
     quote:
-      'We started with the free plan just to test it out, but within a week we upgraded to Pro. Now, we can’t imagine coding without it',
-    name: 'Darlene Robertson',
-    company: 'Ferrari',
-    avatar: '/images/avatars/darlene-robertson.png',
-    type: 'small-dark',
+      "We started with the free plan just to test it out, but within a week we upgraded to Pro. Now, we can’t imagine coding without it",
+    name: "Darlene Robertson",
+    company: "Ferrari",
+    avatar: "/images/avatars/darlene-robertson.png",
+    type: "small-dark",
   },
   {
     quote:
-      'Collaborative coding feels effortless now. With Pointer’s real-time previews, pair programming has become faster and more productive.',
-    name: 'Cody Fisher',
-    company: 'Apple',
-    avatar: '/images/avatars/cody-fisher.png',
-    type: 'small-dark',
+      "Collaborative coding feels effortless now. With Pointer’s real-time previews, pair programming has become faster and more productive.",
+    name: "Cody Fisher",
+    company: "Apple",
+    avatar: "/images/avatars/cody-fisher.png",
+    type: "small-dark",
   },
   {
     quote:
-      'Deploying on Vercel with Pointer was not just simple, it felt seamless. We went from coding to seeing our changes live in minutes without worrying about build pipelines or configuration issues.',
-    name: 'Albert Flores',
-    company: 'Louis Vuitton',
-    avatar: '/images/avatars/albert-flores.png',
-    type: 'large-light',
+      "Deploying on Vercel with Pointer was not just simple, it felt seamless. We went from coding to seeing our changes live in minutes without worrying about build pipelines or configuration issues.",
+    name: "Albert Flores",
+    company: "Louis Vuitton",
+    avatar: "/images/avatars/albert-flores.png",
+    type: "large-light",
   },
 ]
 
 const TestimonialCard = ({ quote, name, company, avatar, type }) => {
-  const isLargeCard = type.startsWith('large')
+  const isLargeCard = type.startsWith("large")
   const avatarSize = isLargeCard ? 48 : 36
   const avatarBorderRadius = isLargeCard
-    ? 'rounded-[41px]'
-    : 'rounded-[30.75px]'
-  const padding = isLargeCard ? 'p-6' : 'p-[30px]'
+    ? "rounded-[41px]"
+    : "rounded-[30.75px]"
+  const padding = isLargeCard ? "p-6" : "p-[30px]"
 
   let cardClasses = `flex flex-col justify-between items-start overflow-hidden rounded-[10px] shadow-[0px_2px_4px_rgba(0,0,0,0.08)] relative ${padding}`
-  let quoteClasses = ''
-  let nameClasses = ''
-  let companyClasses = ''
+  let quoteClasses = ""
+  let nameClasses = ""
+  let companyClasses = ""
   let backgroundElements = null
-  let cardHeight = ''
-  const cardWidth = 'w-full md:w-[384px]'
+  let cardHeight = ""
+  const cardWidth = "w-full md:w-[384px]"
 
-  if (type === 'large-teal') {
-    cardClasses += ' bg-primary'
-    quoteClasses += ' text-primary-foreground text-2xl font-medium leading-8'
-    nameClasses += ' text-primary-foreground text-base font-normal leading-6'
+  if (type === "large-teal") {
+    cardClasses += " bg-primary"
+    quoteClasses += " text-primary-foreground text-2xl font-medium leading-8"
+    nameClasses += " text-primary-foreground text-base font-normal leading-6"
     companyClasses +=
-      ' text-primary-foreground/60 text-base font-normal leading-6'
-    cardHeight = 'h-[502px]'
+      " text-primary-foreground/60 text-base font-normal leading-6"
+    cardHeight = "h-[502px]"
     backgroundElements = (
       <div
         className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
@@ -91,12 +91,12 @@ const TestimonialCard = ({ quote, name, company, avatar, type }) => {
         }}
       />
     )
-  } else if (type === 'large-light') {
-    cardClasses += ' bg-[rgba(231,236,235,0.12)]'
-    quoteClasses += ' text-foreground text-2xl font-medium leading-8'
-    nameClasses += ' text-foreground text-base font-normal leading-6'
-    companyClasses += ' text-muted-foreground text-base font-normal leading-6'
-    cardHeight = 'h-[502px]'
+  } else if (type === "large-light") {
+    cardClasses += " bg-[rgba(231,236,235,0.12)]"
+    quoteClasses += " text-foreground text-2xl font-medium leading-8"
+    nameClasses += " text-foreground text-base font-normal leading-6"
+    companyClasses += " text-muted-foreground text-base font-normal leading-6"
+    cardHeight = "h-[502px]"
     backgroundElements = (
       <div
         className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat opacity-20"
@@ -108,12 +108,12 @@ const TestimonialCard = ({ quote, name, company, avatar, type }) => {
     )
   } else {
     cardClasses +=
-      ' bg-card outline outline-1 outline-border outline-offset-[-1px]'
-    quoteClasses += ' text-foreground/80 text-[17px] font-normal leading-6'
-    nameClasses += ' text-foreground text-sm font-normal leading-[22px]'
+      " bg-card outline outline-1 outline-border outline-offset-[-1px]"
+    quoteClasses += " text-foreground/80 text-[17px] font-normal leading-6"
+    nameClasses += " text-foreground text-sm font-normal leading-[22px]"
     companyClasses +=
-      ' text-muted-foreground text-sm font-normal leading-[22px]'
-    cardHeight = 'h-[244px]'
+      " text-muted-foreground text-sm font-normal leading-[22px]"
+    cardHeight = "h-[244px]"
   }
 
   return (
@@ -124,14 +124,14 @@ const TestimonialCard = ({ quote, name, company, avatar, type }) => {
       </div>
       <div className="relative z-10 flex items-center justify-start gap-3">
         <Image
-          src={avatar || '/placeholder.svg'}
+          src={avatar || "/placeholder.svg"}
           alt={`${name} avatar`}
           width={avatarSize}
           height={avatarSize}
           className={`w-${avatarSize / 4} h-${
             avatarSize / 4
           } ${avatarBorderRadius}`}
-          style={{ border: '1px solid rgba(255, 255, 255, 0.08)' }}
+          style={{ border: "1px solid rgba(255, 255, 255, 0.08)" }}
         />
         <div className="flex flex-col items-start justify-start gap-0.5">
           <div className={nameClasses}>{name}</div>
@@ -152,9 +152,9 @@ export function TestimonialGridSection() {
           </h2>
           <p className="self-stretch text-center text-sm font-medium leading-[18.20px] text-muted-foreground md:text-sm md:leading-relaxed lg:text-base lg:leading-relaxed">
             {
-              'Hear how developers ship products faster, collaborate seamlessly,'
-            }{' '}
-            <br />{' '}
+              "Hear how developers ship products faster, collaborate seamlessly,"
+            }{" "}
+            <br />{" "}
             {"and build with confidence using Agent M's powerful AI tools"}
           </p>
         </div>

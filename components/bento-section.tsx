@@ -1,9 +1,9 @@
-import AiCodeReviews from './bento/ai-code-reviews'
-import RealtimeCodingPreviews from './bento/real-time-previews'
-import OneClickIntegrationsIllustration from './bento/one-click-integrations-illustration'
-import MCPConnectivityIllustration from './bento/mcp-connectivity-illustration' // Updated import
-import EasyDeployment from './bento/easy-deployment'
-import ParallelCodingAgents from './bento/parallel-agents' // Updated import
+import AiCodeReviews from "./bento/ai-code-reviews"
+import RealtimeCodingPreviews from "./bento/real-time-previews"
+import OneClickIntegrationsIllustration from "./bento/one-click-integrations-illustration"
+import MCPConnectivityIllustration from "./bento/mcp-connectivity-illustration" // Updated import
+import EasyDeployment from "./bento/easy-deployment"
+import ParallelCodingAgents from "./bento/parallel-agents" // Updated import
 
 const BentoCard = ({ title, description, Component }) => (
   <div className="relative flex flex-col items-start justify-start overflow-hidden rounded-2xl border border-white/20">
@@ -11,9 +11,9 @@ const BentoCard = ({ title, description, Component }) => (
     <div
       className="absolute inset-0 rounded-2xl"
       style={{
-        background: 'rgba(231, 236, 235, 0.08)',
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
+        background: "rgba(231, 236, 235, 0.08)",
+        backdropFilter: "blur(4px)",
+        WebkitBackdropFilter: "blur(4px)",
       }}
     />
     {/* Additional subtle gradient overlay */}
@@ -36,39 +36,39 @@ const BentoCard = ({ title, description, Component }) => (
 export function BentoSection() {
   const cards = [
     {
-      title: 'Real-Time Financial News Aggregation',
+      title: "Real-Time Financial News Aggregation",
       description:
-        'Automatically scrapes and collects daily financial news from multiple sources to keep your portfolio insights current.',
+        "Automatically scrapes and collects daily financial news from multiple sources to keep your portfolio insights current.",
       Component: AiCodeReviews,
     },
     {
-      title: 'AI-Powered News Analysis',
+      title: "AI-Powered News Analysis",
       description:
-        'NLP-powered analysis that extracts investment-relevant events and sentiment from financial news to inform trading decisions.',
+        "NLP-powered analysis that extracts investment-relevant events and sentiment from financial news to inform trading decisions.",
       Component: RealtimeCodingPreviews,
     },
     {
-      title: 'Autonomous Trading Agent',
+      title: "Autonomous Trading Agent",
       description:
-        'Synthesizes market data with your portfolio context to autonomously execute personalized buy/sell orders via brokerage APIs.',
+        "Synthesizes market data with your portfolio context to autonomously execute personalized buy/sell orders via brokerage APIs.",
       Component: OneClickIntegrationsIllustration,
     },
     {
-      title: 'Investment Assistant Chatbot',
+      title: "Investment Assistant Chatbot",
       description:
-        'Query your portfolio and financial news database using natural language to get instant, contextual investment insights.',
+        "Query your portfolio and financial news database using natural language to get instant, contextual investment insights.",
       Component: MCPConnectivityIllustration, // Updated component
     },
     {
-      title: 'Smart Portfolio Alerts', // Swapped position
+      title: "Smart Portfolio Alerts", // Swapped position
       description:
-        'Delivers real-time critical alerts when breaking news directly impacts your specific holdings and confirms trade executions.',
+        "Delivers real-time critical alerts when breaking news directly impacts your specific holdings and confirms trade executions.",
       Component: ParallelCodingAgents, // Updated component
     },
     {
-      title: 'Comprehensive Trading Dashboard', // Swapped position
+      title: "Comprehensive Trading Dashboard", // Swapped position
       description:
-        'Visual analytics displaying sentiment indicators, P&L trends, and portfolio holdings for informed investment monitoring.',
+        "Visual analytics displaying sentiment indicators, P&L trends, and portfolio holdings for informed investment monitoring.",
       Component: EasyDeployment,
     },
   ]
