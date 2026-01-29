@@ -1,140 +1,140 @@
-'use client';
+'use client'
 
-import { Twitter, Github, Linkedin } from 'lucide-react';
+import { Twitter, Github, Linkedin } from 'lucide-react'
 
 export function FooterSection() {
   return (
-    <footer className="w-full max-w-[1320px] mx-auto px-5 flex flex-col md:flex-row justify-between items-start gap-8 md:gap-0 py-10 md:py-[70px]">
+    <footer className="mx-auto flex w-full max-w-[1320px] flex-col items-start justify-between gap-8 px-5 py-10 md:flex-row md:gap-0 md:py-[70px]">
       {/* Left Section: Logo, Description, Social Links */}
-      <div className="flex flex-col justify-start items-start gap-8 p-4 md:p-8">
-        <div className="flex gap-3 items-stretch justify-center">
-          <div className="text-center text-foreground text-xl font-semibold leading-4">
+      <div className="flex flex-col items-start justify-start gap-8 p-4 md:p-8">
+        <div className="flex items-stretch justify-center gap-3">
+          <div className="text-center text-xl font-semibold leading-4 text-foreground">
             Agent M
           </div>
         </div>
-        <p className="text-foreground/90 text-sm font-medium leading-[18px] text-left">
+        <p className="text-left text-sm font-medium leading-[18px] text-foreground/90">
           Trading made effortless
         </p>
-        <div className="flex justify-start items-start gap-3">
+        <div className="flex items-start justify-start gap-3">
           <a
             href="https://github.com/SMU-IS/agentic-ai-trading-be"
             aria-label="GitHub"
-            className="w-4 h-4 flex items-center justify-center"
+            className="flex h-4 w-4 items-center justify-center"
           >
-            <Github className="w-full h-full text-muted-foreground" />
+            <Github className="h-full w-full text-muted-foreground" />
           </a>
           <a
             href="#"
             aria-label="LinkedIn"
-            className="w-4 h-4 flex items-center justify-center"
+            className="flex h-4 w-4 items-center justify-center"
           >
-            <Linkedin className="w-full h-full text-muted-foreground" />
+            <Linkedin className="h-full w-full text-muted-foreground" />
           </a>
         </div>
       </div>
       {/* Right Section: Product, Company, Resources */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-12 p-4 md:p-8 w-full md:w-auto">
-        <div className="flex flex-col justify-start items-start gap-3">
-          <h3 className="text-muted-foreground text-sm font-medium leading-5">
+      <div className="grid w-full grid-cols-2 gap-8 p-4 md:w-auto md:grid-cols-3 md:gap-12 md:p-8">
+        <div className="flex flex-col items-start justify-start gap-3">
+          <h3 className="text-sm font-medium leading-5 text-muted-foreground">
             Product
           </h3>
-          <div className="flex flex-col justify-end items-start gap-2">
+          <div className="flex flex-col items-start justify-end gap-2">
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Features
             </a>
 
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Integrations
             </a>
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Real-time Previews
             </a>
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Multi-Agent Coding
             </a>
           </div>
         </div>
-        <div className="flex flex-col justify-start items-start gap-3">
-          <h3 className="text-muted-foreground text-sm font-medium leading-5">
+        <div className="flex flex-col items-start justify-start gap-3">
+          <h3 className="text-sm font-medium leading-5 text-muted-foreground">
             Company
           </h3>
-          <div className="flex flex-col justify-center items-start gap-2">
+          <div className="flex flex-col items-start justify-center gap-2">
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               About us
             </a>
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Our team
             </a>
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Careers
             </a>
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Brand
             </a>
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Contact
             </a>
           </div>
         </div>
-        <div className="flex flex-col justify-start items-start gap-3">
-          <h3 className="text-muted-foreground text-sm font-medium leading-5">
+        <div className="flex flex-col items-start justify-start gap-3">
+          <h3 className="text-sm font-medium leading-5 text-muted-foreground">
             Resources
           </h3>
-          <div className="flex flex-col justify-center items-start gap-2">
+          <div className="flex flex-col items-start justify-center gap-2">
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Terms of use
             </a>
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               API Reference
             </a>
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Documentation
             </a>
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Community
             </a>
             <a
               href="#"
-              className="text-foreground text-sm font-normal leading-5 hover:underline"
+              className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Support
             </a>
@@ -142,5 +142,5 @@ export function FooterSection() {
         </div>
       </div>
     </footer>
-  );
+  )
 }

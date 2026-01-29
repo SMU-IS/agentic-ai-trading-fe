@@ -1,26 +1,25 @@
-import Image from 'next/image';
+import Image from 'next/image'
 
 export function SocialProof() {
   return (
-    <section className="self-stretch py-16 flex flex-col justify-center items-center gap-6 overflow-hidden">
-      <div className="text-center text-gray-300 text-sm font-medium leading-tight">
+    <section className="flex flex-col items-center justify-center gap-6 self-stretch overflow-hidden py-16">
+      <div className="text-center text-sm font-medium leading-tight text-gray-300">
         In Collaboration With
       </div>
-      <div className="self-stretch grid grid-cols-1 md:grid-cols-1 gap-8 justify-items-center ">
+      <div className="grid grid-cols-1 justify-items-center gap-8 self-stretch md:grid-cols-1">
         {Array.from({ length: 1 }).map((_, i) => (
-          <div className="bg-teal-200 rounded-full p-8" key={i}>
+          <div className="rounded-full bg-teal-200 p-8" key={i}>
             <Image
               key={i}
               src={`/logos/logo0${i + 1}.svg`}
               alt={`Company Logo ${i + 1}`}
               width={200}
               height={120}
-              className="w-full max-w-[100px] h-auto object-contain grayscale opacity-70 
-"
+              className="h-auto w-full max-w-[100px] object-contain opacity-70 grayscale"
             />
           </div>
         ))}
       </div>
     </section>
-  );
+  )
 }

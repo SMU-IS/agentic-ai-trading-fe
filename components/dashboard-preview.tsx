@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import Image from 'next/image';
+import Image from 'next/image'
 
 export function DashboardPreview() {
   return (
@@ -8,18 +8,18 @@ export function DashboardPreview() {
       {/* Animated gradient border wrapper */}
       <div className="relative rounded-2xl p-[2px]">
         {/* Spinning gradient border (behind the content) */}
-        <div className="absolute inset-0 rounded-2xl overflow-hidden">
-          <div className="absolute inset-[-100%] bg-gradient-conic-teal-black animate-spin-border" />
+        <div className="absolute inset-0 overflow-hidden rounded-2xl">
+          <div className="bg-gradient-conic-teal-black animate-spin-border absolute inset-[-100%]" />
         </div>
 
         {/* Actual content (on top, covers the center) */}
-        <div className="relative bg-primary-light/10 rounded-2xl p-2 shadow-2xl">
+        <div className="relative rounded-2xl bg-primary-light/10 p-2 shadow-2xl">
           <Image
             src="/images/dashboard-preview.png"
             alt="Dashboard preview"
             width={1160}
             height={700}
-            className="w-full h-full object-cover rounded-xl shadow-lg"
+            className="h-full w-full rounded-xl object-cover shadow-lg"
           />
         </div>
       </div>
@@ -66,5 +66,5 @@ export function DashboardPreview() {
         }
       `}</style>
     </div>
-  );
+  )
 }

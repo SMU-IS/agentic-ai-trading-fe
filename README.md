@@ -32,21 +32,25 @@ Follow these instructions to get a copy of the project up and running on your lo
 ### Installation
 
 1.  **Clone the repository:**
+
     ```bash
     git clone https://github.com/SMU-IS/agentic-ai-trading-fe
     cd agentic-ai-trading-fe
     ```
 
 2.  **Install dependencies:**
+
     ```bash
     pnpm install
     ```
 
 3.  **Set up environment variables:**
     Create a `.env.local` file by copying the sample file:
+
     ```bash
     cp .env.sample .env.local
     ```
+
     Then, fill in the required environment variables in `.env.local`.
 
 4.  **Run the development server:**

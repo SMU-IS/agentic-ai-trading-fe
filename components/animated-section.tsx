@@ -1,14 +1,19 @@
-"use client"
+'use client'
 
-import { motion } from "framer-motion"
-import type { HTMLAttributes, ReactNode } from "react"
+import { motion } from 'framer-motion'
+import type { HTMLAttributes, ReactNode } from 'react'
 
 interface AnimatedSectionProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode
   delay?: number
 }
 
-export function AnimatedSection({ children, className, delay = 0, ...props }: AnimatedSectionProps) {
+export function AnimatedSection({
+  children,
+  className,
+  delay = 0,
+  ...props
+}: AnimatedSectionProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.98 }}

@@ -23,15 +23,22 @@
   background: linear-gradient(180deg, hsl(var(--card)) 0%, transparent 100%);
   left: 50%;
   top: 50%;
-  transform: translate(calc(-50% + 11.86px), calc(-50% - 7.3px)); /* Maintain relative offset for centering */
+  transform: translate(
+    calc(-50% + 11.86px),
+    calc(-50% - 7.3px)
+  ); /* Maintain relative offset for centering */
 }
 
 .messageBoxMain {
   width: 340px;
-  height: 221.40px;
+  height: 221.4px;
   backdrop-filter: blur(16px); /* Updated blur value */
   border: 1px solid hsl(var(--border));
-  background: linear-gradient(180deg, hsl(var(--card) / 0.9) 0%, hsl(var(--card) / 0.7) 100%);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--card) / 0.9) 0%,
+    hsl(var(--card) / 0.7) 100%
+  );
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%); /* Center the main box */
@@ -50,7 +57,7 @@
   white-space: pre-wrap;
   word-break: break-words;
   font-size: 10.28px;
-  font-family: "Geist Mono", monospace;
+  font-family: 'Geist Mono', monospace;
   line-height: 15.81px;
   color: hsl(var(--foreground));
   width: 100%;
@@ -64,7 +71,7 @@
 .highlight {
   position: absolute;
   left: -8.64px;
-  width: 339.20px;
+  width: 339.2px;
 }
 
 .highlightHeader {
@@ -99,23 +106,23 @@
 }
 
 .buttonText {
-  font-family: "Geist", sans-serif;
+  font-family: 'Geist', sans-serif;
 }
 
 .buttonShortcut {
-  font-family: "SF Pro", sans-serif;
+  font-family: 'SF Pro', sans-serif;
 }
 
 /* Theme specific styles for code block text color */
-.aiCodeReviews[data-theme="dark"] .messageBoxBackground .codeBlock p {
+.aiCodeReviews[data-theme='dark'] .messageBoxBackground .codeBlock p {
   color: hsl(var(--muted-foreground));
 }
 
-.aiCodeReviews[data-theme="dark"] .messageBoxMain .codeBlock p {
+.aiCodeReviews[data-theme='dark'] .messageBoxMain .codeBlock p {
   color: hsl(var(--foreground));
 }
 
 /* Specific stroke color for the SVG path */
-.aiCodeReviews[data-theme="dark"] .codeBlock svg path {
+.aiCodeReviews[data-theme='dark'] .codeBlock svg path {
   stroke: #22c55e;
 }

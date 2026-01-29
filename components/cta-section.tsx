@@ -1,12 +1,12 @@
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export function CTASection() {
   return (
-    <section className="w-full pt-20 md:pt-60 lg:pt-60 pb-10 md:pb-20 px-5 relative flex flex-col justify-center items-center overflow-visible">
+    <section className="relative flex w-full flex-col items-center justify-center overflow-visible px-5 pb-10 pt-20 md:pb-20 md:pt-60 lg:pt-60">
       <div className="absolute inset-0 top-[-90px]">
         <svg
-          className="w-full h-full"
+          className="h-full w-full"
           viewBox="0 0 1388 825"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -143,12 +143,12 @@ export function CTASection() {
           </defs>
         </svg>
       </div>
-      <div className="relative z-10 flex flex-col justify-start items-center gap-9 max-w-4xl mx-auto">
-        <div className="flex flex-col justify-start items-center gap-4 text-center">
-          <h2 className="text-foreground text-4xl md:text-5xl lg:text-[68px] font-semibold leading-tight md:leading-tight lg:leading-[76px] break-words max-w-[435px]">
+      <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center justify-start gap-9">
+        <div className="flex flex-col items-center justify-start gap-4 text-center">
+          <h2 className="max-w-[435px] break-words text-4xl font-semibold leading-tight text-foreground md:text-5xl md:leading-tight lg:text-[68px] lg:leading-[76px]">
             Trading made effortless
           </h2>
-          <p className="text-muted-foreground text-sm md:text-base font-medium leading-[18.20px] md:leading-relaxed break-words max-w-2xl">
+          <p className="max-w-2xl break-words text-sm font-medium leading-[18.20px] text-muted-foreground md:text-base md:leading-relaxed">
             Agent M. Built by Shawn, Derrick, Joshua, Bryan, ZiYou, JiaYen
           </p>
         </div>
@@ -162,5 +162,5 @@ export function CTASection() {
         </Link> */}
       </div>
     </section>
-  );
+  )
 }

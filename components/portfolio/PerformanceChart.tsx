@@ -1,13 +1,13 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/components/ui/card'
 import {
   Area,
   AreaChart,
@@ -16,107 +16,104 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
-} from 'recharts';
-import { ChartContainer } from '@/components/ui/chart';
+} from 'recharts'
+import { ChartContainer } from '@/components/ui/chart'
 
-type TimePeriod = 'Daily' | 'Weekly' | 'Monthly';
+type TimePeriod = 'Daily' | 'Weekly' | 'Monthly'
 
 interface PortfolioHistoryPoint {
-  date: string;
-  value: number;
+  date: string
+  value: number
 }
 
 export default function PerformanceChart() {
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly');
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
   const [performanceData, setPerformanceData] = useState<
     PortfolioHistoryPoint[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  >([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     const fetchPerformanceData = async () => {
-      setLoading(true);
-      setError(false);
+      setLoading(true)
+      setError(false)
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/portfolio_history`,
-        );
+        )
 
         if (!response.ok) {
-          throw new Error('Failed to fetch portfolio history');
+          throw new Error('Failed to fetch portfolio history')
         }
 
-        const data = await response.json();
-        setPerformanceData(data.historical || []);
+        const data = await response.json()
+        setPerformanceData(data.historical || [])
       } catch (err) {
-        console.error('Error fetching portfolio history:', err);
-        setError(true);
-        setPerformanceData([]);
+        console.error('Error fetching portfolio history:', err)
+        setError(true)
+        setPerformanceData([])
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchPerformanceData();
-  }, []);
+    fetchPerformanceData()
+  }, [])
 
   const getFilteredData = () => {
-    const now = new Date();
-    let startDate: Date;
+    const now = new Date()
+    let startDate: Date
 
     switch (timePeriod) {
       case 'Daily':
-        startDate = new Date(now);
-        startDate.setDate(startDate.getDate() - 7); // Last 7 days
-        break;
+        startDate = new Date(now)
+        startDate.setDate(startDate.getDate() - 7) // Last 7 days
+        break
       case 'Weekly':
-        startDate = new Date(now);
-        startDate.setDate(startDate.getDate() - 30); // Last 30 days
-        break;
+        startDate = new Date(now)
+        startDate.setDate(startDate.getDate() - 30) // Last 30 days
+        break
       case 'Monthly':
-        startDate = new Date(now);
-        startDate.setMonth(startDate.getMonth() - 3); // Last 3 months
-        break;
+        startDate = new Date(now)
+        startDate.setMonth(startDate.getMonth() - 3) // Last 3 months
+        break
       default:
-        startDate = new Date(now);
-        startDate.setDate(startDate.getDate() - 30);
+        startDate = new Date(now)
+        startDate.setDate(startDate.getDate() - 30)
     }
 
-    return performanceData.filter((item) => new Date(item.date) >= startDate);
-  };
+    return performanceData.filter((item) => new Date(item.date) >= startDate)
+  }
 
   const getYAxisDomain = () => {
-    const filteredData = getFilteredData();
-    if (filteredData.length === 0) return [0, 100];
+    const filteredData = getFilteredData()
+    if (filteredData.length === 0) return [0, 100]
 
-    const values = filteredData.map((d) => d.value);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
+    const values = filteredData.map((d) => d.value)
+    const min = Math.min(...values)
+    const max = Math.max(...values)
 
     // Calculate range and add padding
-    const range = max - min;
-    const padding = range * 0.3; // 10% padding on each side
+    const range = max - min
+    const padding = range * 0.3 // 10% padding on each side
 
     // If values are very flat (less than 1% variance), zoom in more
-    const variance = range / max;
-    const adjustedPadding = variance < 0.01 ? range * 0.01 : padding; // ← Changed
+    const variance = range / max
+    const adjustedPadding = variance < 0.01 ? range * 0.01 : padding // ← Changed
 
-    return [
-      Math.floor(min - adjustedPadding),
-      Math.ceil(max + adjustedPadding),
-    ];
-  };
+    return [Math.floor(min - adjustedPadding), Math.ceil(max + adjustedPadding)]
+  }
 
   const formatXAxisDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const date = new Date(dateStr)
 
     // For Daily view, show day and month
     if (timePeriod === 'Daily') {
       return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
-      });
+      })
     }
 
     // For Weekly view, show day and month
@@ -124,21 +121,21 @@ export default function PerformanceChart() {
       return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
-      });
+      })
     }
 
     // For Monthly view, show month and year
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
-    const year = date.getFullYear();
+    const month = date.toLocaleDateString('en-US', { month: 'short' })
+    const year = date.getFullYear()
 
     if (date.getMonth() === 0) {
-      return year.toString();
+      return year.toString()
     }
-    return `${month} '${year.toString().slice(-2)}`;
-  };
+    return `${month} '${year.toString().slice(-2)}`
+  }
 
   const formatTooltipLabel = (label: string) => {
-    const date = new Date(label);
+    const date = new Date(label)
 
     if (timePeriod === 'Daily' || timePeriod === 'Weekly') {
       return date.toLocaleDateString('en-US', {
@@ -146,41 +143,41 @@ export default function PerformanceChart() {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
-      });
+      })
     }
 
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-    });
-  };
+    })
+  }
 
   const getDescription = () => {
     switch (timePeriod) {
       case 'Daily':
-        return 'Last 7 days performance';
+        return 'Last 7 days performance'
       case 'Weekly':
-        return 'Last 30 days performance';
+        return 'Last 30 days performance'
       case 'Monthly':
-        return 'Last 3 months performance';
+        return 'Last 3 months performance'
       default:
-        return 'Portfolio performance overview';
+        return 'Portfolio performance overview'
     }
-  };
+  }
 
   return (
-    <Card className="bg-card border-border">
+    <Card className="border-border bg-card">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-foreground text-xl font-semibold">
+          <CardTitle className="text-xl font-semibold text-foreground">
             Portfolio Performance
           </CardTitle>
-          <CardDescription className="text-muted-foreground mt-1">
+          <CardDescription className="mt-1 text-muted-foreground">
             {getDescription()}
           </CardDescription>
         </div>
-        <div className="flex items-center rounded-lg border border-border overflow-hidden">
+        <div className="flex items-center overflow-hidden rounded-lg border border-border">
           {(['Daily', 'Weekly', 'Monthly'] as TimePeriod[]).map((period) => (
             <button
               key={period}
@@ -198,16 +195,16 @@ export default function PerformanceChart() {
       </CardHeader>
       <CardContent className="pt-4">
         {loading ? (
-          <div className="h-[350px] w-full flex items-center justify-center">
+          <div className="flex h-[350px] w-full items-center justify-center">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
               <p className="text-sm text-muted-foreground">
                 Loading portfolio data...
               </p>
             </div>
           </div>
         ) : error ? (
-          <div className="h-[350px] w-full flex items-center justify-center">
+          <div className="flex h-[350px] w-full items-center justify-center">
             <div className="text-center">
               <p className="text-sm text-red-500">
                 Failed to load portfolio history
@@ -221,7 +218,7 @@ export default function PerformanceChart() {
             </div>
           </div>
         ) : performanceData.length === 0 ? (
-          <div className="h-[350px] w-full flex items-center justify-center">
+          <div className="flex h-[350px] w-full items-center justify-center">
             <p className="text-sm text-muted-foreground">
               No portfolio data available
             </p>
@@ -322,5 +319,5 @@ export default function PerformanceChart() {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }

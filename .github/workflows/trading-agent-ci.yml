@@ -22,9 +22,12 @@ jobs:
           version: 8
       - name: Install dependencies
         run: pnpm install
+
       - name: Run lint
         run: pnpm lint
-      - name: Run format check
+
+      - name: Format code
         run: pnpm format
+
       - name: Run build
         run: pnpm build

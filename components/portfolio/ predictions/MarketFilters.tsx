@@ -1,15 +1,15 @@
-'use client';
+'use client'
 
-import { Search, X } from 'lucide-react';
+import { Search, X } from 'lucide-react'
 // import { predictionCategories } from '@/lib/data';
 
 interface MarketFiltersProps {
-  searchQuery: string;
-  setSearchQuery: (val: string) => void;
-  watchlistSymbols: string[];
-  setWatchlistSymbols: (val: string[]) => void;
-  selectedCategory: string;
-  setSelectedCategory: (val: string) => void;
+  searchQuery: string
+  setSearchQuery: (val: string) => void
+  watchlistSymbols: string[]
+  setWatchlistSymbols: (val: string[]) => void
+  selectedCategory: string
+  setSelectedCategory: (val: string) => void
 }
 
 export default function MarketFilters({
@@ -21,22 +21,22 @@ export default function MarketFilters({
   setSelectedCategory,
 }: MarketFiltersProps) {
   const addToWatchlist = (symbol: string) => {
-    const upperSymbol = symbol.toUpperCase();
+    const upperSymbol = symbol.toUpperCase()
     if (!watchlistSymbols.includes(upperSymbol) && upperSymbol.length > 0) {
-      setWatchlistSymbols([...watchlistSymbols, upperSymbol]);
+      setWatchlistSymbols([...watchlistSymbols, upperSymbol])
     }
-    setSearchQuery('');
-  };
+    setSearchQuery('')
+  }
 
   const removeFromWatchlist = (symbol: string) => {
-    setWatchlistSymbols(watchlistSymbols.filter((s) => s !== symbol));
-  };
+    setWatchlistSymbols(watchlistSymbols.filter((s) => s !== symbol))
+  }
 
   return (
     <>
       {/* Search Bar */}
       <div className="relative mb-4">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
           placeholder="Search prediction markets..."
@@ -44,26 +44,26 @@ export default function MarketFilters({
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && searchQuery.length > 0) {
-              addToWatchlist(searchQuery);
+              addToWatchlist(searchQuery)
             }
           }}
-          className="w-full bg-muted/30 border border-border rounded-lg py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+          className="w-full rounded-lg border border-border bg-muted/30 py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
       </div>
 
       {/* Watchlist Chips */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="mb-4 flex flex-wrap gap-2">
         {watchlistSymbols.map((symbol) => (
           <span
             key={symbol}
-            className="inline-flex items-center gap-1 px-3 py-1.5 bg-secondary/50 text-secondary-foreground text-sm font-medium rounded-full"
+            className="inline-flex items-center gap-1 rounded-full bg-secondary/50 px-3 py-1.5 text-sm font-medium text-secondary-foreground"
           >
             {symbol}
             <button
               onClick={() => removeFromWatchlist(symbol)}
-              className="ml-1 hover:text-red-400 transition-colors"
+              className="ml-1 transition-colors hover:text-red-400"
             >
-              <X className="w-3 h-3" />
+              <X className="h-3 w-3" />
             </button>
           </span>
         ))}
@@ -86,5 +86,5 @@ export default function MarketFilters({
         ))}
       </div> */}
     </>
-  );
+  )
 }
