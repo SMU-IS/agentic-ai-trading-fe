@@ -32,21 +32,25 @@ Follow these instructions to get a copy of the project up and running on your lo
 ### Installation
 
 1.  **Clone the repository:**
+
     ```bash
-    git clone https://github.com/your-username/agentic-ai-trading-fe.git
+    git clone https://github.com/SMU-IS/agentic-ai-trading-fe
     cd agentic-ai-trading-fe
     ```
 
 2.  **Install dependencies:**
+
     ```bash
     pnpm install
     ```
 
 3.  **Set up environment variables:**
     Create a `.env.local` file by copying the sample file:
+
     ```bash
     cp .env.sample .env.local
     ```
+
     Then, fill in the required environment variables in `.env.local`.
 
 4.  **Run the development server:**
@@ -96,3 +100,32 @@ Contributions are welcome! Please feel free to open an issue or submit a pull re
 ## 📄 License
 
 This project is licensed under the MIT License - see the `LICENSE` file for details.
+
+## 💻 Acknowledgement
+
+Developed by Mvidia (Team 2), IS484 Project Experience <br />
+In Collaboration With UBS.
+
+<a href="https://www.linkedin.com/in/joshydavid/">
+  <img src="https://github.com/user-attachments/assets/4dfe0c89-8ced-4e08-bcf3-6261bdbb956d" width="80">
+</a> &nbsp;
+
+<a href="https://www.linkedin.com/in/bryancjh/">
+  <img src="https://github.com/user-attachments/assets/cc1782b1-e71f-410a-97a4-cfec08bccead" width="80">
+</a> &nbsp;
+
+<a href="https://www.linkedin.com/in/derricklkh/">
+  <img src="https://github.com/user-attachments/assets/2db4b711-b7d0-4368-8d12-6449c3fa2aa2" width="80">
+</a> &nbsp;
+
+<a href="https://www.linkedin.com/in/shawn-ng-yh/">
+  <img src="https://github.com/user-attachments/assets/6bd4f3a7-6784-402a-b891-03d91e15d705" width="80">
+</a> &nbsp;
+
+<a href="https://www.linkedin.com/in/jiayenbeh/">
+  <img src="[https://github.com/user-attachments/assets/6bd4f3a7-6784-402a-b891-03d91e15d705](https://media.licdn.com/dms/image/v2/D5603AQEqWsXbDOKWyw/profile-displayphoto-scale_400_400/B56ZmbOb1OHAAg-/0/1759245877416?e=1770249600&v=beta&t=w4zr9NdTnsOEKuO3Woe02NOv6NVU2hH8FadXhy51Y0s)" width="80">
+</a> &nbsp;
+
+<a href="https://www.linkedin.com/in/shawn-ng-yh/">
+  <img src="https://github.com/user-attachments/assets/6bd4f3a7-6784-402a-b891-03d91e15d705" width="80">
+</a> &nbsp;

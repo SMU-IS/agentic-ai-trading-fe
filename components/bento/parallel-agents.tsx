@@ -4,7 +4,9 @@ interface ParallelCodingAgentsProps {
   className?: string
 }
 
-const ParallelCodingAgents: React.FC<ParallelCodingAgentsProps> = ({ className = "" }) => {
+const ParallelCodingAgents: React.FC<ParallelCodingAgentsProps> = ({
+  className = "",
+}) => {
   // Theme-based CSS variables using global theme
   const themeVars = {
     "--pca-background-color": "hsl(var(--background))",
@@ -141,7 +143,8 @@ const ParallelCodingAgents: React.FC<ParallelCodingAgentsProps> = ({ className =
           padding: "20px",
           height: "100%",
           width: "calc(100% - 48px)", // Adjusted width for 24px margin on both sides
-          background: "linear-gradient(180deg, hsl(var(--primary) / 0.05) 0%, transparent 100%)", // Updated background property
+          background:
+            "linear-gradient(180deg, hsl(var(--primary) / 0.05) 0%, transparent 100%)", // Updated background property
           backdropFilter: "blur(16px)",
           borderRadius: "9.628px",
           border: "0.802px solid hsl(var(--border))",

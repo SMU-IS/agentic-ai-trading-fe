@@ -1,38 +1,38 @@
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
-import { mockPredictions } from '@/lib/data';
-import PredictionCard from './PredictionCard';
-import MarketFilters from './MarketFilters';
-import AutoTradeCard from './AutoTradeWatchlist'; // <--- Import this
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Zap } from 'lucide-react';
-import ChatComponent from '../chat/chatbot';
+import { useState } from "react"
+import { ArrowRight } from "lucide-react"
+import { mockPredictions } from "@/lib/data"
+import PredictionCard from "./PredictionCard"
+import MarketFilters from "./MarketFilters"
+import AutoTradeCard from "./AutoTradeWatchlist" // <--- Import this
+import { Card, CardHeader, CardTitle } from "@/components/ui/card"
+import { FileText, Zap } from "lucide-react"
+import ChatComponent from "../chat/chatbot"
 
 export default function PredictionsTab() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Finance');
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("Finance")
   const [watchlistSymbols, setWatchlistSymbols] = useState([
-    'AAPL',
-    'NVDA',
-    'TSLA',
-    'GOOGL',
-    'AMZN',
-    'MSFT',
-  ]);
-  const [chatInput, setChatInput] = useState('');
+    "AAPL",
+    "NVDA",
+    "TSLA",
+    "GOOGL",
+    "AMZN",
+    "MSFT",
+  ])
+  const [chatInput, setChatInput] = useState("")
 
   // Filter Logic
   const filteredPredictions = mockPredictions.filter((pred) => {
     // 1. Filter by Watchlist (if related symbols exist)
     const matchesWatchlist =
       pred.relatedSymbols.length === 0 ||
-      pred.relatedSymbols.some((sym) => watchlistSymbols.includes(sym));
+      pred.relatedSymbols.some((sym) => watchlistSymbols.includes(sym))
 
     // 2. Filter by Category
     const matchesCategory =
-      selectedCategory === 'Finance' || pred.category === selectedCategory;
+      selectedCategory === "Finance" || pred.category === selectedCategory
 
     // 3. Filter by Search Query
     const matchesSearch =
@@ -40,13 +40,13 @@ export default function PredictionsTab() {
       pred.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       pred.relatedSymbols.some((sym) =>
         sym.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
+      )
 
-    return matchesWatchlist && matchesCategory && matchesSearch;
-  });
+    return matchesWatchlist && matchesCategory && matchesSearch
+  })
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)]">
+    <div className="flex h-[calc(100vh-180px)] flex-col">
       {/* Header & Filters */}
       {/* <div className="mb-6">
         <h1 className="text-foreground text-2xl font-semibold mb-4">
@@ -64,15 +64,15 @@ export default function PredictionsTab() {
       </div> */}
 
       {/* Content Grid */}
-      <div className="h-[calc(100vh-140px)] grid grid-cols-1 lg:grid-cols-[320px_1fr_320px] gap-4">
+      <div className="grid h-[calc(100vh-140px)] grid-cols-1 gap-4 lg:grid-cols-[320px_1fr_320px]">
         {/* Left */}
-        <Card className="bg-card border-border flex flex-col overflow-y-auto">
-          <CardHeader className="pb-3 flex-shrink-0">
+        <Card className="flex flex-col overflow-y-auto border-border bg-card">
+          <CardHeader className="flex-shrink-0 pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-foreground text-lg font-semibold">
+              <CardTitle className="text-lg font-semibold text-foreground">
                 News Watcher
               </CardTitle>
-              <FileText className="w-5 h-5 text-muted-foreground" />
+              <FileText className="h-5 w-5 text-muted-foreground" />
             </div>
           </CardHeader>
 
@@ -92,17 +92,17 @@ export default function PredictionsTab() {
           ))}
         </Card>
         {/* Middle  */}
-        <Card className="bg-card border-border flex flex-col overflow-hidden">
+        <Card className="flex flex-col overflow-hidden border-border bg-card">
           <ChatComponent />
         </Card>
 
         {/* Right  */}
-        <Card className="bg-card border-border flex flex-col overflow-hidden">
+        <Card className="flex flex-col overflow-hidden border-border bg-card">
           <AutoTradeCard />
         </Card>
 
         {filteredPredictions.length === 0 && (
-          <div className="text-center py-12">
+          <div className="py-12 text-center">
             <p className="text-muted-foreground">
               No predictions found for your watchlist and filters.
             </p>
@@ -110,5 +110,5 @@ export default function PredictionsTab() {
         )}
       </div>
     </div>
-  );
+  )
 }

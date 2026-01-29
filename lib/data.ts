@@ -1,49 +1,49 @@
 // lib/data.ts (includes types)
 
 export interface Stock {
-  symbol: string;
-  name: string;
-  shares: number;
-  avgPrice: number;
-  currentPrice: number;
-  change: number;
-  changePercent: number;
+  symbol: string
+  name: string
+  shares: number
+  avgPrice: number
+  currentPrice: number
+  change: number
+  changePercent: number
 }
 
 export interface PurchaseHistory {
-  date: string;
-  shares: number;
-  pricePerShare: number;
+  date: string
+  shares: number
+  pricePerShare: number
 }
 
 export interface StockWithHistory extends Stock {
-  purchaseHistory: PurchaseHistory[];
+  purchaseHistory: PurchaseHistory[]
 }
 
 export const generatePerformanceData = () => {
-  const data = [];
-  const startDate = new Date("2025-05-01");
-  const endDate = new Date("2026-04-01");
-  let value = 31.0;
+  const data = []
+  const startDate = new Date("2025-05-01")
+  const endDate = new Date("2026-04-01")
+  let value = 31.0
 
   for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 3)) {
     // Random walk with slight upward trend
-    const change = (Math.random() - 0.48) * 1.5;
-    value = Math.max(28, Math.min(42, value + change));
+    const change = (Math.random() - 0.48) * 1.5
+    value = Math.max(28, Math.min(42, value + change))
 
     // Add extra boost in recent months
     if (d > new Date("2026-02-01")) {
-      value += Math.random() * 0.3;
+      value += Math.random() * 0.3
     }
 
     data.push({
       date: new Date(d).toISOString(),
       value: Number.parseFloat(value.toFixed(2)),
-    });
+    })
   }
 
-  return data;
-};
+  return data
+}
 
 export const mockPredictions = [
   {
@@ -154,7 +154,7 @@ export const mockPredictions = [
     category: "Tech",
     relatedSymbols: ["AMZN"],
   },
-];
+]
 
 // Mock data
 export const mockTransactions = [
@@ -181,4 +181,4 @@ export const mockTransactions = [
     reason: "Taking profit after 15% gain",
   },
   // ... more transactions
-];
+]

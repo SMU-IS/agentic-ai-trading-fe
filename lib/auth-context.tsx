@@ -1,6 +1,12 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react"
 
 export interface User {
   id: string
@@ -86,7 +92,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signUp, signIn, signInWithTwitter, signOut }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, signUp, signIn, signInWithTwitter, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   )

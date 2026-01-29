@@ -1,52 +1,52 @@
-'use client';
+"use client"
 
-import type React from 'react';
+import type React from "react"
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
-import Link from 'next/link';
+} from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
+import Link from "next/link"
 
 export function Header() {
   const navItems = [
-    { name: 'Features', href: '#features-section' },
-    { name: 'FAQ', href: '#faq-section' },
-  ];
+    { name: "Features", href: "#features-section" },
+    { name: "FAQ", href: "#faq-section" },
+  ]
 
   const handleScroll = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string,
   ) => {
-    e.preventDefault();
-    const targetId = href.substring(1);
-    const targetElement = document.getElementById(targetId);
+    e.preventDefault()
+    const targetId = href.substring(1)
+    const targetElement = document.getElementById(targetId)
     if (targetElement) {
-      targetElement.scrollIntoView({ behavior: 'smooth' });
+      targetElement.scrollIntoView({ behavior: "smooth" })
     }
-  };
+  }
 
   return (
-    <header className="w-full py-4 px-6">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <header className="w-full px-6 py-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-            <span className="text-foreground text-xl font-semibold">
+            <span className="text-xl font-semibold text-foreground">
               Agent M
             </span>
           </div>
-          <nav className="hidden md:flex items-center gap-2">
+          <nav className="hidden items-center gap-2 md:flex">
             {navItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
                 onClick={(e) => handleScroll(e, item.href)}
-                className="text-[#888888] hover:text-foreground px-4 py-2 rounded-full font-medium transition-colors"
+                className="rounded-full px-4 py-2 font-medium text-[#888888] transition-colors hover:text-foreground"
               >
                 {item.name}
               </Link>
@@ -55,7 +55,7 @@ export function Header() {
         </div>
         <div className="flex items-center gap-4">
           <Link href="/login" className="hidden md:block">
-            <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-2 rounded-full font-medium shadow-sm">
+            <Button className="rounded-full bg-secondary px-6 py-2 font-medium text-secondary-foreground shadow-sm hover:bg-secondary/90">
               Login / Register
             </Button>
           </Link>
@@ -68,26 +68,26 @@ export function Header() {
             </SheetTrigger>
             <SheetContent
               side="bottom"
-              className="bg-background border-t border-border text-foreground"
+              className="border-t border-border bg-background text-foreground"
             >
               <SheetHeader>
                 <SheetTitle className="text-left text-xl font-semibold text-foreground">
                   Navigation
                 </SheetTitle>
               </SheetHeader>
-              <nav className="flex flex-col gap-4 mt-6">
+              <nav className="mt-6 flex flex-col gap-4">
                 {navItems.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
                     onClick={(e) => handleScroll(e, item.href)}
-                    className="text-[#888888] hover:text-foreground justify-start text-lg py-2"
+                    className="justify-start py-2 text-lg text-[#888888] hover:text-foreground"
                   >
                     {item.name}
                   </Link>
                 ))}
-                <Link href="/login" className="w-full mt-4">
-                  <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-2 rounded-full font-medium shadow-sm">
+                <Link href="/login" className="mt-4 w-full">
+                  <Button className="rounded-full bg-secondary px-6 py-2 font-medium text-secondary-foreground shadow-sm hover:bg-secondary/90">
                     Login
                   </Button>
                 </Link>
@@ -97,5 +97,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  );
+  )
 }

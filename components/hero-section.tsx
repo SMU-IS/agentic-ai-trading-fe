@@ -1,14 +1,11 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Header } from './header';
-import Link from 'next/link';
+import React from "react"
+import { Button } from "@/components/ui/button"
+import { Header } from "./header"
+import Link from "next/link"
 
 export function HeroSection() {
   return (
-    <section
-      className="flex flex-col items-center text-center relative mx-auto rounded-2xl overflow-hidden my-6 py-0 px-4
-         w-full h-[400px] md:w-[1220px] md:h-[550px] lg:h-[750px] md:px-0"
-    >
+    <section className="relative mx-auto my-6 flex h-[400px] w-full flex-col items-center overflow-hidden rounded-2xl px-4 py-0 text-center md:h-[550px] md:w-[1220px] md:px-0 lg:h-[750px]">
       {/* SVG Background */}
       <div className="absolute inset-0 z-0">
         <svg
@@ -22,7 +19,7 @@ export function HeroSection() {
           <g clipPath="url(#clip0_186_1134)">
             <mask
               id="mask0_186_1134"
-              style={{ maskType: 'alpha' }}
+              style={{ maskType: "alpha" }}
               maskUnits="userSpaceOnUse"
               x="10"
               y="-1"
@@ -378,7 +375,7 @@ export function HeroSection() {
             </g>
 
             <g
-              style={{ mixBlendMode: 'lighten' }}
+              style={{ mixBlendMode: "lighten" }}
               filter="url(#filter2_f_186_1134)"
             >
               <path
@@ -388,7 +385,7 @@ export function HeroSection() {
             </g>
 
             <g
-              style={{ mixBlendMode: 'overlay' }}
+              style={{ mixBlendMode: "overlay" }}
               filter="url(#filter3_f_186_1134)"
             >
               <path
@@ -566,15 +563,15 @@ export function HeroSection() {
       </div>
 
       {/* Header positioned at top of hero container */}
-      <div className="absolute top-0 left-0 right-0 z-20">
+      <div className="absolute left-0 right-0 top-0 z-20">
         <Header />
       </div>
 
-      <div className="relative z-10 space-y-4 md:space-y-5 lg:space-y-6 mb-6 md:mb-7 lg:mb-9 max-w-md md:max-w-[500px] lg:max-w-[588px] mt-16 md:mt-[120px] lg:mt-[160px] px-4">
-        <h1 className="text-foreground text-3xl md:text-4xl lg:text-5xl font-semibold leading-tight">
+      <div className="relative z-10 mb-6 mt-16 max-w-md space-y-4 px-4 md:mb-7 md:mt-[120px] md:max-w-[500px] md:space-y-5 lg:mb-9 lg:mt-[160px] lg:max-w-[588px] lg:space-y-6">
+        <h1 className="text-3xl font-semibold leading-tight text-foreground md:text-4xl lg:text-5xl">
           Introducing Agent M.
         </h1>
-        <p className="text-muted-foreground text-base md:text-base lg:text-lg font-medium leading-relaxed max-w-lg mx-auto">
+        <p className="mx-auto max-w-lg text-base font-medium leading-relaxed text-muted-foreground md:text-base lg:text-lg">
           While you sleep, <b>Agent M</b> crawls through insider news, uses AI
           to detect real signals from noise, and executes high‑conviction trades
           so your portfolio is always working.
@@ -587,5 +584,5 @@ export function HeroSection() {
         </Button>
       </Link> */}
     </section>
-  );
+  )
 }

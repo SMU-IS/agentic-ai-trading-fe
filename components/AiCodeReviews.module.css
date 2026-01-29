@@ -23,15 +23,22 @@
   background: linear-gradient(180deg, hsl(var(--card)) 0%, transparent 100%);
   left: 50%;
   top: 50%;
-  transform: translate(calc(-50% + 11.86px), calc(-50% - 7.3px)); /* Maintain relative offset for centering */
+  transform: translate(
+    calc(-50% + 11.86px),
+    calc(-50% - 7.3px)
+  ); /* Maintain relative offset for centering */
 }
 
 .messageBoxMain {
   width: 340px;
-  height: 221.40px;
+  height: 221.4px;
   backdrop-filter: blur(16px); /* Updated blur value */
   border: 1px solid hsl(var(--border));
-  background: linear-gradient(180deg, hsl(var(--card) / 0.9) 0%, hsl(var(--card) / 0.7) 100%);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--card) / 0.9) 0%,
+    hsl(var(--card) / 0.7) 100%
+  );
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%); /* Center the main box */
@@ -64,7 +71,7 @@
 .highlight {
   position: absolute;
   left: -8.64px;
-  width: 339.20px;
+  width: 339.2px;
 }
 
 .highlightHeader {

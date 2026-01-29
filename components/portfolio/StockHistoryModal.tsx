@@ -1,17 +1,17 @@
-'use client';
+"use client"
 
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { StockWithHistory } from '@/lib/types';
+} from "@/components/ui/dialog"
+import { StockWithHistory } from "@/lib/types"
 
 interface StockHistoryModalProps {
-  stock: StockWithHistory | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  stock: StockWithHistory | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 export default function StockHistoryModal({
@@ -19,12 +19,12 @@ export default function StockHistoryModal({
   open,
   onOpenChange,
 }: StockHistoryModalProps) {
-  if (!stock) return null;
+  if (!stock) return null
 
-  const currentVal = stock.shares * stock.currentPrice;
-  const costVal = stock.shares * stock.avgPrice;
-  const gainVal = currentVal - costVal;
-  const gainPct = costVal === 0 ? 0 : (gainVal / costVal) * 100;
+  const currentVal = stock.shares * stock.currentPrice
+  const costVal = stock.shares * stock.avgPrice
+  const gainVal = currentVal - costVal
+  const gainPct = costVal === 0 ? 0 : (gainVal / costVal) * 100
 
   // rows always come from parent purchaseHistory; if empty, synthesize one from the position
   const rows =
@@ -37,36 +37,36 @@ export default function StockHistoryModal({
             shares: stock.shares,
             pricePerShare: stock.avgPrice,
           },
-        ];
+        ]
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-black border-border">
+      <DialogContent className="border-border bg-black sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-foreground flex items-center gap-3">
+          <DialogTitle className="flex items-center gap-3 text-foreground">
             <span className="text-2xl font-semibold">{stock.symbol}</span>
-            <span className="text-muted-foreground font-normal text-base">
+            <span className="text-base font-normal text-muted-foreground">
               {stock.name}
             </span>
           </DialogTitle>
         </DialogHeader>
 
         <div className="mt-4">
-          <h3 className="text-foreground font-medium mb-3">Purchase History</h3>
-          <div className="rounded-lg border border-border overflow-hidden">
+          <h3 className="mb-3 font-medium text-foreground">Purchase History</h3>
+          <div className="overflow-hidden rounded-lg border border-border">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/30">
-                  <th className="text-left text-muted-foreground text-sm font-medium px-4 py-3">
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                     Date
                   </th>
-                  <th className="text-right text-muted-foreground text-sm font-medium px-4 py-3">
+                  <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">
                     Shares
                   </th>
-                  <th className="text-right text-muted-foreground text-sm font-medium px-4 py-3">
+                  <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">
                     Bought Price
                   </th>
-                  <th className="text-right text-muted-foreground text-sm font-medium px-4 py-3">
+                  <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">
                     Value
                   </th>
                 </tr>
@@ -78,15 +78,15 @@ export default function StockHistoryModal({
                     className="border-b border-border last:border-0"
                   >
                     <td className="px-4 py-3 text-foreground">
-                      {new Date(purchase.date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
+                      {new Date(purchase.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
                       })}
-                      <p className="text-muted-foreground text-xs">
-                        {new Date(purchase.date).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(purchase.date).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </p>
                     </td>
@@ -100,7 +100,7 @@ export default function StockHistoryModal({
                       $
                       {(
                         purchase.shares * purchase.pricePerShare
-                      ).toLocaleString('en-US', {
+                      ).toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                       })}
                     </td>
@@ -109,18 +109,18 @@ export default function StockHistoryModal({
               </tbody>
               <tfoot>
                 <tr className="bg-muted/30">
-                  <td className="px-4 py-3 text-foreground font-medium">
+                  <td className="px-4 py-3 font-medium text-foreground">
                     Total
                   </td>
-                  <td className="px-4 py-3 text-right text-foreground font-medium">
+                  <td className="px-4 py-3 text-right font-medium text-foreground">
                     {stock.shares}
                   </td>
-                  <td className="px-4 py-3 text-right text-muted-foreground text-sm">
+                  <td className="px-4 py-3 text-right text-sm text-muted-foreground">
                     Avg ${stock.avgPrice.toFixed(2)}
                   </td>
-                  <td className="px-4 py-3 text-right text-foreground font-medium">
+                  <td className="px-4 py-3 text-right font-medium text-foreground">
                     $
-                    {(stock.shares * stock.avgPrice).toLocaleString('en-US', {
+                    {(stock.shares * stock.avgPrice).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
                     })}
                   </td>
@@ -129,28 +129,28 @@ export default function StockHistoryModal({
             </table>
           </div>
 
-          <div className="mt-4 p-4 rounded-lg bg-muted/30 border border-border">
-            <div className="flex justify-between items-center">
+          <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4">
+            <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Current Value</span>
-              <span className="text-foreground font-semibold">
+              <span className="font-semibold text-foreground">
                 $
-                {currentVal.toLocaleString('en-US', {
+                {currentVal.toLocaleString("en-US", {
                   minimumFractionDigits: 2,
                 })}
               </span>
             </div>
-            <div className="flex justify-between items-center mt-2">
+            <div className="mt-2 flex items-center justify-between">
               <span className="text-muted-foreground">Total Gain/Loss</span>
               <span
                 className={`font-semibold ${
-                  gainVal >= 0 ? 'text-primary' : 'text-red-500'
+                  gainVal >= 0 ? "text-primary" : "text-red-500"
                 }`}
               >
-                {gainVal >= 0 ? '+' : ''}$
-                {gainVal.toLocaleString('en-US', {
+                {gainVal >= 0 ? "+" : ""}$
+                {gainVal.toLocaleString("en-US", {
                   minimumFractionDigits: 2,
-                })}{' '}
-                ({gainVal >= 0 ? '+' : ''}
+                })}{" "}
+                ({gainVal >= 0 ? "+" : ""}
                 {gainPct.toFixed(2)}%)
               </span>
             </div>
@@ -158,5 +158,5 @@ export default function StockHistoryModal({
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

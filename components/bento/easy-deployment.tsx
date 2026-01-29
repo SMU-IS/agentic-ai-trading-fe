@@ -9,7 +9,11 @@ interface DeploymentEasyProps {
   className?: string
 }
 
-const DeploymentEasy: React.FC<DeploymentEasyProps> = ({ width = "100%", height = "100%", className = "" }) => {
+const DeploymentEasy: React.FC<DeploymentEasyProps> = ({
+  width = "100%",
+  height = "100%",
+  className = "",
+}) => {
   /* ------------------------------------------------------------
    * Theme-based design tokens using global CSS variables
    * ---------------------------------------------------------- */
@@ -49,7 +53,7 @@ const DeploymentEasy: React.FC<DeploymentEasyProps> = ({ width = "100%", height 
 
   return (
     <div
-      className={`w-full h-full flex items-center justify-center p-4 relative ${className}`}
+      className={`relative flex h-full w-full items-center justify-center p-4 ${className}`}
       style={{
         width,
         height,
@@ -71,7 +75,8 @@ const DeploymentEasy: React.FC<DeploymentEasyProps> = ({ width = "100%", height 
           transform: "translate(-50%, -50%)",
           width: "340px",
           height: "239px",
-          background: "linear-gradient(180deg, var(--deploy-background-color) 0%, transparent 100%)",
+          background:
+            "linear-gradient(180deg, var(--deploy-background-color) 0%, transparent 100%)",
           backdropFilter: "blur(7.907px)",
           borderRadius: "10px",
           overflow: "hidden",
@@ -94,7 +99,8 @@ const DeploymentEasy: React.FC<DeploymentEasyProps> = ({ width = "100%", height 
             padding: "8px",
             height: "100%",
             overflow: "hidden",
-            fontFamily: "'Geist Mono', 'SF Mono', Monaco, Consolas, 'Liberation Mono', monospace",
+            fontFamily:
+              "'Geist Mono', 'SF Mono', Monaco, Consolas, 'Liberation Mono', monospace",
             fontSize: "10px",
             lineHeight: "16px",
             color: "var(--deploy-text-color)",
@@ -139,7 +145,8 @@ const DeploymentEasy: React.FC<DeploymentEasyProps> = ({ width = "100%", height 
           border: "none",
           cursor: "pointer",
           borderRadius: "8.925px",
-          fontFamily: "'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          fontFamily:
+            "'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           fontSize: "16.575px",
           lineHeight: "25.5px",
           letterSpacing: "-0.51px",
