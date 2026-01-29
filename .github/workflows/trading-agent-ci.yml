@@ -21,10 +21,10 @@ jobs:
         with:
           version: 8
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
 
       - name: Format code
-        run: pnpm format
+        run: npm format
 
       - name: Run build
-        run: pnpm build
+        run: npm build
