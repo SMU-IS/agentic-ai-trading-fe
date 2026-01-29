@@ -16,12 +16,12 @@ import Link from 'next/link';
 export function Header() {
   const navItems = [
     { name: 'Features', href: '#features-section' },
-    { name: 'Testimonials', href: '#testimonials-section' },
+    { name: 'FAQ', href: '#faq-section' },
   ];
 
   const handleScroll = (
     e: React.MouseEvent<HTMLAnchorElement>,
-    href: string
+    href: string,
   ) => {
     e.preventDefault();
     const targetId = href.substring(1);

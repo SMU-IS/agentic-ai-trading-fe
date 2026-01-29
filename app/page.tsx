@@ -12,7 +12,7 @@ import { AnimatedSection } from '@/components/animated-section';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden pb-0">
+    <div className="min-h-screen relative overflow-hidden pb-0">
       <div className="relative z-10">
         <main className="max-w-[1320px] mx-auto relative">
           <HeroSection />
@@ -36,12 +36,12 @@ export default function LandingPage() {
         >
           <BentoSection />
         </AnimatedSection>
-        <AnimatedSection
+        {/* <AnimatedSection
           className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16"
           delay={0.2}
         >
           <LargeTestimonial />
-        </AnimatedSection>
+        </AnimatedSection> */}
         {/* <AnimatedSection
           id="pricing-section"
           className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16"
@@ -49,13 +49,13 @@ export default function LandingPage() {
         >
           <PricingSection />
         </AnimatedSection> */}
-        <AnimatedSection
+        {/* <AnimatedSection
           id="testimonials-section"
           className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16"
           delay={0.2}
         >
           <TestimonialGridSection />
-        </AnimatedSection>
+        </AnimatedSection> */}
         <AnimatedSection
           id="faq-section"
           className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16"

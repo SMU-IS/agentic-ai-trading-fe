@@ -13,18 +13,11 @@ export function FooterSection() {
           </div>
         </div>
         <p className="text-foreground/90 text-sm font-medium leading-[18px] text-left">
-          Coding made effortless
+          Trading made effortless
         </p>
         <div className="flex justify-start items-start gap-3">
           <a
-            href="#"
-            aria-label="Twitter"
-            className="w-4 h-4 flex items-center justify-center"
-          >
-            <Twitter className="w-full h-full text-muted-foreground" />
-          </a>
-          <a
-            href="#"
+            href="https://github.com/SMU-IS/agentic-ai-trading-be"
             aria-label="GitHub"
             className="w-4 h-4 flex items-center justify-center"
           >

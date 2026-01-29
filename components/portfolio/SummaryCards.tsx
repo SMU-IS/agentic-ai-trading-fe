@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wallet, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface SummaryCardsProps {
+  cash: number;
   totalValue: number;
   totalGain: number;
   totalCost: number;
@@ -11,21 +12,23 @@ interface SummaryCardsProps {
 }
 
 export default function SummaryCards({
+  cash,
   totalValue,
   totalGain,
   totalCost,
   todayChange,
 }: SummaryCardsProps) {
   const totalGainPercent = (totalGain / totalCost) * 100;
+  const todayChangePercent = (todayChange / (totalValue - todayChange)) * 100;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {/* Total Value Card */}
       <Card className="bg-card border-border">
         <CardHeader className="pb-2">
           <CardTitle className="text-muted-foreground text-sm font-medium flex items-center gap-2">
             <Wallet className="w-4 h-4" />
-            Total Value
+            Total Portfolio Value (USD)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -36,8 +39,23 @@ export default function SummaryCards({
             })}
           </p>
         </CardContent>
+      </Card>{' '}
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-muted-foreground text-sm font-medium flex items-center gap-2">
+            <Wallet className="w-4 h-4" />
+            Cash (USD)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-foreground text-3xl font-semibold">
+            $
+            {cash.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+            })}
+          </p>
+        </CardContent>
       </Card>
-
       {/* Total Gain/Loss Card */}
       <Card className="bg-card border-border">
         <CardHeader className="pb-2">
@@ -73,7 +91,6 @@ export default function SummaryCards({
           </p>
         </CardContent>
       </Card>
-
       {/* Today's Change Card */}
       <Card className="bg-card border-border">
         <CardHeader className="pb-2">
@@ -99,6 +116,14 @@ export default function SummaryCards({
               })}
             </p>
           </div>
+          <p
+            className={`text-sm ${
+              todayChange >= 0 ? 'text-primary' : 'text-red-500'
+            }`}
+          >
+            {totalGain >= 0 ? '+' : ''}
+            {todayChangePercent.toFixed(2)}% change
+          </p>
         </CardContent>
       </Card>
     </div>

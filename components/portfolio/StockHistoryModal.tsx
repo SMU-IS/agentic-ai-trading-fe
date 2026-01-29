@@ -24,11 +24,24 @@ export default function StockHistoryModal({
   const currentVal = stock.shares * stock.currentPrice;
   const costVal = stock.shares * stock.avgPrice;
   const gainVal = currentVal - costVal;
-  const gainPct = (gainVal / costVal) * 100;
+  const gainPct = costVal === 0 ? 0 : (gainVal / costVal) * 100;
+
+  // rows always come from parent purchaseHistory; if empty, synthesize one from the position
+  const rows =
+    stock.purchaseHistory && stock.purchaseHistory.length > 0
+      ? stock.purchaseHistory
+      : [
+          {
+            date: new Date().toISOString(),
+            datetime: new Date().toISOString(),
+            shares: stock.shares,
+            pricePerShare: stock.avgPrice,
+          },
+        ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-card border-border">
+      <DialogContent className="sm:max-w-[600px] bg-black border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center gap-3">
             <span className="text-2xl font-semibold">{stock.symbol}</span>
@@ -51,7 +64,7 @@ export default function StockHistoryModal({
                     Shares
                   </th>
                   <th className="text-right text-muted-foreground text-sm font-medium px-4 py-3">
-                    Price
+                    Bought Price
                   </th>
                   <th className="text-right text-muted-foreground text-sm font-medium px-4 py-3">
                     Value
@@ -59,7 +72,7 @@ export default function StockHistoryModal({
                 </tr>
               </thead>
               <tbody>
-                {stock.purchaseHistory.map((purchase, index) => (
+                {rows.map((purchase, index) => (
                   <tr
                     key={index}
                     className="border-b border-border last:border-0"
@@ -70,6 +83,12 @@ export default function StockHistoryModal({
                         month: 'short',
                         day: 'numeric',
                       })}
+                      <p className="text-muted-foreground text-xs">
+                        {new Date(purchase.date).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
                     </td>
                     <td className="px-4 py-3 text-right text-foreground">
                       {purchase.shares}
@@ -81,7 +100,9 @@ export default function StockHistoryModal({
                       $
                       {(
                         purchase.shares * purchase.pricePerShare
-                      ).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      ).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                      })}
                     </td>
                   </tr>
                 ))}
@@ -113,7 +134,7 @@ export default function StockHistoryModal({
               <span className="text-muted-foreground">Current Value</span>
               <span className="text-foreground font-semibold">
                 $
-                {(stock.shares * stock.currentPrice).toLocaleString('en-US', {
+                {currentVal.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                 })}
               </span>

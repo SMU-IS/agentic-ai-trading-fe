@@ -12,7 +12,7 @@ export default function PortfolioPage() {
   const { user, isLoading, signOut } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'portfolio' | 'predictions'>(
-    'portfolio'
+    'portfolio',
   );
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function PortfolioPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-teal-950/30 via-black to-teal-900/30">
       {/* Header */}
       <header className="border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">

@@ -80,12 +80,13 @@ export function BentoSection() {
         <div className="self-stretch py-8 md:py-14 flex flex-col justify-center items-center gap-2 z-10">
           <div className="flex flex-col justify-start items-center gap-4">
             <h2 className="w-full max-w-[655px] text-center text-foreground text-4xl md:text-6xl font-semibold leading-tight md:leading-[66px]">
-              Empower Your Workflow with AI
+              Autonomous Trading with a RAG AI system
             </h2>
             <p className="w-full max-w-[600px] text-center text-muted-foreground text-lg md:text-xl font-medium leading-relaxed">
-              Ask your AI Agent for real-time collaboration, seamless
-              integrations, and actionable insights to streamline your
-              operations.
+              Your personalised AI agent for autonomous trades, seamless
+              integrations with your exisiting portfolios, and actionable news
+              insights to stay on top — so you never miss a market-moving event
+              on your portfolio again.
             </p>
           </div>
         </div>

@@ -3,86 +3,121 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, TrendingUp, TrendingDown, History } from 'lucide-react';
+import { TrendingUp, TrendingDown, History, DollarSign } from 'lucide-react';
 import { StockWithHistory, Transaction } from '@/lib/types';
 import TransactionsModal from './transactions/TransactionHistory';
-import { id } from 'date-fns/locale';
+import AskAI from './chat/AskAI';
+import LiquidateModal from './chat/menuChatModal';
+import { Sparkles } from 'lucide-react';
+import { getCompanyName } from '@/lib/tickerMap'; // Import the utility
+import StockLogo from '@/components/StockLogo'; // Add this import at top
+
+const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`;
 
 interface HoldingsTableProps {
-  stocks: StockWithHistory[];
-  onSelectStock: (stock: StockWithHistory) => void;
+  onSelectStock: (stock: StockWithHistory | null) => void;
 }
 
-const BASE_URL = 'http://localhost:8000/api/v1';
+interface ContextMenuPosition {
+  x: number;
+  y: number;
+  stock: StockWithHistory;
+}
 
-export default function HoldingsTable({
-  stocks,
-  onSelectStock,
-}: HoldingsTableProps) {
+export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [txLoading, setTxLoading] = useState(false);
   const [txError, setTxError] = useState('');
+  const [showAskAI, setShowAskAI] = useState(false);
+  const [askAISymbol, setAskAISymbol] = useState<string | null>(null);
+  const [askAIData, setAskAIData] = useState<any>(null);
 
-  // NEW: holdings from /trading/positions
+  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(
+    null,
+  );
+  const [liquidateStock, setLiquidateStock] = useState<StockWithHistory | null>(
+    null,
+  );
+
   const [positions, setPositions] = useState<StockWithHistory[]>([]);
   const [positionsLoading, setPositionsLoading] = useState(false);
-  const [PositionsError, setPositionsError] = useState('');
+  const [positionsError, setPositionsError] = useState('');
 
-  // Fetch positions (holdings) on mount
+  // Close context menu when clicking outside
   useEffect(() => {
-    const fetchPositions = async () => {
-      try {
-        setPositionsLoading(true);
-        setPositionsError('');
+    const handleClick = () => setContextMenu(null);
+    const handleScroll = () => setContextMenu(null);
 
-        const res = await fetch(`${BASE_URL}/trading/positions`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+    if (contextMenu) {
+      document.addEventListener('click', handleClick);
+      document.addEventListener('scroll', handleScroll, true);
+      return () => {
+        document.removeEventListener('click', handleClick);
+        document.removeEventListener('scroll', handleScroll, true);
+      };
+    }
+  }, [contextMenu]);
 
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || 'Failed to fetch positions');
-        }
+  // Fetch positions for holdings
+  const fetchPositions = async () => {
+    try {
+      setPositionsLoading(true);
+      setPositionsError('');
 
-        const data: any[] = await res.json();
+      const res = await fetch(`${BASE_URL}/trading/positions`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-        const mapped: StockWithHistory[] = data.map((p) => {
-          const shares = Number(p.qty ?? '0');
-          const currentPrice = Number(p.current_price ?? 0);
-          const avgPrice = Number(p.avg_entry_price ?? 0);
-          const changePercent = Number(
-            p.change_today ?? p.unrealized_plpc ?? 0,
-          );
-          const change = Number(p.unrealized_pl ?? 0);
-
-          return {
-            symbol: p.symbol,
-            name: p.symbol, // no name field, reuse symbol
-            shares,
-            avgPrice,
-            currentPrice,
-            change,
-            changePercent: changePercent * 100, // API gives fraction (-0.02); your UI expects %
-            purchaseHistory: [], // backend doesn’t provide; keep empty
-          };
-        });
-
-        setPositions(mapped);
-      } catch (err) {
-        setPositionsError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setPositionsLoading(false);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to fetch positions');
       }
-    };
 
+      const data: any[] = await res.json();
+
+      const mapped: StockWithHistory[] = data.map((p) => {
+        const qty = Number(p.qty ?? '0');
+        const currentPrice = Number(p.current_price ?? 0);
+        const avgPrice = Number(p.avg_entry_price ?? 0);
+        const changePercent = Number(
+          p.unrealized_intraday_plpc ??
+            p.change_today ??
+            p.unrealized_plpc ??
+            0,
+        );
+        const change = Number(p.unrealized_intraday_pl ?? p.unrealized_pl ?? 0);
+        const totalPL = Number(p.unrealized_pl ?? 0);
+
+        return {
+          symbol: p.symbol,
+          name: getCompanyName(p.symbol),
+          shares: qty,
+          avgPrice,
+          currentPrice,
+          change,
+          changePercent: changePercent * 100,
+          totalPL,
+          purchaseHistory: [],
+        };
+      });
+
+      setPositions(mapped);
+    } catch (err) {
+      setPositionsError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setPositionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPositions();
   }, []);
 
-  // Fetch transactions
+  const longPositions = positions.filter((p) => p.shares >= 0);
+  const shortPositions = positions.filter((p) => p.shares < 0);
+
   useEffect(() => {
     if (!showTransactionsModal) return;
 
@@ -93,9 +128,7 @@ export default function HoldingsTable({
 
         const res = await fetch(`${BASE_URL}/trading/orders/all`, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
 
         if (!res.ok) {
@@ -103,40 +136,78 @@ export default function HoldingsTable({
           throw new Error(text || 'Failed to fetch orders');
         }
 
-        const data: any[] = await res.json();
+        const orders: any[] = await res.json();
 
-        // Map backend orders into your Transaction type
-        const mapped: Transaction[] = data.map((o) => {
-          // pick a datetime to show
-          const datetime = o.filled_at || o.submitted_at || o.created_at;
+        type TxRow = {
+          id: string;
+          symbol: string;
+          name: string;
+          type: 'buy' | 'sell';
+          datetime: string;
+          price: number;
+          shares: number;
+          filledQty: number;
+          totalValue: number;
+          reason: string;
+        };
 
-          // choose a price: filled_avg_price (if filled) else limit_price (if any) else 0
-          // const rawPrice = o.filled_avg_price ?? o.limit_price ?? null;
-          const rawPrice = o.filled_avg_price ?? null;
+        const allTx: TxRow[] = [];
 
-          const price = rawPrice ? Number(rawPrice) : 0;
+        for (const o of orders) {
+          const baseDatetime = o.filled_at || o.submitted_at || o.created_at;
 
-          const qty = Number(o.qty ?? '0');
-          const filledQty = Number(o.filled_qty);
+          if (o.status === 'filled' && Number(o.filled_qty) !== 0) {
+            const price = Number(o.filled_avg_price ?? 0);
+            const qty = Number(o.qty ?? 0);
+            const filledQty = Number(o.filled_qty ?? 0);
+            const side = o.side as 'buy' | 'sell';
 
-          return {
-            id: o.id,
-            symbol: o.symbol,
-            // BE does not have `name`, so just reuse symbol or plug in a lookup later
-            name: o.symbol,
-            // your side field is "side": "buy" | "sell"
-            type: o.side as 'buy' | 'sell',
-            datetime,
-            price,
-            shares: qty,
-            filledQty: filledQty,
-            totalValue: price * qty,
-            // no explicit reason field in API; derive something simple
-            reason: `${o.order_type} ${o.order_class} (${o.status})`,
-          };
-        });
+            allTx.push({
+              id: o.id,
+              symbol: o.symbol,
+              name: getCompanyName(o.symbol),
+              type: side,
+              datetime: baseDatetime,
+              price,
+              shares: qty,
+              filledQty,
+              totalValue: price * filledQty,
+              reason: `${o.order_type} ${o.order_class} (${o.status})`,
+            });
+          }
 
-        setTransactions(mapped);
+          if (Array.isArray(o.legs)) {
+            for (const leg of o.legs) {
+              if (
+                leg &&
+                leg.status === 'filled' &&
+                Number(leg.filled_qty) !== 0
+              ) {
+                const legDatetime =
+                  leg.filled_at || leg.submitted_at || leg.created_at;
+                const price = Number(leg.filled_avg_price ?? 0);
+                const qty = Number(leg.qty ?? 0);
+                const filledQty = Number(leg.filled_qty ?? 0);
+                const side = leg.side as 'buy' | 'sell';
+
+                allTx.push({
+                  id: leg.id,
+                  symbol: leg.symbol,
+                  name: getCompanyName(leg.symbol),
+                  type: side,
+                  datetime: legDatetime,
+                  price,
+                  shares: qty,
+                  filledQty,
+                  totalValue: price * filledQty,
+                  reason: `${leg.order_type} ${leg.order_class} (${leg.status})`,
+                });
+              }
+            }
+          }
+        }
+
+        setTransactions(allTx);
       } catch (err) {
         setTxError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -147,8 +218,234 @@ export default function HoldingsTable({
     fetchTransactions();
   }, [showTransactionsModal]);
 
+  const handleRowClick = async (position: StockWithHistory) => {
+    try {
+      const res = await fetch(`${BASE_URL}/trading/orders/all`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to fetch orders');
+      }
+
+      const orders: any[] = await res.json();
+
+      const normalizeSymbol = (s: string) => s.replace(/[^a-zA-Z]/g, '');
+
+      const symbolOrders = orders.filter(
+        (o) => normalizeSymbol(o.symbol) === position.symbol,
+      );
+
+      type FillRow = {
+        date: string;
+        datetime?: string;
+        shares: number;
+        pricePerShare: number;
+        side: 'buy' | 'sell';
+        sourceOrderId: string;
+      };
+
+      const fills: FillRow[] = [];
+
+      for (const o of symbolOrders) {
+        if (o.status === 'filled' && Number(o.filled_qty) !== 0) {
+          fills.push({
+            date: o.filled_at || o.submitted_at || o.created_at,
+            datetime: o.filled_at || o.submitted_at || o.created_at,
+            shares: Number(o.filled_qty),
+            pricePerShare: Number(o.filled_avg_price ?? 0),
+            side: o.side as 'buy' | 'sell',
+            sourceOrderId: o.id,
+          });
+        }
+
+        if (Array.isArray(o.legs)) {
+          for (const leg of o.legs) {
+            if (
+              leg &&
+              leg.status === 'filled' &&
+              Number(leg.filled_qty) !== 0 &&
+              normalizeSymbol(leg.symbol) === position.symbol
+            ) {
+              fills.push({
+                date: leg.filled_at || leg.submitted_at || leg.created_at,
+                datetime: leg.filled_at || leg.submitted_at || leg.created_at,
+                shares: Number(leg.filled_qty),
+                pricePerShare: Number(leg.filled_avg_price ?? 0),
+                side: leg.side as 'buy' | 'sell',
+                sourceOrderId: leg.id,
+              });
+            }
+          }
+        }
+      }
+
+      const purchaseHistory =
+        fills.map((f) => ({
+          date: f.date,
+          datetime: f.datetime,
+          shares: f.side === 'sell' ? -f.shares : f.shares,
+          pricePerShare: f.pricePerShare,
+        })) ?? [];
+
+      const totalShares = purchaseHistory.reduce((sum, p) => sum + p.shares, 0);
+      const totalCost = purchaseHistory.reduce(
+        (sum, p) => sum + p.shares * p.pricePerShare,
+        0,
+      );
+      const avgPrice =
+        totalShares !== 0 ? totalCost / totalShares : position.avgPrice;
+
+      const stockWithHistory: StockWithHistory = {
+        ...position,
+        shares: totalShares || position.shares,
+        avgPrice,
+        purchaseHistory,
+      };
+
+      onSelectStock(stockWithHistory);
+    } catch (err) {
+      console.error('Failed to load stock history', err);
+      onSelectStock(position);
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent, stock: StockWithHistory) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      stock,
+    });
+  };
+
+  const handleLiquidateClick = (stock: StockWithHistory) => {
+    setContextMenu(null);
+    setLiquidateStock(stock);
+  };
+
+  const handleLiquidateSuccess = () => {
+    // Refresh positions after successful order
+    fetchPositions();
+  };
+
+  const handleAskAIAboutStock = (stock: StockWithHistory) => {
+    setContextMenu(null);
+
+    // Prepare stock data to pass to AskAI
+    const stockData = {
+      symbol: stock.symbol,
+      name: getCompanyName(stock.symbol),
+      shares: stock.shares,
+      avgPrice: stock.avgPrice,
+      currentPrice: stock.currentPrice,
+      totalPL: stock.totalPL,
+      changePercent: stock.changePercent,
+      purchaseHistory: stock.purchaseHistory,
+    };
+
+    setAskAIData(stockData);
+    setShowAskAI(true);
+  };
+
+  const handleAskAIFromTransactions = (transactionData: any) => {
+    setAskAIData(transactionData);
+    setShowAskAI(true);
+    // Don't close the transaction modal
+  };
+
+  const renderTableBody = (rows: StockWithHistory[], isShort: boolean) => (
+    <tbody>
+      {rows.map((stock) => {
+        const signedShares = stock.shares;
+        const sharesAbs = Math.abs(signedShares);
+        const value = sharesAbs * stock.currentPrice;
+        const cost = sharesAbs * stock.avgPrice;
+        const gain =
+          (stock.currentPrice - stock.avgPrice) *
+          (isShort ? -sharesAbs : sharesAbs);
+        const gainPercent = cost === 0 ? 0 : (gain / cost) * 100;
+
+        return (
+          <tr
+            key={stock.symbol}
+            onClick={() => handleRowClick(stock)}
+            onContextMenu={(e) => handleContextMenu(e, stock)}
+            className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+          >
+            <td className="px-6 py-4">
+              <StockLogo symbol={stock.symbol} name={stock.name} size="md" />
+            </td>{' '}
+            <td className="px-6 py-4">
+              <div>
+                <p className="text-foreground font-medium">{stock.symbol}</p>
+                <p className="text-muted-foreground text-sm">{stock.name}</p>
+              </div>
+            </td>
+            <td className="px-6 py-4 text-foreground hidden sm:table-cell">
+              {sharesAbs}
+            </td>
+            <td className="px-6 py-4 text-right text-foreground">
+              $
+              {stock.avgPrice.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+              })}
+            </td>
+            <td className="px-6 py-4 text-right text-foreground">
+              $
+              {stock.currentPrice.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+              })}
+            </td>
+            <td className="px-6 py-4 text-right">
+              <div
+                className={`flex items-center justify-end gap-1 ${
+                  stock.totalPL >= 0 ? 'text-primary' : 'text-red-500'
+                }`}
+              >
+                {stock.totalPL >= 0 ? (
+                  <TrendingUp className="w-4 h-4" />
+                ) : (
+                  <TrendingDown className="w-4 h-4" />
+                )}
+                <span>
+                  {stock.totalPL >= 0 ? '+' : ''}${stock.totalPL.toFixed(2)}
+                </span>
+              </div>
+            </td>
+            <td className="px-6 py-4 text-right text-foreground hidden md:table-cell">
+              $
+              {value.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+              })}
+            </td>
+            <td className="px-6 py-4 text-right hidden lg:table-cell">
+              <div className={gain >= 0 ? 'text-primary' : 'text-red-500'}>
+                <p>
+                  {gain >= 0 ? '+' : ''}$
+                  {gain.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                  })}
+                </p>
+                <p
+                  className={`text-sm ${gain >= 0 ? 'text-teal-300' : 'text-red-300'}`}
+                >
+                  {gain >= 0 ? '+' : ''}
+                  {gainPercent.toFixed(2)}%
+                </p>
+              </div>
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  );
+
   return (
     <>
+      {/* Long holdings header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-foreground text-xl font-semibold">Holdings</h2>
         <div className="flex items-center gap-2">
@@ -160,29 +457,60 @@ export default function HoldingsTable({
             <History className="w-4 h-4 mr-2" />
             Transactions
           </Button>
-          <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-full">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Stock
+          <Button
+            className="
+  relative
+  backdrop-blur-lg
+  bg-gradient-to-r from-teal-900/20 to-cyan-200/20
+  hover:from-teal-500/30 hover:to-cyan-900/10
+  border border-white/30
+  text-white
+  font-semibold
+  px-5 py-3
+  rounded-full
+  shadow-[0_8px_32px_0_rgba(20,184,166,0.4)]
+  hover:shadow-[0_8px_32px_0_rgba(20,184,166,0.6)]
+  transition-all duration-300
+  before:absolute before:inset-0
+  before:rounded-full
+  before:bg-gradient-to-r before:from-teal-500/0 before:via-white/20 before:to-teal-500/0
+  before:opacity-0 hover:before:opacity-100
+  before:transition-opacity before:duration-500
+"
+            // className="bg-teal-600 text-white hover:bg-teal-600 rounded-full shadow-lg hover:shadow-teal-500/30 transition-all"
+            onClick={() => {
+              setAskAISymbol(null);
+              setShowAskAI(true);
+            }}
+          >
+            <Sparkles className="w-4 h-4" />
+            Ask AI
           </Button>
         </div>
       </div>
-
-      <Card className="bg-card border-border overflow-hidden">
+      {/* Long positions table */}
+      <Card className="bg-card border-border overflow-hidden mb-8">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
                   Symbol
+                </th>{' '}
+                <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
+                  Stock
                 </th>
                 <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4 hidden sm:table-cell">
                   Qty
                 </th>
                 <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4">
-                  Bought Price
+                  Avg. Bought Price
                 </th>
                 <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4">
-                  % Change Today
+                  Current Price
+                </th>
+                <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4">
+                  Total P/L
                 </th>
                 <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4 hidden md:table-cell">
                   Current Value
@@ -192,91 +520,91 @@ export default function HoldingsTable({
                 </th>
               </tr>
             </thead>
-            <tbody>
-              {positions.map((stock) => {
-                const value = stock.shares * stock.currentPrice;
-                const cost = stock.shares * stock.avgPrice;
-                const gain = value - cost;
-                const gainPercent = cost === 0 ? 0 : (gain / cost) * 100;
-
-                return (
-                  <tr
-                    key={stock.symbol}
-                    onClick={() => onSelectStock(stock)}
-                    className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                  >
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="text-foreground font-medium">
-                          {stock.symbol}
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                          {stock.name}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-foreground hidden sm:table-cell">
-                      {stock.shares}
-                    </td>
-                    <td className="px-6 py-4 text-right text-foreground">
-                      $
-                      {stock.currentPrice.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div
-                        className={`flex items-center justify-end gap-1 ${
-                          stock.changePercent >= 0
-                            ? 'text-primary'
-                            : 'text-red-500'
-                        }`}
-                      >
-                        {stock.changePercent >= 0 ? (
-                          <TrendingUp className="w-4 h-4" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4" />
-                        )}
-                        <span>
-                          {stock.changePercent >= 0 ? '+' : ''}
-                          {stock.changePercent.toFixed(2)}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right text-foreground hidden md:table-cell">
-                      $
-                      {value.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td className="px-6 py-4 text-right hidden lg:table-cell">
-                      <div
-                        className={gain >= 0 ? 'text-primary' : 'text-red-500'}
-                      >
-                        <p>
-                          {gain >= 0 ? '+' : ''}$
-                          {gain.toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                          })}
-                        </p>
-                        <p
-                          className={`text-sm ${
-                            stock.gain >= 0 ? 'text-teal-300' : 'text-red-300'
-                          }`}
-                        >
-                          {gain >= 0 ? '+' : ''}
-                          {gainPercent.toFixed(2)}%
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+            {renderTableBody(longPositions, false)}
           </table>
         </div>
       </Card>
-
+      {/* Short positions table */}
+      {shortPositions.length > 0 && (
+        <>
+          <h2 className="text-foreground text-xl font-semibold mb-4">
+            Short Positions
+          </h2>
+          <Card className="bg-card border-border overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
+                      Symbol
+                    </th>
+                    <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4 hidden sm:table-cell">
+                      Stock
+                    </th>
+                    <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4 hidden sm:table-cell">
+                      Qty
+                    </th>
+                    <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4">
+                      Avg. Sold Price
+                    </th>
+                    <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4">
+                      Current Price
+                    </th>
+                    <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4">
+                      Total P/L
+                    </th>
+                    <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4 hidden md:table-cell">
+                      Current Value
+                    </th>
+                    <th className="text-right text-muted-foreground text-sm font-medium px-6 py-4 hidden lg:table-cell">
+                      Total Gain/Loss
+                    </th>
+                  </tr>
+                </thead>
+                {renderTableBody(shortPositions, true)}
+              </table>
+            </div>
+          </Card>
+        </>
+      )}
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed z-50 bg-black/85 border border-border rounded-lg shadow-xl py-1 min-w-[200px]"
+          style={{
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y - 100}px`,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => handleLiquidateClick(contextMenu.stock)}
+            className="w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-blue-500/10 hover:text-blue-400 transition-colors flex items-center gap-2"
+          >
+            <DollarSign className="w-4 h-4" />
+            Manage Position
+          </button>
+          <div className="border-t border-border my-1" />
+          <button
+            onClick={() => handleAskAIAboutStock(contextMenu.stock)}
+            className="w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-teal-500/10 hover:text-teal-400 transition-colors flex items-center gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            Ask AI about {contextMenu.stock.symbol}
+          </button>
+        </div>
+      )}
+      {/* Liquidate Modal */}
+      {liquidateStock && (
+        <LiquidateModal
+          open={!!liquidateStock}
+          onOpenChange={(open) => !open && setLiquidateStock(null)}
+          symbol={liquidateStock.symbol}
+          currentPrice={liquidateStock.currentPrice}
+          currentShares={liquidateStock.shares}
+          onSuccess={handleLiquidateSuccess}
+        />
+      )}
       {/* Transactions Modal */}
       <TransactionsModal
         open={showTransactionsModal}
@@ -284,7 +612,18 @@ export default function HoldingsTable({
         transactions={transactions}
         loading={txLoading}
         error={txError}
+        onRefresh={fetchPositions}
+        onAskAI={handleAskAIFromTransactions}
       />
+      {/* Ask AI bottom sheet */}
+      <AskAI
+        open={showAskAI}
+        onOpenChange={(open) => {
+          setShowAskAI(open);
+          if (!open) setAskAIData(null); // Clear data when closing
+        }}
+        contextData={askAIData}
+      />{' '}
     </>
   );
 }

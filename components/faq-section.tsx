@@ -6,34 +6,29 @@ import { ChevronDown } from 'lucide-react';
 
 const faqData = [
   {
-    question: 'What is Pointer and who is it for?',
+    question: 'What is Agent M and who is it for?',
     answer:
-      "Pointer is an AI-powered development platform designed for developers, teams, and organizations who want toaccelerate their coding workflow. It's perfect for both individual developers looking to enhance their productivity and teams seeking seamless collaboration tools.",
+      'Agent M aims to deliver a fully autonomous investment companion that continuously ingests real-time market data, financial news, and internet sentiment, then translates them into timely, personalised buy/sell decisions executed via external brokerage APIs on behalf of retail investors.',
   },
   {
-    question: "How does Agent M's AI code review work?",
+    question: 'How does the system help retail investors in practice?',
     answer:
-      "Our AI analyzes your code in real-time, providing intelligent suggestions for improvements, catching potential bugs, and ensuring best practices. It learns from your coding patterns and adapts to your team's standards, making code reviews faster and more consistent.",
+      'It addresses time delay and information overload by automatically scraping and analysing financial news, extracting investment-relevant events and sentiment, and then either answering user queries via a RAG chatbot or autonomously executing trades within user-defined risk limits.',
   },
   {
-    question: 'Can I integrate Pointer with my existing tools?',
+    question: 'What kind of analytics and dashboard features will users see?',
     answer:
-      'Yes! Pointer offers one-click integrations with popular development tools including GitHub, GitLab, VS Code, Slack, and many more. Our MCP connectivity allows you to easily manage and configure server access across your entire development stack.',
+      'Users get a trading dashboard that visualises real-time sentiment indicators per stock, profit and loss trends over time, current portfolio holdings, trade logs, and portfolio positions, allowing them to monitor performance and understand how news affects their investments.',
   },
   {
-    question: "What's included in the free plan?",
+    question: 'How does the RAG Trading Agent decide when to buy or sell?',
     answer:
-      "The free plan includes real-time code suggestions, basic integrations, single MCP server connection, up to 2 AI coding agents, and Vercel deployments with Pointer branding. It's perfect for individual developers getting started.",
+      'The RAG Trading Agent uses a pipeline where scraped news and social media posts are preprocessed, checked for credibility, analysed for sentiment, embedded, and retrieved via RAG; it then makes automated trading decisions using weighted sentiment and user-set risk guardrails before executing orders through broker APIs.',
   },
   {
-    question: 'How do parallel coding agents work?',
+    question: 'How do you ensure accuracy of the trade decisions?',
     answer:
-      'Our parallel coding agents can work on different parts of your codebase simultaneously, solving complex problems faster than traditional single-threaded approaches. You can launch multiple agents to handle different tasks like bug fixes, feature development, and code optimization concurrently.',
-  },
-  {
-    question: 'Is my code secure with Pointer?',
-    answer:
-      'Absolutely. We use enterprise-grade security measures including end-to-end encryption, secure data transmission, and compliance with industry standards. Your code never leaves your secure environment without your explicit permission, and we offer on-premises deployment options for enterprise customers.',
+      'The team will conduct multiple rounds of functional testing, data validation testing, and user acceptance testing across all modules, and has identified risks such as scraping failures, anti-bot blocking, unreliable data sources, hallucinations, and stakeholder misalignment, each with mitigation strategies like modular scrapers, use of official APIs, curated sources, RAG-based validation, and regular stakeholder communication.',
   },
 ];
 
@@ -109,8 +104,8 @@ export function FAQSection() {
             Frequently Asked Questions
           </h2>
           <p className="self-stretch text-center text-muted-foreground text-sm font-medium leading-[18.20px] break-words">
-            Everything you need to know about Pointer and how it can transform
-            your development workflow
+            Everything you need to know about Agent M and how it can transform
+            your trading experience.
           </p>
         </div>
       </div>
