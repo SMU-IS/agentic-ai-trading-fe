@@ -17,8 +17,6 @@ A modern, agentic AI-powered trading platform frontend built with Next.js, TypeS
 - **AI Chatbot**: Interact with an AI-powered chatbot for trading assistance and inquiries.
 - **Transaction History**: Keep track of all your past transactions.
 - **Stock History**: View historical data for specific stocks in a modal view.
-- **Responsive Design**: A beautiful and responsive UI that works on all devices.
-- **Theme Support**: Light and dark mode support.
 
 ## 🚀 Getting Started
 
@@ -82,7 +80,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 │   ├── portfolio/        # Components specific to the portfolio feature
 │   ├── ui/               # Base UI components (from shadcn/ui)
 │   └── ...
-├── lib/                  # Utility functions, data, and type definitions
+├── lib/                  # Utility functions, data, and type definitions.
 ├── public/               # Static assets
 └── ...
 ```
