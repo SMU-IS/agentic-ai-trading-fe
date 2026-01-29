@@ -1,21 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   TrendingUp,
   TrendingDown,
-  AlertTriangle,
-  CheckCircle2,
-  X,
-  Settings,
-  ExternalLink,
   Activity,
-  Users,
   MessageSquare,
-  BarChart3,
+  Sparkles,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import AskAI from '../portfolio/chat/AskAI';
 
 interface TradeEvent {
   id: string;
@@ -46,8 +41,8 @@ interface SpeculationAgentProps {
 
 const generateDots = () => {
   const dots = [];
-  const rows = 14; // Reduced from 10
-  const cols = 14; // Reduced from 10
+  const rows = 14;
+  const cols = 14;
 
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
@@ -68,11 +63,50 @@ export default function SpeculationAgent({
   selectedTrade,
 }: SpeculationAgentProps) {
   const [dots] = useState(() => generateDots());
-  // If no trade selected, show dotted pulse placeholder
+
+  const [showAskAI, setShowAskAI] = useState(false);
+  const [askAIData, setAskAIData] = useState<any>(null);
+
+  // NEW: reset AskAI state when user clicks a different trade
+  useEffect(() => {
+    setShowAskAI(false);
+    setAskAIData(null);
+  }, [selectedTrade?.id]);
+
+  // NEW: build context payload for AskAI (live data from selectedTrade)
+  const askAIContext = useMemo(() => {
+    if (!selectedTrade) return null;
+
+    return {
+      type: 'trade_analysis',
+      trade: {
+        id: selectedTrade.id,
+        symbol: selectedTrade.symbol,
+        side: selectedTrade.trade_type,
+        status: selectedTrade.status,
+        order_type: selectedTrade.order_type,
+        timestamp: selectedTrade.timestamp,
+        date_label: selectedTrade.date_label,
+        time_label: selectedTrade.time_label,
+        quantity: selectedTrade.quantity,
+        price: selectedTrade.price,
+        total_value: selectedTrade.total_value,
+      },
+      trigger_reason: selectedTrade.trigger_reason ?? null,
+      narrative_context: selectedTrade.narrative_context ?? null,
+      // add any other fields your AskAI expects
+    };
+  }, [selectedTrade]);
+
+  // NEW: the button click handler that opens AskAI + sets context
+  const handleAskAIClick = () => {
+    setAskAIData(askAIContext);
+    setShowAskAI(true);
+  };
+
   if (!selectedTrade) {
     return (
       <div className="h-full flex items-center justify-center rounded-xl overflow-hidden relative bg-teal-900/10 border">
-        {/* Dotted background pattern */}
         <div className="absolute inset-0">
           {dots.map((dot) => (
             <div
@@ -87,20 +121,18 @@ export default function SpeculationAgent({
           ))}
         </div>
 
-        {/* Center text */}
-        <div className="absolute bottom-4 w-80 bg-black/70 rounded-full z-10 p-4 flex items-center">
-          <Activity className="w-8 h-8 text-muted-foreground mx-4" />
+        <div className="border w-80 bg-teal-900/20 rounded-full z-10 p-4 flex items-center">
+          <Activity className="w-8 h-8 text-teal-900 mx-4" />
           <div className="flex-1 items-start text-left">
-            <h2 className="text-sm font-semibold text-foreground">
-              Select a trade to continue
+            <h2 className="text-xs font-semibold text-foreground">
+              View trade analysis
             </h2>
             <p className="text-xs text-muted-foreground">
-              Click on any trade from the timeline to view detailed analysis
+              Click on any trade from the left to view detailed analysis
             </p>
           </div>
         </div>
 
-        {/* Custom CSS for pulse animation */}
         <style jsx>{`
           @keyframes spec-dot-pulse {
             0%,
@@ -155,13 +187,11 @@ export default function SpeculationAgent({
       </div>
 
       {/* Trade Details Card - scrollable content */}
-      <Card className="bg-card border-border flex-shrink-0 mt-4  h-[calc(100vh-184px)] overflow-y-auto">
+      <Card className="bg-card border-border flex-shrink-0 mt-4 h-[calc(100vh-184px)] overflow-y-auto">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">
-                ${selectedTrade.symbol}
-              </span>
+              <span className="text-2xl font-bold">{selectedTrade.symbol}</span>
               <div
                 className={`px-3 py-1 rounded text-sm font-medium ${
                   selectedTrade.trade_type === 'buy'
@@ -189,6 +219,7 @@ export default function SpeculationAgent({
             </div>
           </CardTitle>
         </CardHeader>
+
         <CardContent className="space-y-4">
           {/* Trade Summary */}
           <div className="grid grid-cols-3 gap-4">
@@ -216,7 +247,6 @@ export default function SpeculationAgent({
             </div>
           </div>
 
-          {/* Current Performance (for buy orders) */}
           {selectedTrade.trade_type === 'buy' && (
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
@@ -249,7 +279,9 @@ export default function SpeculationAgent({
                     Unrealized P/L
                   </div>
                   <div
-                    className={`text-xl font-bold ${pnlUsd >= 0 ? 'text-green-500' : 'text-red-500'}`}
+                    className={`text-xl font-bold ${
+                      pnlUsd >= 0 ? 'text-green-500' : 'text-red-500'
+                    }`}
                   >
                     {pnlUsd >= 0 ? '+' : ''}${pnlUsd.toFixed(2)}
                   </div>
@@ -261,17 +293,40 @@ export default function SpeculationAgent({
           {/* Trigger Reason */}
           {selectedTrade.trigger_reason && (
             <div className="bg-muted/50 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-sm font-medium mb-2">
-                <MessageSquare className="w-4 h-4 text-primary" />
-                Trade Trigger
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                  Trade Trigger
+                </div>
+
+                {/* NEW: AskAI button */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs"
+                  onClick={handleAskAIClick}
+                >
+                  <Sparkles className="w-3 h-3 mr-2" />
+                  Ask AI
+                </Button>
+
+                {/* Keep AskAI mounted here so it can open as a modal/dialog */}
+                <AskAI
+                  open={showAskAI}
+                  onOpenChange={(open) => {
+                    setShowAskAI(open);
+                    if (!open) setAskAIData(null);
+                  }}
+                  contextData={askAIData}
+                />
               </div>
+
               <p className="text-sm text-foreground">
                 {selectedTrade.trigger_reason}
               </p>
             </div>
           )}
 
-          {/* Narrative Context */}
           {selectedTrade.narrative_context && (
             <div className="bg-muted/50 rounded-lg p-4 space-y-3">
               <div className="flex items-center gap-2 text-sm font-medium">
