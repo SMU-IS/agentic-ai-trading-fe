@@ -1,4 +1,4 @@
-name: Trading AgentCI
+name: Trading Agent CI
 
 on:
   push:
