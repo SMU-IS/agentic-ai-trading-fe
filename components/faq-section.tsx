@@ -1,8 +1,8 @@
 "use client"
 
+import { ChevronDown } from "lucide-react"
 import type React from "react"
 import { useState } from "react"
-import { ChevronDown } from "lucide-react"
 
 const faqData = [
   {
@@ -96,7 +96,7 @@ export function FAQSection() {
     setOpenItems(newOpenItems)
   }
   return (
-    <section className="relative flex w-full flex-col items-center justify-center px-5 pb-20 pt-[66px] md:pb-40">
+    <section className="relative flex w-full flex-col items-center justify-center px-5 pb-20 md:pb-40">
       <div className="absolute left-1/2 top-[150px] z-0 h-[500px] w-[300px] origin-top-left -translate-x-1/2 rotate-[-33.39deg] bg-primary/10 blur-[100px]" />
       <div className="relative z-10 flex flex-col items-center justify-center gap-2 self-stretch pb-8 pt-8 md:pb-14 md:pt-14">
         <div className="flex flex-col items-center justify-start gap-4">

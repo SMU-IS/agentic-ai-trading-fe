@@ -2,7 +2,7 @@ import Image from "next/image"
 
 export function SocialProof() {
   return (
-    <section className="flex flex-col items-center justify-center gap-6 self-stretch overflow-hidden py-16">
+    <section className="flex items-center justify-center gap-6 self-stretch overflow-hidden py-16">
       <div className="text-center text-sm font-medium leading-tight text-gray-300">
         In Collaboration With
       </div>
@@ -15,7 +15,7 @@ export function SocialProof() {
               alt={`Company Logo ${i + 1}`}
               width={200}
               height={120}
-              className="h-auto w-full max-w-[100px] object-contain opacity-70"
+              className="h-auto w-full max-w-[50px] object-contain opacity-70"
             />
           </div>
         ))}

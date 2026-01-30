@@ -47,7 +47,7 @@ export default function LandingPage() {
         </AnimatedSection> */}
         <AnimatedSection
           id="faq-section"
-          className="relative z-10 mx-auto mt-8 max-w-[1320px] md:mt-16"
+          className="relative z-10 mx-auto max-w-[1320px]"
           delay={0.2}
         >
           <FAQSection />

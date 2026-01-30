@@ -1,9 +1,9 @@
 import AiCodeReviews from "./bento/ai-code-reviews"
-import RealtimeCodingPreviews from "./bento/real-time-previews"
-import OneClickIntegrationsIllustration from "./bento/one-click-integrations-illustration"
-import MCPConnectivityIllustration from "./bento/mcp-connectivity-illustration" // Updated import
 import EasyDeployment from "./bento/easy-deployment"
+import MCPConnectivityIllustration from "./bento/mcp-connectivity-illustration" // Updated import
+import OneClickIntegrationsIllustration from "./bento/one-click-integrations-illustration"
 import ParallelCodingAgents from "./bento/parallel-agents" // Updated import
+import RealtimeCodingPreviews from "./bento/real-time-previews"
 
 const BentoCard = ({ title, description, Component }) => (
   <div className="relative flex flex-col items-start justify-start overflow-hidden rounded-2xl border border-white/20">
@@ -82,7 +82,7 @@ export function BentoSection() {
             <h2 className="w-full max-w-[655px] text-center text-4xl font-semibold leading-tight text-foreground md:text-6xl md:leading-[66px]">
               Autonomous Trading with a RAG AI system
             </h2>
-            <p className="w-full max-w-[600px] text-center text-lg font-medium leading-relaxed text-muted-foreground md:text-xl">
+            <p className="w-full max-w-[600px] pt-32 text-lg font-medium leading-relaxed text-muted-foreground md:text-xl">
               Your personalised AI agent for autonomous trades, seamless
               integrations with your exisiting portfolios, and actionable news
               insights to stay on top — so you never miss a market-moving event
