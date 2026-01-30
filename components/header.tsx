@@ -10,7 +10,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
+import { LogIn, Menu } from "lucide-react"
 import Link from "next/link"
 
 export function Header() {
@@ -55,7 +55,8 @@ export function Header() {
         </div>
         <div className="flex items-center gap-4">
           <Link href="/login" className="hidden md:block">
-            <Button className="rounded-full bg-secondary px-6 py-2 font-medium text-secondary-foreground shadow-sm hover:bg-secondary/90">
+            <Button className="relative rounded-full border border-white/30 bg-gradient-to-r from-teal-900/20 to-cyan-200/20 px-5 py-6 font-semibold text-white shadow-[0_8px_32px_0_rgba(20,184,166,0.4)] backdrop-blur-lg transition-all duration-300 before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-r before:from-teal-500/0 before:via-white/20 before:to-teal-500/0 before:opacity-0 before:transition-opacity before:duration-500 hover:from-teal-500/30 hover:to-cyan-900/10 hover:shadow-[0_8px_32px_0_rgba(20,184,166,0.6)] hover:before:opacity-100">
+              <LogIn className="h-12 w-12" />
               Login / Register
             </Button>
           </Link>
