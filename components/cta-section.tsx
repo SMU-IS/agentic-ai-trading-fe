@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { AnimatedSection } from "./animated-section"
+import { SocialProof } from "./social-proof"
 
 export function CTASection() {
   return (
@@ -146,12 +146,16 @@ export function CTASection() {
       <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center justify-start gap-9">
         <div className="flex flex-col items-center justify-start gap-4 text-center">
           <h2 className="max-w-[435px] break-words text-4xl font-semibold leading-tight text-foreground md:text-5xl md:leading-tight lg:text-[68px] lg:leading-[76px]">
-            Trading made effortless
+            Trading Made Effortless
           </h2>
           <p className="max-w-2xl break-words text-sm font-medium leading-[18.20px] text-muted-foreground md:text-base md:leading-relaxed">
-            Agent M. Built by Shawn, Derrick, Joshua, Bryan, ZiYou, JiaYen
+            Agent M. Built by Shawn, Derrick, Joshua, Bryan, Zi You, Jia Yen
           </p>
         </div>
+        <AnimatedSection delay={0.1}>
+          <SocialProof />
+        </AnimatedSection>
+
         {/* <Link href="/login">
           <Button
             className="px-[30px] py-2 bg-secondary text-secondary-foreground text-base font-medium leading-6 rounded-[99px] shadow-[0px_0px_0px_4px_rgba(255,255,255,0.13)] hover:bg-secondary/90 transition-all duration-200"

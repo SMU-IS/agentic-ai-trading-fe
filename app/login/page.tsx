@@ -2,6 +2,7 @@
 
 import type React from "react"
 
+import LoaderSpinner from "@/components/loader-spinner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -55,7 +56,6 @@ export default function LoginPage() {
 
         await signIn(email, password)
       } else {
-        // MANUAL LOGIN LOGIC
         const loginRes = await fetch(`${baseUrl}/user/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -145,7 +145,7 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
-        <Link href="/" className="mb-8 flex items-center justify-center gap-2">
+        <Link href="/" className="my-8 flex items-center justify-center gap-2">
           <span className="text-2xl font-semibold text-foreground">
             Agent M
           </span>
@@ -271,14 +271,18 @@ export default function LoginPage() {
             )}
             <Button
               type="submit"
-              className="w-full rounded-xl bg-secondary py-5 font-medium text-secondary-foreground hover:bg-secondary/90"
+              className="flex w-full items-center justify-center rounded-xl bg-secondary py-5 font-medium text-secondary-foreground hover:bg-secondary/90"
               disabled={isLoading}
             >
-              {isLoading
-                ? "Loading..."
-                : isSignUp
-                  ? "Create Account"
-                  : "Sign In"}
+              {isLoading ? (
+                <>
+                  <LoaderSpinner />
+                </>
+              ) : isSignUp ? (
+                "Create Account"
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
 

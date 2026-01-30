@@ -1,11 +1,9 @@
 import React from "react"
-import { Button } from "@/components/ui/button"
 import { Header } from "./header"
-import Link from "next/link"
 
 export function HeroSection() {
   return (
-    <section className="relative mx-auto my-6 flex h-[400px] w-full flex-col items-center overflow-hidden rounded-2xl px-4 py-0 text-center md:h-[550px] md:w-[1220px] md:px-0 lg:h-[750px]">
+    <section className="relative mx-auto my-6 flex h-[400px] w-full flex-col items-center overflow-hidden rounded-2xl px-4 py-0 text-left md:h-[550px] md:w-[1220px] md:px-0 lg:h-[750px]">
       {/* SVG Background */}
       <div className="absolute inset-0 z-0">
         <svg
@@ -572,9 +570,9 @@ export function HeroSection() {
           Introducing Agent M.
         </h1>
         <p className="mx-auto max-w-lg text-base font-medium leading-relaxed text-muted-foreground md:text-base lg:text-lg">
-          While you sleep, <b>Agent M</b> crawls through insider news, uses AI
-          to detect real signals from noise, and executes high‑conviction trades
-          so your portfolio is always working.
+          <b>Agent M</b> crawls through insider news, uses AI to detect real
+          signals from noise, and executes high‑conviction trades so your
+          portfolio is always working.
         </p>
       </div>
 
