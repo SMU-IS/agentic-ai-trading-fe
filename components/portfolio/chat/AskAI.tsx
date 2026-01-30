@@ -297,7 +297,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer test",
+        Authorization: `Bearer <ADD_TOKEN_HERE>`,
       },
       body: JSON.stringify({
         message: userMessage,
