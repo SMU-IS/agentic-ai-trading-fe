@@ -104,7 +104,7 @@ export default function LoginPage() {
         const loginData = await loginRes.json()
         // Adjust these keys to match your real response shape
         const accessToken =
-          loginData.access_token ?? loginData.token ?? loginData.jwt
+          loginData.access_token ?? loginData.token ?? loginData.jwt // TODO: to save this access token, to be used for future API calls
 
         // Optionally store it for later API calls
         if (accessToken) {
