@@ -67,38 +67,52 @@ export default function SpeculationAgent({
   const [showAskAI, setShowAskAI] = useState(false);
   const [askAIData, setAskAIData] = useState<any>(null);
 
-  // NEW: reset AskAI state when user clicks a different trade
   useEffect(() => {
     setShowAskAI(false);
     setAskAIData(null);
   }, [selectedTrade?.id]);
 
-  // NEW: build context payload for AskAI (live data from selectedTrade)
   const askAIContext = useMemo(() => {
     if (!selectedTrade) return null;
 
+    // Calculate current performance
+    const currentPrice =
+      selectedTrade.price * (1 + (Math.random() - 0.5) * 0.05);
+    const pnlUsd =
+      (currentPrice - selectedTrade.price) * selectedTrade.quantity;
+    const pnlPercent =
+      ((currentPrice - selectedTrade.price) / selectedTrade.price) * 100;
+
     return {
-      type: 'trade_analysis',
-      trade: {
-        id: selectedTrade.id,
-        symbol: selectedTrade.symbol,
-        side: selectedTrade.trade_type,
-        status: selectedTrade.status,
-        order_type: selectedTrade.order_type,
-        timestamp: selectedTrade.timestamp,
-        date_label: selectedTrade.date_label,
-        time_label: selectedTrade.time_label,
-        quantity: selectedTrade.quantity,
-        price: selectedTrade.price,
-        total_value: selectedTrade.total_value,
-      },
-      trigger_reason: selectedTrade.trigger_reason ?? null,
-      narrative_context: selectedTrade.narrative_context ?? null,
-      // add any other fields your AskAI expects
+      // Fields AskAI expects at top level
+      type: selectedTrade.trade_type, // 'buy' or 'sell'
+      price: selectedTrade.price,
+      filledQty: selectedTrade.quantity,
+      totalValue: selectedTrade.total_value,
+      reason: selectedTrade.trigger_reason ?? 'Manual trade',
+
+      // Additional fields
+      symbol: selectedTrade.symbol,
+      status: selectedTrade.status,
+      order_type: selectedTrade.order_type,
+      timestamp: selectedTrade.timestamp,
+      date_label: selectedTrade.date_label,
+      time_label: selectedTrade.time_label,
+
+      // Performance metrics
+      current_price: currentPrice,
+      pnl: pnlUsd,
+      pnl_percent: pnlPercent,
+
+      // Context
+      trigger_reason: selectedTrade.trigger_reason,
+      narrative_context: selectedTrade.narrative_context,
+
+      // Meta
+      id: selectedTrade.id,
     };
   }, [selectedTrade]);
 
-  // NEW: the button click handler that opens AskAI + sets context
   const handleAskAIClick = () => {
     setAskAIData(askAIContext);
     setShowAskAI(true);
@@ -150,7 +164,7 @@ export default function SpeculationAgent({
     );
   }
 
-  // Mock current price (you can enhance this with real-time data later)
+  // Mock current price (enhance this with real-time data)
   const currentPrice = selectedTrade.price * (1 + (Math.random() - 0.5) * 0.05);
   const pnlUsd = (currentPrice - selectedTrade.price) * selectedTrade.quantity;
   const pnlPercent =
@@ -303,7 +317,25 @@ export default function SpeculationAgent({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 text-xs"
+                  className=" text-xs relative
+  backdrop-blur-lg
+  bg-gradient-to-r from-teal-900/20 to-cyan-200/20
+  hover:from-teal-500/30 hover:to-cyan-900/10
+  border border-white/30
+  text-white
+  font-semibold
+  px- py-3
+  rounded-full
+  shadow-[0_8px_32px_0_rgba(20,184,166,0.4)]
+  hover:shadow-[0_8px_32px_0_rgba(20,184,166,0.6)]
+  transition-all duration-300
+  before:absolute before:inset-0
+  before:rounded-full
+  before:bg-gradient-to-r before:from-teal-500/0 before:via-white/20 before:to-teal-500/0
+  before:opacity-0 hover:before:opacity-100
+  before:transition-opacity before:duration-500
+
+}"
                   onClick={handleAskAIClick}
                 >
                   <Sparkles className="w-3 h-3 mr-2" />

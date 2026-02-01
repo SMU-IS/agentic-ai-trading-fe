@@ -377,7 +377,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           >
             <td className="px-6 py-4">
               <StockLogo symbol={stock.symbol} name={stock.name} size="md" />
-            </td>{' '}
+            </td>
             <td className="px-6 py-4">
               <div>
                 <p className="text-foreground font-medium">{stock.symbol}</p>
@@ -477,7 +477,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   before:opacity-0 hover:before:opacity-100
   before:transition-opacity before:duration-500
 "
-            // className="bg-teal-600 text-white hover:bg-teal-600 rounded-full shadow-lg hover:shadow-teal-500/30 transition-all"
             onClick={() => {
               setAskAISymbol(null);
               setShowAskAI(true);
@@ -496,7 +495,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
               <tr className="border-b border-border">
                 <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
                   Symbol
-                </th>{' '}
+                </th>
                 <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
                   Stock
                 </th>
@@ -537,6 +536,9 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                   <tr className="border-b border-border">
                     <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
                       Symbol
+                    </th>{' '}
+                    <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
+                      Stock
                     </th>
                     <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4 hidden sm:table-cell">
                       Qty
