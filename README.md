@@ -1,4 +1,4 @@
-# Agentic M Frontend
+<img width="1920" height="1080" alt="Features" src="https://github.com/user-attachments/assets/c41bc78a-d2a5-4399-8a14-201e67f3e159" /># Agentic M Frontend
 
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
@@ -11,7 +11,7 @@ A modern, agentic AI-powered trading platform frontend built with Next.js, TypeS
 ## ✨ Key Features
 
 <p align="center">
-  <img width="800" height="800" alt="agent-m" src="https://github.com/user-attachments/assets/f5e2e749-a417-42a0-a39e-2d24fb0850a5" />
+<img width="1920" height="1080" alt="Features" src="https://github.com/user-attachments/assets/5c84244c-a59f-4127-b668-d16c58509439" />
 </p>
 
 - **Dashboard**: A comprehensive overview of your portfolio, including summary cards and performance charts.
