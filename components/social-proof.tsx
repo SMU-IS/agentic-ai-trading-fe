@@ -2,8 +2,8 @@ import Image from "next/image"
 
 export function SocialProof() {
   return (
-    <section className="flex items-center justify-center gap-6 self-stretch overflow-hidden py-16">
-      <div className="text-center text-sm font-medium leading-tight text-gray-300">
+    <section className="flex items-center justify-center gap-6 self-stretch overflow-hidden">
+      <div className="text-center text-sm font-medium leading-tight text-gray-400">
         In Collaboration With
       </div>
       <div className="grid grid-cols-1 justify-items-center gap-8 self-stretch md:grid-cols-1">

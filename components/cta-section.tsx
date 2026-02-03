@@ -1,6 +1,3 @@
-import { AnimatedSection } from "./animated-section"
-import { SocialProof } from "./social-proof"
-
 export function CTASection() {
   return (
     <section className="relative flex w-full flex-col items-center justify-center overflow-visible px-5 pb-10 pt-20 md:pb-20 md:pt-60 lg:pt-60">
@@ -152,9 +149,6 @@ export function CTASection() {
             Agent M. Built by Shawn, Derrick, Joshua, Bryan, Zi You, Jia Yen
           </p>
         </div>
-        <AnimatedSection delay={0.1}>
-          <SocialProof />
-        </AnimatedSection>
       </div>
     </section>
   )

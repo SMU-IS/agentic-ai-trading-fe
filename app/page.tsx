@@ -3,6 +3,7 @@ import { BentoSection } from "@/components/bento-section"
 import { CTASection } from "@/components/cta-section"
 import { DashboardPreview } from "@/components/dashboard-preview"
 import { FAQSection } from "@/components/faq-section"
+import { FooterSection } from "@/components/footer-section"
 import { HeroSection } from "@/components/hero-section"
 
 export default function LandingPage() {
@@ -58,12 +59,12 @@ export default function LandingPage() {
         >
           <CTASection />
         </AnimatedSection>
-        {/*<AnimatedSection
+        <AnimatedSection
           className="relative z-10 mx-auto mt-8 max-w-[1320px] md:mt-16"
           delay={0.2}
         >
           <FooterSection />
-        </AnimatedSection>*/}
+        </AnimatedSection>
       </div>
     </div>
   )

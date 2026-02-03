@@ -565,7 +565,7 @@ export function HeroSection() {
         <Header />
       </div>
 
-      <div className="relative z-10 mb-6 mt-16 max-w-md space-y-4 px-4 md:mb-7 md:mt-[120px] md:max-w-[500px] md:space-y-5 lg:mb-9 lg:mt-[160px] lg:max-w-[588px] lg:space-y-6">
+      <div className="relative text-center z-10 mb-6 mt-16 max-w-md space-y-4 px-4 md:mb-7 md:mt-[120px] md:max-w-[500px] md:space-y-5 lg:mb-9 lg:mt-[160px] lg:max-w-[588px] lg:space-y-6">
         <h1 className="text-3xl font-semibold leading-tight text-foreground md:text-4xl lg:text-5xl">
           Introducing Agent M.
         </h1>

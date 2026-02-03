@@ -23,13 +23,7 @@ export function FooterSection() {
           >
             <Github className="h-full w-full text-muted-foreground" />
           </a>
-          <a
-            href="#"
-            aria-label="LinkedIn"
-            className="flex h-4 w-4 items-center justify-center"
-          >
-            <Linkedin className="h-full w-full text-muted-foreground" />
-          </a>
+
         </div>
       </div>
       {/* Right Section: Product, Company, Resources */}
@@ -44,25 +38,6 @@ export function FooterSection() {
               className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
               Features
-            </a>
-
-            <a
-              href="#"
-              className="text-sm font-normal leading-5 text-foreground hover:underline"
-            >
-              Integrations
-            </a>
-            <a
-              href="#"
-              className="text-sm font-normal leading-5 text-foreground hover:underline"
-            >
-              Real-time Previews
-            </a>
-            <a
-              href="#"
-              className="text-sm font-normal leading-5 text-foreground hover:underline"
-            >
-              Multi-Agent Coding
             </a>
           </div>
         </div>
@@ -87,56 +62,17 @@ export function FooterSection() {
               href="#"
               className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
-              Careers
-            </a>
-            <a
-              href="#"
-              className="text-sm font-normal leading-5 text-foreground hover:underline"
-            >
-              Brand
-            </a>
-            <a
-              href="#"
-              className="text-sm font-normal leading-5 text-foreground hover:underline"
-            >
               Contact
             </a>
           </div>
         </div>
         <div className="flex flex-col items-start justify-start gap-3">
-          <h3 className="text-sm font-medium leading-5 text-muted-foreground">
-            Resources
-          </h3>
           <div className="flex flex-col items-start justify-center gap-2">
             <a
               href="#"
               className="text-sm font-normal leading-5 text-foreground hover:underline"
             >
-              Terms of use
-            </a>
-            <a
-              href="#"
-              className="text-sm font-normal leading-5 text-foreground hover:underline"
-            >
-              API Reference
-            </a>
-            <a
-              href="#"
-              className="text-sm font-normal leading-5 text-foreground hover:underline"
-            >
               Documentation
-            </a>
-            <a
-              href="#"
-              className="text-sm font-normal leading-5 text-foreground hover:underline"
-            >
-              Community
-            </a>
-            <a
-              href="#"
-              className="text-sm font-normal leading-5 text-foreground hover:underline"
-            >
-              Support
             </a>
           </div>
         </div>
