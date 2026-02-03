@@ -8,7 +8,11 @@
 
 A modern, agentic AI-powered trading platform frontend built with Next.js, TypeScript, and shadcn/ui. This application provides users with a comprehensive suite of tools for managing their stock portfolios, analyzing performance, and leveraging AI for trading insights.
 
-## ✨ Features
+## ✨ Key Features
+
+<p align="center">
+  <img width="800" height="800" alt="agent-m" src="https://github.com/user-attachments/assets/f5e2e749-a417-42a0-a39e-2d24fb0850a5" />
+</p>
 
 - **Dashboard**: A comprehensive overview of your portfolio, including summary cards and performance charts.
 - **Portfolio Management**: View your current holdings in a clean, organized table.
