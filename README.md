@@ -1,4 +1,4 @@
-<img width="1920" height="1080" alt="Features" src="https://github.com/user-attachments/assets/c41bc78a-d2a5-4399-8a14-201e67f3e159" /># Agentic M Frontend
+# Agent M
 
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
