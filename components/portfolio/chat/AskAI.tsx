@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowUp, X } from "lucide-react"
+import { ArrowUp, X, Briefcase, Newspaper, Globe } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 function MarkdownStreamingContent({
@@ -211,6 +211,8 @@ interface AskAIProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   contextData?: any
+  searchSourceType: SearchSourceType  // Add this prop
+  onSearchSourceTypeChange: (type: SearchSourceType) => void  // Add this prop
 }
 
 type ChatMessage = {
@@ -220,7 +222,15 @@ type ChatMessage = {
   isStreaming?: boolean
 }
 
-export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
+type SearchSourceType = "portfolio" | "news" | "internet"
+
+export default function AskAI({ 
+  open, 
+  onOpenChange, 
+  contextData,
+  searchSourceType,  // Receive from parent
+  onSearchSourceTypeChange  // Receive callback from parent
+}: AskAIProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
@@ -302,6 +312,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       body: JSON.stringify({
         message: userMessage,
         tickers: tickers,
+        searchSource: searchSourceType,
       }),
       signal: signal,
     })
@@ -476,7 +487,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
       tickers = [...new Set(tickers)]
 
-      console.log("Sending to backend:", { message: textToSend, tickers })
+      console.log("Sending to backend:", { message: textToSend, tickers, searchSource: searchSourceType })
 
       setMessages((prev) => [
         ...prev,
@@ -520,6 +531,16 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const handleSend = () => {
     handleSendMessage()
   }
+
+  const sourceOptions: Array<{
+    value: SearchSourceType
+    label: string
+    icon: typeof Briefcase
+  }> = [
+    { value: "portfolio", label: "Portfolio", icon: Briefcase },
+    { value: "news", label: "News Feed", icon: Newspaper },
+    { value: "internet", label: "Internet", icon: Globe },
+  ]
 
   return (
     <>
@@ -619,21 +640,51 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="flex items-center gap-2 border-t border-border px-4 pb-3 pt-2">
-                  <div className="flex flex-1 items-center gap-2">
-                    <input
-                      className="flex-1 rounded-xl border-border bg-border px-4 py-3 text-sm outline-none transition-all focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
-                      placeholder={"Ask anything about your portfolio..."}
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault()
-                          handleSend()
-                        }
-                      }}
-                      disabled={loading}
-                    />
+                <div className="border-t border-border px-4 pb-3 pt-2">
+                  <div className="flex items-end gap-2">
+                    <div className="flex flex-1 flex-col gap-2">
+                      <input
+                        className="flex-1 rounded-xl border-border bg-border px-4 py-3 text-sm outline-none transition-all focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
+                        placeholder={"Ask anything about your portfolio..."}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            handleSend()
+                          }
+                        }}
+                        disabled={loading}
+                      >                      {/* Source Toggle Buttons */}
+                      <div className="flex items-center justify-end">
+                        <div className="inline-flex rounded-lg border border-border bg-border p-1">
+                          {sourceOptions.map((option) => {
+                            const Icon = option.icon
+                            const isActive = searchSourceType === option.value
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => onSearchSourceTypeChange(option.value)}  // Call parent callback
+                                disabled={loading}
+                                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                                  isActive
+                                    ? "bg-teal-500 text-white shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                                }`}
+                                title={`Ask ${option.label}`}
+                              >
+                                <Icon className="h-3.5 w-3.5" />
+                                <span>{option.label}</span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div></input>
+                      
+
+                    </div>
+                    
                     <Button
                       size="icon"
                       className="rounded-xl transition-transform hover:scale-110 active:scale-95"

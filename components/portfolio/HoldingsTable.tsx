@@ -24,6 +24,8 @@ interface ContextMenuPosition {
   stock: StockWithHistory
 }
 
+type SearchSourceType = "portfolio" | "news" | "internet"
+
 export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const [showTransactionsModal, setShowTransactionsModal] = useState(false)
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -32,6 +34,8 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const [showAskAI, setShowAskAI] = useState(false)
   const [askAISymbol, setAskAISymbol] = useState<string | null>(null)
   const [askAIData, setAskAIData] = useState<any>(null)
+  const [searchSource, setSearchSource] = useState<SearchSourceType>("news")
+
 
   const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(
     null,
@@ -605,6 +609,8 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           if (!open) setAskAIData(null) // Clear data when closing
         }}
         contextData={askAIData}
+        searchSourceType={searchSource} 
+        onSearchSourceTypeChange={setSearchSource} 
       />{" "}
     </>
   )
