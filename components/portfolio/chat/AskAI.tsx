@@ -236,46 +236,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  useEffect(() => {
-    if (open && contextData && !hasAutoSentRef.current) {
-      hasAutoSentRef.current = true
-
-      let autoMessage = ""
-
-      if (contextData.dataType === "holding") {
-        autoMessage =
-          `I have a position in ${contextData.symbol}:\n` +
-          `- Current Price: $${contextData.currentPrice.toFixed(2)}\n` +
-          `- Shares: ${Math.abs(contextData.shares)}\n` +
-          `- Avg Entry Price: $${contextData.avgPrice.toFixed(2)}\n` +
-          `- Total P/L: ${contextData.totalPL >= 0 ? "+" : ""}$${contextData.totalPL.toFixed(2)} (${contextData.changePercent.toFixed(2)}%)\n\n` +
-          `Can you analyze this position and provide insights?`
-      } else if (contextData.dataType === "transaction") {
-        const txDate = new Date(contextData.datetime).toLocaleString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-
-        autoMessage =
-          `I have a transaction for ${contextData.symbol}:\n` +
-          `- Type: ${contextData.type.toUpperCase()}\n` +
-          `- Date: ${txDate}\n` +
-          `- Price: $${contextData.price.toFixed(2)}\n` +
-          `- Quantity: ${contextData.filledQty} shares\n` +
-          `- Total Value: $${contextData.totalValue.toFixed(2)}\n` +
-          `- Trade Reason: ${contextData.reason}\n\n` +
-
-          `Can you analyze this transaction and provide insights?`
-      }
-
-      if (autoMessage) {
-        handleSendMessage(autoMessage)
-      }
-    }
-  }, [open, contextData])
 
   useEffect(() => {
     if (!open) {
@@ -286,28 +246,31 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }, [open])
 
-  const streamBackendResponse = async (
-    userMessage: string,
-    order_id: string[],
-    assistantMessageId: string,
-    signal: AbortSignal,
-  ) => {
+    const streamBackendResponse = async (
+      userMessage: string,
+      order_id: string | string[] | undefined,  // Add order_id parameter
+      assistantMessageId: string,
+      signal: AbortSignal,
+    ) => {
+      // Determine if order_id should be included
+      const shouldIncludeOrderId = 
+        order_id && 
+        (typeof order_id === 'string' ? order_id.length > 0 : order_id.length > 0);
 
-    if(contextData.order_id == ""){
+      const response = await fetch(`${CHAT_URL}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer test`,
+        },
+        body: JSON.stringify({
+          query: userMessage,
+          ...(shouldIncludeOrderId && { order_id }),  // Use the parameter, not contextData
+        }),
+        signal: signal,
+      })
 
-    }
-    const response = await fetch(`${CHAT_URL}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer test`,
-      },
-      body: JSON.stringify({
-        query: userMessage,
-        ...(contextData?.orderId && { order_id: contextData.orderId }),
-      }),
-      signal: signal,
-    })
+      console.log('order_id being sent:', shouldIncludeOrderId ? order_id : 'not included')
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -439,7 +402,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }
 
-  const handleSendMessage = async (messageText?: string) => {
+  const handleSendMessage = async (messageText?: string, includeOrderId: boolean = false) => {
     const textToSend = messageText || input.trim()
     if (!textToSend || loading) return
 
@@ -465,21 +428,18 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     abortControllerRef.current = new AbortController()
 
     try {
-      let order_id: string[] = []
+      let order_id: string | undefined = undefined
 
-      if (contextData) {
-        if (contextData.symbol) {
-          order_id = [contextData.symbol]
-        } else if (Array.isArray(contextData)) {
-          order_id = contextData
-            .map((item: any) => item.symbol)
-            .filter((symbol): symbol is string => Boolean(symbol))
-        }
+      // Only include order_id when explicitly requested AND it exists
+      if (includeOrderId && contextData?.dataType === "transaction" && contextData?.orderId) {
+        order_id = contextData.orderId
       }
 
-      order_id = [...new Set(order_id)]
-
-      console.log("Sending to backend:", { message: textToSend, order_id })
+      console.log("Sending to backend:", { 
+        message: textToSend, 
+        order_id: order_id || 'none',
+        includeOrderId
+      })
 
       setMessages((prev) => [
         ...prev,
@@ -520,10 +480,57 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }
 
-  const handleSend = () => {
-    handleSendMessage()
-  }
+  // Update the auto-send useEffect to pass includeOrderId flag
+  useEffect(() => {
+    if (open && contextData && !hasAutoSentRef.current) {
+      hasAutoSentRef.current = true
 
+      let autoMessage = ""
+      let shouldIncludeOrderId = false
+
+      if (contextData.dataType === "holding") {
+        autoMessage =
+          `I have a position in ${contextData.symbol}:\n` +
+          `- Current Price: $${contextData.currentPrice.toFixed(2)}\n` +
+          `- Shares: ${Math.abs(contextData.shares)}\n` +
+          `- Avg Entry Price: $${contextData.avgPrice.toFixed(2)}\n` +
+          `- Total P/L: ${contextData.totalPL >= 0 ? "+" : ""}$${contextData.totalPL.toFixed(2)} (${contextData.changePercent.toFixed(2)}%)\n\n` +
+          `Can you analyze this position and provide insights?`
+        shouldIncludeOrderId = false  // No order_id for holdings
+
+      } else if (contextData.dataType === "transaction") {
+        const txDate = new Date(contextData.datetime).toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+        autoMessage =
+          `I have a transaction for ${contextData.symbol}:\n` +
+          `- Type: ${contextData.type.toUpperCase()}\n` +
+          `- Date: ${txDate}\n` +
+          `- Price: $${contextData.price.toFixed(2)}\n` +
+          `- Quantity: ${contextData.filledQty} shares\n` +
+          `- Total Value: $${contextData.totalValue.toFixed(2)}\n` +
+          `- Trade Reason: ${contextData.reason}\n\n` +
+          `Can you analyze this transaction and provide insights?`
+        shouldIncludeOrderId = true  // Include order_id for transactions
+
+      } else {
+        contextData = []
+      }
+
+      if (autoMessage) {
+        handleSendMessage(autoMessage, shouldIncludeOrderId)  // Pass the flag
+      }
+    }
+  }, [open, contextData])
+
+  // Update handleSend to NOT include order_id for manual messages
+  const handleSend = () => {
+    handleSendMessage(undefined, false)  // User-typed messages don't include order_id
+  }
   const handleStop = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -589,7 +596,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       className={`animate-slide-up flex ${m.role === "user" ? "justify-end" : "justify-start"} `}
                     >
                       <div
-                        className={`max-w-[80%] rounded-xl px-3 py-2 ${
+                        className={`max-w-[80%] font-medium rounded-xl px-3 py-2 ${
                           m.role === "user"
                             ? "bg-teal-300 text-primary-foreground"
                             : "bg-transparent text-foreground"
