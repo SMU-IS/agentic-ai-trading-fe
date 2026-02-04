@@ -7,6 +7,7 @@ import PerformanceChart from "./PerformanceChart"
 import StockHistoryModal from "./StockHistoryModal"
 import SummaryCards from "./SummaryCards"
 import { getCompanyName } from "@/lib/tickerMap"
+import MarketNews from "../news/MarketNews"
 
 type AccountResponse = {
   cash: string
@@ -131,9 +132,15 @@ export default function PortfolioTab() {
         )}
       </div>
 
-      <div className="mb-8">
-        <PerformanceChart />
+      <div className="mb-8 flex gap-4">
+        <div className="flex-[60]">
+          <PerformanceChart />
+        </div>
+        <div className="flex-[40]">
+          <MarketNews category="general" />
+        </div>
       </div>
+
 
       <div>
         {loading ? (
