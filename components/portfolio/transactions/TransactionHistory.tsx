@@ -181,7 +181,7 @@ export default function TransactionsModal({
                     <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">
                       Total Value
                     </th>
-                    <th className="min-w-[250px] px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                       Order Type (Status)
                     </th>
                   </tr>
