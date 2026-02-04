@@ -230,7 +230,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`
+  const CHAT_URL = `${process.env.NEXT_PUBLIC_CHAT_API_URL}`
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -266,7 +266,8 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           `- Price: $${contextData.price.toFixed(2)}\n` +
           `- Quantity: ${contextData.filledQty} shares\n` +
           `- Total Value: $${contextData.totalValue.toFixed(2)}\n` +
-          `- Order Type: ${contextData.reason}\n\n` +
+          `- Trade Reason: ${contextData.reason}\n\n` +
+
           `Can you analyze this transaction and provide insights?`
       }
 
@@ -291,15 +292,19 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     assistantMessageId: string,
     signal: AbortSignal,
   ) => {
-    const response = await fetch(`${BASE_URL}/rag/order`, {
+
+    if(contextData.order_id == ""){
+
+    }
+    const response = await fetch(`${CHAT_URL}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer <ADD_TOKEN_HERE>`,
+        Authorization: `Bearer test`,
       },
       body: JSON.stringify({
         query: userMessage,
-        order_id: "1",
+        ...(contextData?.orderId && { order_id: contextData.orderId }),
       }),
       signal: signal,
     })

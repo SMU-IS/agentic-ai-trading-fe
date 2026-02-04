@@ -13,7 +13,7 @@ import { Sparkles } from "lucide-react"
 import LiquidateModal from "../chat/menuChatModal"
 
 interface Transaction {
-  id: string
+  id: string 
   symbol: string
   name: string
   type: "buy" | "sell"
@@ -23,6 +23,7 @@ interface Transaction {
   filledQty: number
   totalValue: number
   reason: string
+  
 }
 
 interface TransactionsModalProps {
@@ -114,6 +115,7 @@ export default function TransactionsModal({
     if (onAskAI) {
       const transactionData = {
         dataType: "transaction",
+        orderId: transaction.id, // taking client_order_id
         symbol: transaction.symbol,
         name: transaction.name,
         type: transaction.type,
@@ -357,7 +359,7 @@ export default function TransactionsModal({
               onClick={() => setContextMenu(null)}
             />
             <div
-              className="context-menu-container fixed min-w-[200px] rounded-lg border border-border bg-card py-1 shadow-xl"
+              className="context-menu-container fixed min-w-[200px] rounded-lg border border-border bg-black/90 py-1 shadow-xl"
               style={{
                 left: `${contextMenu.x}px`,
                 top: `${contextMenu.y - 100}px`,

@@ -126,6 +126,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   useEffect(() => {
     if (!showTransactionsModal) return
 
+    // Fetch Transactions from API 
     const fetchTransactions = async () => {
       try {
         setTxLoading(true)
@@ -168,7 +169,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             const side = o.side as "buy" | "sell"
 
             allTx.push({
-              id: o.id,
+              id: o.client_order_id,
               symbol: o.symbol,
               name: getCompanyName(o.symbol),
               type: side,
@@ -196,7 +197,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 const side = leg.side as "buy" | "sell"
 
                 allTx.push({
-                  id: leg.id,
+                  id: leg.client_order_id,
                   symbol: leg.symbol,
                   name: getCompanyName(leg.symbol),
                   type: side,
@@ -262,7 +263,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             shares: Number(o.filled_qty),
             pricePerShare: Number(o.filled_avg_price ?? 0),
             side: o.side as "buy" | "sell",
-            sourceOrderId: o.id,
+            sourceOrderId: o.client_order_id,
           })
         }
 
@@ -280,7 +281,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 shares: Number(leg.filled_qty),
                 pricePerShare: Number(leg.filled_avg_price ?? 0),
                 side: leg.side as "buy" | "sell",
-                sourceOrderId: leg.id,
+                sourceOrderId: leg.client_order_id,
               })
             }
           }
