@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowUp, X } from "lucide-react"
+import { ArrowUp, X, Square } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 function MarkdownStreamingContent({
@@ -212,14 +212,12 @@ interface AskAIProps {
   onOpenChange: (open: boolean) => void
   contextData?: any
 }
-
 type ChatMessage = {
   id: string
   role: "user" | "assistant"
   content: string
   isStreaming?: boolean
 }
-
 export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -244,7 +242,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
       let autoMessage = ""
 
-      if (contextData.shares !== undefined) {
+      if (contextData.dataType === "holding") {
         autoMessage =
           `I have a position in ${contextData.symbol}:\n` +
           `- Current Price: $${contextData.currentPrice.toFixed(2)}\n` +
@@ -252,7 +250,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           `- Avg Entry Price: $${contextData.avgPrice.toFixed(2)}\n` +
           `- Total P/L: ${contextData.totalPL >= 0 ? "+" : ""}$${contextData.totalPL.toFixed(2)} (${contextData.changePercent.toFixed(2)}%)\n\n` +
           `Can you analyze this position and provide insights?`
-      } else if (contextData.type) {
+      } else if (contextData.dataType === "transaction") {
         const txDate = new Date(contextData.datetime).toLocaleString("en-US", {
           month: "short",
           day: "numeric",
@@ -289,19 +287,19 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
   const streamBackendResponse = async (
     userMessage: string,
-    tickers: string[],
+    order_id: string[],
     assistantMessageId: string,
     signal: AbortSignal,
   ) => {
-    const response = await fetch(`${BASE_URL}/rag/chat`, {
+    const response = await fetch(`${BASE_URL}/rag/order`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer <ADD_TOKEN_HERE>`,
       },
       body: JSON.stringify({
-        message: userMessage,
-        tickers: tickers,
+        query: userMessage,
+        order_id: "1",
       }),
       signal: signal,
     })
@@ -462,21 +460,21 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     abortControllerRef.current = new AbortController()
 
     try {
-      let tickers: string[] = []
+      let order_id: string[] = []
 
       if (contextData) {
         if (contextData.symbol) {
-          tickers = [contextData.symbol]
+          order_id = [contextData.symbol]
         } else if (Array.isArray(contextData)) {
-          tickers = contextData
+          order_id = contextData
             .map((item: any) => item.symbol)
             .filter((symbol): symbol is string => Boolean(symbol))
         }
       }
 
-      tickers = [...new Set(tickers)]
+      order_id = [...new Set(order_id)]
 
-      console.log("Sending to backend:", { message: textToSend, tickers })
+      console.log("Sending to backend:", { message: textToSend, order_id })
 
       setMessages((prev) => [
         ...prev,
@@ -490,7 +488,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
       await streamBackendResponse(
         textToSend,
-        tickers,
+        order_id,
         assistantMessageId,
         abortControllerRef.current.signal,
       )
@@ -502,7 +500,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       )
     } catch (e: any) {
       if (e.name === "AbortError" || e.message === "AbortError") {
-        setError("Request cancelled")
+        setError("Question is cancelled")
       } else {
         setError(
           e instanceof Error ? e.message : "Unexpected error talking to Ask AI",
@@ -519,6 +517,12 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
   const handleSend = () => {
     handleSendMessage()
+  }
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
   }
 
   return (
@@ -612,7 +616,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   ))}
 
                   {error && (
-                    <p className="animate-shake text-xs text-red-500">
+                    <p className="animate-shake text-xs text-red-400">
                       {error}
                     </p>
                   )}
@@ -627,21 +631,34 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") {
+                        if (e.key === "Enter" && !loading) {
                           e.preventDefault()
                           handleSend()
                         }
                       }}
                       disabled={loading}
                     />
-                    <Button
-                      size="icon"
-                      className="rounded-xl transition-transform hover:scale-110 active:scale-95"
-                      onClick={handleSend}
-                      disabled={loading || !input.trim()}
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </Button>
+                    {loading ? (
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="rounded-xl transition-transform hover:scale-110 active:scale-95"
+                        onClick={handleStop}
+                        aria-label="Stop streaming"
+                      >
+                        <Square className="h-4 w-4" fill="currentColor" />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="icon"
+                        className="rounded-xl transition-transform hover:scale-110 active:scale-95"
+                        onClick={handleSend}
+                        disabled={!input.trim()}
+                        aria-label="Send message"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </Card>

@@ -110,8 +110,10 @@ export default function TransactionsModal({
     e.stopPropagation()
     setContextMenu(null)
 
+    // Transaction(order_id) data to pass to AskAI
     if (onAskAI) {
       const transactionData = {
+        dataType: "transaction",
         symbol: transaction.symbol,
         name: transaction.name,
         type: transaction.type,

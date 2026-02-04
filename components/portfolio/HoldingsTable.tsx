@@ -339,8 +339,9 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const handleAskAIAboutStock = (stock: StockWithHistory) => {
     setContextMenu(null)
 
-    // Prepare stock data to pass to AskAI
+    // Holding(stock) data to pass to AskAI
     const stockData = {
+      dataType: "holding",
       symbol: stock.symbol,
       name: getCompanyName(stock.symbol),
       shares: stock.shares,
