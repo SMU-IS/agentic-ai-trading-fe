@@ -27,7 +27,7 @@ interface PortfolioHistoryPoint {
 }
 
 export default function PerformanceChart() {
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>("Weekly")
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("Daily")
   const [performanceData, setPerformanceData] = useState<
     PortfolioHistoryPoint[]
   >([])
@@ -248,7 +248,7 @@ export default function PerformanceChart() {
                   >
                     <stop
                       offset="0%"
-                      stopColor="hsl(221, 83%, 53%)"
+                      stopColor="hsl(185, 83%, 53%)"
                       stopOpacity={0.3}
                     />
                     <stop
@@ -309,7 +309,7 @@ export default function PerformanceChart() {
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="hsl(221, 83%, 53%)"
+                  stroke="hsla(174, 83%, 53%, 0.83)"
                   strokeWidth={2}
                   fill="url(#portfolioGradient)"
                 />

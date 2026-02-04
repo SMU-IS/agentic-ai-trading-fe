@@ -89,18 +89,14 @@ export default function PortfolioTab() {
   return (
     <>
       <div className="mb-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Your Portfolio
-          </h1>
-
+        <div className="mb-6 flex items-right justify-end content-end">
           {loading ? (
             <div className="flex animate-pulse items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-gray-600" />
               <div className="h-3 w-48 rounded bg-gray-600" />
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 justify-right">
               <span
                 className={`h-2 w-2 rounded-full ${
                   tradingAccStatus ? "animate-pulse bg-teal-500" : "bg-red-500"
@@ -140,7 +136,6 @@ export default function PortfolioTab() {
           <MarketNews category="general" />
         </div>
       </div>
-
 
       <div>
         {loading ? (

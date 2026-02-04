@@ -126,7 +126,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   useEffect(() => {
     if (!showTransactionsModal) return
 
-    // Fetch Transactions from API 
+    // Fetch Transactions from API
     const fetchTransactions = async () => {
       try {
         setTxLoading(true)
@@ -382,31 +382,31 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             onContextMenu={(e) => handleContextMenu(e, stock)}
             className="cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted/30"
           >
-            <td className="px-6 py-4">
+            <td className="w-1/12 px-6 py-4">
               <StockLogo symbol={stock.symbol} name={stock.name} size="md" />
             </td>
-            <td className="px-6 py-4">
+            <td className="w-1/6 px-6 py-4">
               <div>
                 <p className="font-medium text-foreground">{stock.symbol}</p>
                 <p className="text-sm text-muted-foreground">{stock.name}</p>
               </div>
             </td>
-            <td className="hidden px-6 py-4 text-foreground sm:table-cell">
+            <td className="hidden w-1/8 px-6 py-4 text-foreground sm:table-cell">
               {sharesAbs}
             </td>
-            <td className="px-6 py-4 text-right text-foreground">
+            <td className="w-1/8 px-6 py-4 text-right text-foreground">
               $
               {stock.avgPrice.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
             </td>
-            <td className="px-6 py-4 text-right text-foreground">
+            <td className="w-1/8 px-6 py-4 text-right text-foreground">
               $
               {stock.currentPrice.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
             </td>
-            <td className="px-6 py-4 text-right">
+            <td className="w-1/8 px-6 py-4 text-right">
               <div
                 className={`flex items-center justify-end gap-1 ${
                   stock.totalPL >= 0 ? "text-primary" : "text-red-500"
@@ -422,13 +422,13 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 </span>
               </div>
             </td>
-            <td className="hidden px-6 py-4 text-right text-foreground md:table-cell">
+            <td className="hidden w-1/8 px-6 py-4 text-right text-foreground md:table-cell">
               $
               {value.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
             </td>
-            <td className="hidden px-6 py-4 text-right lg:table-cell">
+            <td className="hidden w-1/8 px-6 py-4 text-right lg:table-cell">
               <div className={gain >= 0 ? "text-primary" : "text-red-500"}>
                 <p>
                   {gain >= 0 ? "+" : ""}$
@@ -483,28 +483,28 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                   Symbol
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
                   Stock
                 </th>
-                <th className="hidden px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
+                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
                   Qty
                 </th>
-                <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">
-                  Avg. Bought Price
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                  Avg. Sold Price
                 </th>
-                <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
                   Current Price
                 </th>
-                <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
                   Total P/L
                 </th>
-                <th className="hidden px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">
                   Current Value
                 </th>
-                <th className="hidden px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">
                   Total Gain/Loss
                 </th>
               </tr>
@@ -524,28 +524,28 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                       Symbol
                     </th>
-                    <th className="hidden px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
+                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
                       Stock
                     </th>
-                    <th className="hidden px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
+                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
                       Qty
                     </th>
-                    <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
                       Avg. Sold Price
                     </th>
-                    <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
                       Current Price
                     </th>
-                    <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
                       Total P/L
                     </th>
-                    <th className="hidden px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">
                       Current Value
                     </th>
-                    <th className="hidden px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">
                       Total Gain/Loss
                     </th>
                   </tr>

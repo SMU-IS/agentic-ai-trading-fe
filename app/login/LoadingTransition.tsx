@@ -48,15 +48,18 @@ export default function LoadingTransition({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-      {/* Animated teal illumination background */}
+      {/* Animated teal illumination background - SMOOTHER GLOW */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute h-[500px] w-[500px] rounded-full bg-teal-500/30 blur-[120px]"
+          className="absolute h-[500px] w-[500px] rounded-full bg-teal-500/20"
+          style={{
+            filter: "blur(100px)",
+          }}
           animate={{
             x: ["-20%", "120%", "-20%"],
             y: ["-20%", "100%", "-20%"],
             scale: [1, 1.5, 1],
-            opacity: [0.3, 0.6, 0.3],
+            opacity: [0.4, 0.7, 0.4],
           }}
           transition={{
             duration: 8,
@@ -65,12 +68,15 @@ export default function LoadingTransition({
           }}
         />
         <motion.div
-          className="absolute h-[400px] w-[400px] rounded-full bg-teal-400/40 blur-[100px]"
+          className="absolute h-[400px] w-[400px] rounded-full bg-teal-400/25"
+          style={{
+            filter: "blur(90px)",
+          }}
           animate={{
             x: ["100%", "-20%", "100%"],
             y: ["80%", "-10%", "80%"],
             scale: [1.2, 1, 1.2],
-            opacity: [0.4, 0.7, 0.4],
+            opacity: [0.5, 0.8, 0.5],
           }}
           transition={{
             duration: 10,
@@ -114,7 +120,7 @@ export default function LoadingTransition({
                       duration: 0.4,
                       delay: index * 0.05,
                       repeat: Infinity,
-                      repeatDelay: 3, // ← Longer wait between loops (fixed value)
+                      repeatDelay: 3,
                       ease: "easeInOut",
                     }}
                   >
