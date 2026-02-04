@@ -1,16 +1,21 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import StockLogo from "@/components/StockLogo" // Add this import at top
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, History, DollarSign } from "lucide-react"
+import { getCompanyName } from "@/lib/tickerMap" // Import the utility
 import { StockWithHistory, Transaction } from "@/lib/types"
-import TransactionsModal from "./transactions/TransactionHistory"
+import {
+  DollarSign,
+  History,
+  Sparkles,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react"
+import { useEffect, useState } from "react"
 import AskAI from "./chat/AskAI"
 import LiquidateModal from "./chat/menuChatModal"
-import { Sparkles } from "lucide-react"
-import { getCompanyName } from "@/lib/tickerMap" // Import the utility
-import StockLogo from "@/components/StockLogo" // Add this import at top
+import TransactionsModal from "./transactions/TransactionHistory"
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`
 
@@ -377,7 +382,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           >
             <td className="px-6 py-4">
               <StockLogo symbol={stock.symbol} name={stock.name} size="md" />
-            </td>{" "}
+            </td>
             <td className="px-6 py-4">
               <div>
                 <p className="font-medium text-foreground">{stock.symbol}</p>
@@ -478,7 +483,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
               <tr className="border-b border-border">
                 <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                   Symbol
-                </th>{" "}
+                </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                   Stock
                 </th>
