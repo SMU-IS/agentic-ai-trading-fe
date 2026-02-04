@@ -112,10 +112,9 @@ export default function LoadingTransition({
                     }}
                     transition={{
                       duration: 0.4,
-                      delay: index * 0.08,
+                      delay: index * 0.05,
                       repeat: Infinity,
-                      repeatDelay:
-                        3 - loadingStages[currentStage].length * 0.08,
+                      repeatDelay: 3, // ← Longer wait between loops (fixed value)
                       ease: "easeInOut",
                     }}
                   >
