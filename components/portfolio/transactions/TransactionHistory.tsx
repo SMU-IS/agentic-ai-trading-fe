@@ -13,7 +13,7 @@ import { Sparkles } from "lucide-react"
 import LiquidateModal from "../chat/menuChatModal"
 
 interface Transaction {
-  id: string 
+  id: string
   symbol: string
   name: string
   type: "buy" | "sell"
@@ -23,7 +23,6 @@ interface Transaction {
   filledQty: number
   totalValue: number
   reason: string
-  
 }
 
 interface TransactionsModalProps {
@@ -158,7 +157,7 @@ export default function TransactionsModal({
               <TransactionsSkeleton />
             ) : (
               <table className="w-full">
-                <thead className="sticky top-0 bg-card">
+                <thead className="sticky top-0 bg-black">
                   <tr className="border-b border-border">
                     <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                       Stock
