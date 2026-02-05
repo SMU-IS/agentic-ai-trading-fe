@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`
 
@@ -49,6 +49,18 @@ export default function LiquidateModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "unset"
+    }
+
+    return () => {
+      document.body.style.overflow = "unset"
+    }
+  }, [open])
 
   // Reset form when modal opens
   const handleOpenChange = (newOpen: boolean) => {

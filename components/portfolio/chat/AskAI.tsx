@@ -236,7 +236,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-
   useEffect(() => {
     if (!open) {
       hasAutoSentRef.current = false
@@ -246,31 +245,46 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }, [open])
 
-    const streamBackendResponse = async (
-      userMessage: string,
-      order_id: string | string[] | undefined,  // Add order_id parameter
-      assistantMessageId: string,
-      signal: AbortSignal,
-    ) => {
-      // Determine if order_id should be included
-      const shouldIncludeOrderId = 
-        order_id && 
-        (typeof order_id === 'string' ? order_id.length > 0 : order_id.length > 0);
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "unset"
+    }
 
-      const response = await fetch(`${CHAT_URL}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer test`,
-        },
-        body: JSON.stringify({
-          query: userMessage,
-          ...(shouldIncludeOrderId && { order_id }),  // Use the parameter, not contextData
-        }),
-        signal: signal,
-      })
+    return () => {
+      document.body.style.overflow = "unset"
+    }
+  }, [open])
 
-      console.log('order_id being sent:', shouldIncludeOrderId ? order_id : 'not included')
+  const streamBackendResponse = async (
+    userMessage: string,
+    order_id: string | string[] | undefined, // Add order_id parameter
+    assistantMessageId: string,
+    signal: AbortSignal,
+  ) => {
+    // Determine if order_id should be included
+    const shouldIncludeOrderId =
+      order_id &&
+      (typeof order_id === "string" ? order_id.length > 0 : order_id.length > 0)
+
+    const response = await fetch(`${CHAT_URL}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer test`,
+      },
+      body: JSON.stringify({
+        query: userMessage,
+        ...(shouldIncludeOrderId && { order_id }), // Use the parameter, not contextData
+      }),
+      signal: signal,
+    })
+
+    console.log(
+      "order_id being sent:",
+      shouldIncludeOrderId ? order_id : "not included",
+    )
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -402,7 +416,10 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }
 
-  const handleSendMessage = async (messageText?: string, includeOrderId: boolean = false) => {
+  const handleSendMessage = async (
+    messageText?: string,
+    includeOrderId: boolean = false,
+  ) => {
     const textToSend = messageText || input.trim()
     if (!textToSend || loading) return
 
@@ -431,14 +448,18 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       let order_id: string | undefined = undefined
 
       // Only include order_id when explicitly requested AND it exists
-      if (includeOrderId && contextData?.dataType === "transaction" && contextData?.orderId) {
+      if (
+        includeOrderId &&
+        contextData?.dataType === "transaction" &&
+        contextData?.orderId
+      ) {
         order_id = contextData.orderId
       }
 
-      console.log("Sending to backend:", { 
-        message: textToSend, 
-        order_id: order_id || 'none',
-        includeOrderId
+      console.log("Sending to backend:", {
+        message: textToSend,
+        order_id: order_id || "none",
+        includeOrderId,
       })
 
       setMessages((prev) => [
@@ -496,8 +517,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           `- Avg Entry Price: $${contextData.avgPrice.toFixed(2)}\n` +
           `- Total P/L: ${contextData.totalPL >= 0 ? "+" : ""}$${contextData.totalPL.toFixed(2)} (${contextData.changePercent.toFixed(2)}%)\n\n` +
           `Can you analyze this position and provide insights?`
-        shouldIncludeOrderId = false  // No order_id for holdings
-
+        shouldIncludeOrderId = false // No order_id for holdings
       } else if (contextData.dataType === "transaction") {
         const txDate = new Date(contextData.datetime).toLocaleString("en-US", {
           month: "short",
@@ -515,21 +535,20 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           `- Total Value: $${contextData.totalValue.toFixed(2)}\n` +
           `- Trade Reason: ${contextData.reason}\n\n` +
           `Can you analyze this transaction and provide insights?`
-        shouldIncludeOrderId = true  // Include order_id for transactions
-
+        shouldIncludeOrderId = true // Include order_id for transactions
       } else {
         contextData = []
       }
 
       if (autoMessage) {
-        handleSendMessage(autoMessage, shouldIncludeOrderId)  // Pass the flag
+        handleSendMessage(autoMessage, shouldIncludeOrderId) // Pass the flag
       }
     }
   }, [open, contextData])
 
   // Update handleSend to NOT include order_id for manual messages
   const handleSend = () => {
-    handleSendMessage(undefined, false)  // User-typed messages don't include order_id
+    handleSendMessage(undefined, false) // User-typed messages don't include order_id
   }
   const handleStop = () => {
     if (abortControllerRef.current) {
