@@ -3,15 +3,16 @@
 import type React from "react"
 
 import LoaderSpinner from "@/components/loader-spinner"
-import LoadingTransition from "./LoadingTransition"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/lib/auth-context"
+import Cookies from "js-cookie"
 import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import LoadingTransition from "./LoadingTransition"
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -97,12 +98,14 @@ export default function LoginPage() {
         }
 
         const loginData = await loginRes.json()
-        const accessToken =
-          loginData.access_token ?? loginData.token ?? loginData.jwt
+        const accessToken = loginData.token
 
-        if (accessToken) {
-          localStorage.setItem("access_token", accessToken)
-        }
+        Cookies.set("jwt", accessToken, {
+          expires: 1,
+          path: "/",
+          sameSite: "lax",
+        })
+
         await signIn(email, password)
       }
 

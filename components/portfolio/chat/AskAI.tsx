@@ -1,8 +1,9 @@
 "use client"
 
+import { accessToken } from "@/app/util/getAccessToken"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowUp, X, Square } from "lucide-react"
+import { ArrowUp, Square, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 function MarkdownStreamingContent({
@@ -272,19 +273,14 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer test`,
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
         query: userMessage,
-        ...(shouldIncludeOrderId && { order_id }), // Use the parameter, not contextData
+        ...(shouldIncludeOrderId && { order_id }),
       }),
       signal: signal,
     })
-
-    console.log(
-      "order_id being sent:",
-      shouldIncludeOrderId ? order_id : "not included",
-    )
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -455,12 +451,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       ) {
         order_id = contextData.orderId
       }
-
-      console.log("Sending to backend:", {
-        message: textToSend,
-        order_id: order_id || "none",
-        includeOrderId,
-      })
 
       setMessages((prev) => [
         ...prev,
