@@ -41,7 +41,7 @@ export default function StockHistoryModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-border bg-black sm:max-w-[600px]">
+      <DialogContent className="border-border bg-background sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-foreground">
             <span className="text-2xl font-semibold">{stock.symbol}</span>
@@ -113,7 +113,10 @@ export default function StockHistoryModal({
                     Total
                   </td>
                   <td className="px-4 py-3 text-right font-medium text-foreground">
-                    {stock.shares}
+                    {/* {stock.shares} */}
+                    {stock.shares.toLocaleString("en-US", {
+                      minimumFractionDigits: 4,
+                    })}
                   </td>
                   <td className="px-4 py-3 text-right text-sm text-muted-foreground">
                     Avg ${stock.avgPrice.toFixed(2)}

@@ -119,13 +119,13 @@ export default function LiquidateModal({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-50 bg-background/60 backdrop-blur-sm"
         onClick={() => handleOpenChange(false)}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <Card className="bg-black-900 w-full max-w-md border-border shadow-2xl">
+        <Card className="bg-background-900 w-full max-w-md border-border shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border p-6">
             <div>

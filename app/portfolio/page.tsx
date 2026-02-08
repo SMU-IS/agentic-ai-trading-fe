@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { LogOut, Wallet, LineChart } from "lucide-react"
 import PortfolioTab from "@/components/portfolio/PortfolioTab"
 import PredictionsTab from "@/components/portfolio/ predictions/PredictionsTab"
+import { ModeToggle } from "@/components/mode-toggle"
 
 export default function PortfolioPage() {
   const { user, isLoading, signOut } = useAuth()
@@ -28,7 +29,7 @@ export default function PortfolioPage() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-950/30 via-black to-teal-900/30">
+    <div className="min-h-screen bg-gradient-to-br from-teal-950/30 via-background to-teal-900/30">
       {/* Header */}
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
@@ -55,6 +56,8 @@ export default function PortfolioPage() {
             <span className="hidden text-sm text-muted-foreground sm:block">
               Welcome, <span className="text-foreground">{user.username}</span>
             </span>
+            <ModeToggle />
+
             <Button
               variant="ghost"
               size="sm"

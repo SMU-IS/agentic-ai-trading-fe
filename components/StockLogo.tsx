@@ -39,7 +39,7 @@ export default function StockLogo({
     <img
       src={`https://img.logokit.com/ticker/${symbol.toUpperCase()}?token=${LOGOKIT_API_KEY}`}
       alt={name || symbol}
-      className={`${sizeClass} ${className} p-0.2 rounded-full border-none bg-black object-cover`}
+      className={`${sizeClass} ${className} p-0.2 rounded-full border-none bg-background object-cover`}
       onError={() => setImageError(true)}
     />
   )

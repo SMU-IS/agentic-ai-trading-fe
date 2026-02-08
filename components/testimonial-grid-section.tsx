@@ -6,7 +6,7 @@ const testimonials = [
       "The real-time code suggestions from Pointer feel like having a senior engineer reviewing every line of code as you write. The accuracy of its recommendations has improved our overall code quality, reduced review time.",
     name: "Annette Black",
     company: "Sony",
-    avatar: "/images/avatars/annette-black.png",
+    avatar: "/images/avatars/annette-background.png",
     type: "large-teal",
   },
   {

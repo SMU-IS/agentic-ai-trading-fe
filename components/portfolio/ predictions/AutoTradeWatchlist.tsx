@@ -388,7 +388,7 @@ export default function AutoTradeCard() {
           )}
 
           {showDropdown && searchResults.length > 0 && (
-            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto rounded-lg border border-border bg-black text-black shadow-lg">
+            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto rounded-lg border border-border bg-background text-background shadow-lg">
               {searchResults.map((stock, index) => (
                 <button
                   key={`${stock.symbol}-${index}`}

@@ -9,7 +9,7 @@ export function DashboardPreview() {
       <div className="relative rounded-2xl p-[2px]">
         {/* Spinning gradient border (behind the content) */}
         <div className="absolute inset-0 overflow-hidden rounded-2xl">
-          <div className="bg-gradient-conic-teal-black animate-spin-border absolute inset-[-100%]" />
+          <div className="bg-gradient-conic-teal-background animate-spin-border absolute inset-[-100%]" />
         </div>
 
         {/* Actual content (on top, covers the center) */}
@@ -39,8 +39,8 @@ export function DashboardPreview() {
           animation: spin-border 4s linear infinite;
         }
 
-        /* Teal to black gradient - smooth transitions */
-        .bg-gradient-conic-teal-black {
+        /* Teal to background gradient - smooth transitions */
+        .bg-gradient-conic-teal-background {
           background: conic-gradient(
             from 0deg,
             #14b8a6,

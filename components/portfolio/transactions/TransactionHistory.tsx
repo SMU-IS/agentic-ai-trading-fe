@@ -140,7 +140,7 @@ export default function TransactionsModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[85vh] max-w-5xl flex-col overflow-hidden border-border bg-black">
+        <DialogContent className="flex max-h-[85vh] max-w-5xl flex-col overflow-hidden border-border bg-background">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl text-foreground">
               <ArrowUpDown className="h-5 w-5" />
@@ -157,7 +157,7 @@ export default function TransactionsModal({
               <TransactionsSkeleton />
             ) : (
               <table className="w-full">
-                <thead className="sticky top-0 bg-black">
+                <thead className="sticky top-0 bg-background">
                   <tr className="border-b border-border">
                     <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                       Stock
@@ -338,10 +338,10 @@ export default function TransactionsModal({
           {loading && (
             <div className="mt-4 flex animate-pulse items-center justify-between border-t border-border pt-4 text-sm">
               <div className="flex items-center gap-6">
-                <div className="h-5 w-40 rounded bg-gray-700" />
-                <div className="h-5 w-40 rounded bg-gray-700" />
+                <div className="h-5 w-40 rounded bg-muted" />
+                <div className="h-5 w-40 rounded bg-muted" />
               </div>
-              <div className="h-5 w-32 rounded bg-gray-700" />
+              <div className="h-5 w-32 rounded bg-muted" />
             </div>
           )}
         </DialogContent>
@@ -358,7 +358,7 @@ export default function TransactionsModal({
               onClick={() => setContextMenu(null)}
             />
             <div
-              className="context-menu-container fixed min-w-[200px] rounded-lg border border-border bg-black/90 py-1 shadow-xl"
+              className="context-menu-container fixed min-w-[200px] rounded-lg border border-border bg-background/90 py-1 shadow-xl"
               style={{
                 left: `${contextMenu.x}px`,
                 top: `${contextMenu.y - 100}px`,
@@ -449,49 +449,49 @@ function TransactionsSkeleton() {
             {/* Stock */}
             <td className="px-4 py-3">
               <div className="space-y-2">
-                <div className="h-4 w-16 rounded bg-gray-700" />
-                <div className="h-3 w-24 rounded bg-gray-700" />
+                <div className="h-4 w-16 rounded bg-muted" />
+                <div className="h-3 w-24 rounded bg-muted" />
               </div>
             </td>
 
             {/* Type */}
             <td className="px-4 py-3">
-              <div className="h-6 w-16 rounded-full bg-gray-700" />
+              <div className="h-6 w-16 rounded-full bg-muted" />
             </td>
 
             {/* Date & Time */}
             <td className="px-4 py-3">
               <div className="space-y-2">
-                <div className="h-4 w-24 rounded bg-gray-700" />
-                <div className="h-3 w-16 rounded bg-gray-700" />
+                <div className="h-4 w-24 rounded bg-muted" />
+                <div className="h-3 w-16 rounded bg-muted" />
               </div>
             </td>
 
             {/* Price */}
             <td className="px-4 py-3">
-              <div className="ml-auto h-4 w-20 rounded bg-gray-700" />
+              <div className="ml-auto h-4 w-20 rounded bg-muted" />
             </td>
 
             {/* Qty */}
             <td className="px-4 py-3">
-              <div className="ml-auto h-4 w-12 rounded bg-gray-700" />
+              <div className="ml-auto h-4 w-12 rounded bg-muted" />
             </td>
 
             {/* Filled Qty */}
             <td className="px-4 py-3">
-              <div className="ml-auto h-4 w-12 rounded bg-gray-700" />
+              <div className="ml-auto h-4 w-12 rounded bg-muted" />
             </td>
 
             {/* Total Value */}
             <td className="px-4 py-3">
-              <div className="ml-auto h-4 w-24 rounded bg-gray-700" />
+              <div className="ml-auto h-4 w-24 rounded bg-muted" />
             </td>
 
             {/* Reason */}
             <td className="px-4 py-3">
               <div className="space-y-2">
-                <div className="h-3 w-48 rounded bg-gray-700" />
-                <div className="h-3 w-40 rounded bg-gray-700" />
+                <div className="h-3 w-48 rounded bg-muted" />
+                <div className="h-3 w-40 rounded bg-muted" />
               </div>
             </td>
           </tr>

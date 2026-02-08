@@ -559,7 +559,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   return (
     <>
       <div
-        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ease-out ${open ? "opacity-100" : "pointer-events-none opacity-0"} `}
+        className={`fixed inset-0 z-40 bg-background/40 backdrop-blur-sm transition-opacity duration-300 ease-out ${open ? "opacity-100" : "pointer-events-none opacity-0"} `}
         onClick={() => onOpenChange(false)}
       />
 
@@ -578,7 +578,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                 <div className="bg-gradient-conic-smooth animate-spin-border absolute inset-[-100%]" />
               </div>
 
-              <Card className="relative overflow-hidden rounded-2xl border-0 bg-neutral-900 shadow-2xl backdrop-blur-xl">
+              <Card className="relative overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl">
                 <div className="flex items-center justify-between border-b border-border px-4 pb-2 pt-3">
                   <div>
                     <p className="text-sm font-medium text-foreground">
@@ -617,7 +617,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       <div
                         className={`max-w-[80%] font-medium rounded-xl px-3 py-2 ${
                           m.role === "user"
-                            ? "bg-teal-300 text-primary-foreground"
+                            ? "bg-primary text-primary-foreground"
                             : "bg-transparent text-foreground"
                         }`}
                       >
@@ -752,13 +752,13 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
             #0f766e,
             #115e59,
             #134e4a,
-            #1a3a38,
-            #1a1a1a,
-            #0a0a0a,
-            #000000,
-            #0a0a0a,
-            #1a1a1a,
-            #1a3a38,
+            #00faea,
+            hsl(var(--background)),
+            hsl(var(--muted)),
+            hsl(var(--card)),
+            hsl(var(--muted)),
+            hsl(var(--background)),
+            #00ffee,
             #134e4a,
             #115e59,
             #0f766e,
