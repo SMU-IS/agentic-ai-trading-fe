@@ -1,13 +1,14 @@
 "use client"
 
+import { getCompanyName } from "@/lib/tickerMap"
 import { StockWithHistory } from "@/lib/types"
 import { useEffect, useState } from "react"
+import MarketNews from "../news/MarketNews"
 import HoldingsTable from "./HoldingsTable"
 import PerformanceChart from "./PerformanceChart"
 import StockHistoryModal from "./StockHistoryModal"
 import SummaryCards from "./SummaryCards"
-import { getCompanyName } from "@/lib/tickerMap"
-import MarketNews from "../news/MarketNews"
+
 import { Card, CardHeader, CardContent } from "../ui/card"
 
 type AccountResponse = {
@@ -99,8 +100,8 @@ export default function PortfolioTab() {
           ) : (
             <div className="flex items-center gap-2 justify-right">
               <span
-                className={`h-2 w-2 rounded-full ${
-                  tradingAccStatus ? "animate-pulse bg-teal-500" : "bg-red-500"
+                className={`h-3 w-3 rounded-full ${
+                  tradingAccStatus ? "animate-pulse bg-green-600" : "bg-red-500"
                 }`}
               />
               <p

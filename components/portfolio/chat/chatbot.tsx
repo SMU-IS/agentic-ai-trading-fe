@@ -1,15 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  BarChart3,
-  Bookmark,
-  Copy,
-  MessageSquare,
-  Send,
-  ThumbsDown,
-  ThumbsUp,
-} from "lucide-react"
+import { BarChart3, Bookmark, Copy, MessageSquare, Send } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 function MarkdownStreamingContent({
@@ -255,13 +247,13 @@ export default function ChatComponent() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer test",
       },
       body: JSON.stringify({
         message: userMessage,
         tickers: [],
       }),
       signal: signal,
+      credentials: "include",
     })
 
     if (!response.ok) {
