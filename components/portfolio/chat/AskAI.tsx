@@ -29,7 +29,7 @@ function MarkdownStreamingContent({
       setDisplayedText("")
     }
     // Streaming animation
-    const speed = 20 // milliseconds per character
+    const speed = 30 // milliseconds per character
 
     const animate = (timestamp: number) => {
       if (lastUpdateRef.current === 0) {

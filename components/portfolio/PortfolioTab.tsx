@@ -8,8 +8,33 @@ import HoldingsTable from "./HoldingsTable"
 import PerformanceChart from "./PerformanceChart"
 import StockHistoryModal from "./StockHistoryModal"
 import SummaryCards from "./SummaryCards"
-
 import { Card, CardHeader, CardContent } from "../ui/card"
+import SpeculationAgent from "../agent/SpeculationAgent"
+import TradingTimeline from "../agent/TradingTimeline"
+
+// Add TradeEvent type
+export interface TradeEvent {
+  id: string
+  symbol: string
+  timestamp: string
+  date_label: string
+  time_label: string
+  trade_type: "buy" | "sell"
+  quantity: number
+  price: number
+  total_value: number
+  order_type: "market" | "limit" | "stop" | "bracket"
+  status: "filled" | "partial" | "pending" | "cancelled"
+  trigger_reason?: string
+  narrative_context?: {
+    platform: string
+    author: string
+    credibility: number
+    summary: string
+  }
+  pnl?: number
+  pnl_percent?: number
+}
 
 type AccountResponse = {
   cash: string
@@ -40,12 +65,12 @@ export default function PortfolioTab() {
   const [positions, setPositions] = useState<Position[]>([])
   const [tradingAccStatus, setTradingAccStatus] = useState<boolean>(false)
   const [loading, setLoading] = useState(true)
+  const [selectedTrade, setSelectedTrade] = useState<TradeEvent | null>(null)
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
       try {
-        // 1) Account (Total Value)
         const accountRes = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/account`,
         )
@@ -55,7 +80,6 @@ export default function PortfolioTab() {
         setCashValue(Number(account.cash))
         setTradingAccStatus(true)
 
-        // 2) Positions (for gain/loss and today change)
         const posRes = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
         )
@@ -139,6 +163,19 @@ export default function PortfolioTab() {
         </div>
       </div>
 
+      {/* Updated: Fixed height for both components */}
+      <div className="flex gap-6 mb-8">
+        <div className="w-[55%]">
+          <TradingTimeline
+            selectedTrade={selectedTrade}
+            onSelectTrade={setSelectedTrade}
+          />
+        </div>
+        <div className="flex-1">
+          <SpeculationAgent selectedTrade={selectedTrade} />
+        </div>
+      </div>
+
       <div>
         {loading ? (
           <HoldingsTableSkeleton />
@@ -146,7 +183,7 @@ export default function PortfolioTab() {
           <HoldingsTable
             stocks={positions.map((p) => ({
               ...p,
-              name: getCompanyName(p.symbol), // Add name here
+              name: getCompanyName(p.symbol),
             }))}
             onSelectStock={setSelectedStock}
           />
@@ -205,19 +242,16 @@ function HoldingsTableSkeleton() {
         ))}
       </div>
 
-      {/* Table Rows */}
       {[1, 2, 3, 4, 5].map((row) => (
         <div
           key={row}
           className="grid animate-pulse grid-cols-7 gap-4 border-b border-border px-6 py-4 last:border-b-0"
         >
-          {/* Stock Symbol & Name */}
           <div className="space-y-2">
             <div className="h-5 w-16 rounded bg-muted" />
             <div className="h-3 w-24 rounded bg-muted" />
           </div>
 
-          {/* Other columns */}
           {[1, 2, 3, 4, 5, 6].map((col) => (
             <div key={col} className="flex items-center">
               <div className="h-5 w-20 rounded bg-muted" />

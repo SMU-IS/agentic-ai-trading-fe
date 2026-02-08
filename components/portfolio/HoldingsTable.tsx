@@ -526,6 +526,9 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                   <tr className="border-b border-border">
                     <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                       Symbol
+                    </th>{" "}
+                    <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
+                      Stock
                     </th>
                     <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
                       Stock
