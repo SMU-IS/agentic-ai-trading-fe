@@ -100,8 +100,8 @@ export default function PortfolioTab() {
           ) : (
             <div className="flex items-center gap-2 justify-right">
               <span
-                className={`h-3 w-3 rounded-full ${
-                  tradingAccStatus ? "animate-pulse bg-green-600" : "bg-red-500"
+                className={`h-2 w-2 rounded-full ${
+                  tradingAccStatus ? "animate-pulse bg-teal-600" : "bg-red-500"
                 }`}
               />
               <p

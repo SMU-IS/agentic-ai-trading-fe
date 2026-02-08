@@ -41,7 +41,7 @@ export default function StockHistoryModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-border bg-background sm:max-w-[600px]">
+      <DialogContent className="border-border bg-background sm:max-w-[600px] ">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-foreground">
             <span className="text-2xl font-semibold">{stock.symbol}</span>
@@ -53,7 +53,7 @@ export default function StockHistoryModal({
 
         <div className="mt-4">
           <h3 className="mb-3 font-medium text-foreground">Purchase History</h3>
-          <div className="overflow-hidden rounded-lg border border-border">
+          <div className="overflow-scroll rounded-lg border border-border  max-h-[40vh] ">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/30">
