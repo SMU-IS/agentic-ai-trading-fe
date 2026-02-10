@@ -152,7 +152,7 @@ export default function StockHistoryModal({
                 {gainVal >= 0 ? "+" : ""}$
                 {gainVal.toLocaleString("en-US", {
                   minimumFractionDigits: 2,
-                })}{" "}
+                })}
                 ({gainVal >= 0 ? "+" : ""}
                 {gainPct.toFixed(2)}%)
               </span>

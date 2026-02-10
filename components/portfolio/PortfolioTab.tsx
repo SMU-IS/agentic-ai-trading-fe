@@ -164,7 +164,7 @@ export default function PortfolioTab() {
       </div>
 
       {/* Updated: Fixed height for both components */}
-      <div className="flex gap-6 mb-8">
+      {/* <div className="flex gap-6 mb-8">
         <div className="w-[55%]">
           <TradingTimeline
             selectedTrade={selectedTrade}
@@ -174,7 +174,7 @@ export default function PortfolioTab() {
         <div className="flex-1">
           <SpeculationAgent selectedTrade={selectedTrade} />
         </div>
-      </div>
+      </div> */}
 
       <div>
         {loading ? (

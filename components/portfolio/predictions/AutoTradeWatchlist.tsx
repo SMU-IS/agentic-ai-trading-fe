@@ -348,7 +348,7 @@ export default function AutoTradeCard() {
           <p className="text-xs text-muted-foreground">
             <span className="font-medium text-primary">
               Add a stock into your watchlist
-            </span>{" "}
+            </span>
             for automatic trading based on predictions
           </p>
         </div>
@@ -475,7 +475,7 @@ export default function AutoTradeCard() {
                   <div className="flex flex-col items-start gap-1 text-left">
                     <p className="text-xs font-medium text-foreground">
                       {stock.symbol}
-                    </p>{" "}
+                    </p>
                     <p className="text-xs font-medium text-foreground/50">
                       {getCompanyName(stock.symbol)}
                     </p>
@@ -535,7 +535,7 @@ export default function AutoTradeCard() {
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Active trades</span>
               <span className="font-medium text-foreground">
-                {autoTradeStocks.filter((s) => s.enabled).length} of{" "}
+                {autoTradeStocks.filter((s) => s.enabled).length} of
                 {autoTradeStocks.length}
               </span>
             </div>

@@ -1,48 +1,39 @@
-'use client';
+"use client"
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react"
 import {
   TrendingUp,
   TrendingDown,
   Activity,
   MessageSquare,
   Sparkles,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import AskAI from '../portfolio/chat/AskAI';
-
-interface TradeEvent {
-  id: string;
-  symbol: string;
-  timestamp: string;
-  date_label: string;
-  time_label: string;
-  trade_type: 'buy' | 'sell';
-  quantity: number;
-  price: number;
-  total_value: number;
-  order_type: 'market' | 'limit' | 'stop' | 'bracket';
-  status: 'filled' | 'partial' | 'pending' | 'cancelled';
-  trigger_reason?: string;
-  narrative_context?: {
-    platform: string;
-    author: string;
-    credibility: number;
-    summary: string;
-  };
-  pnl?: number;
-  pnl_percent?: number;
-}
+  Bot,
+  Shield,
+  Target,
+  AlertTriangle,
+  User,
+  Copy,
+  Check,
+} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import AskAI from "../portfolio/chat/AskAI"
+import { TradeEvent } from "@/lib/types"
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "../ui/accordion"
 
 interface SpeculationAgentProps {
-  selectedTrade: TradeEvent | null;
+  selectedTrade: TradeEvent | null
 }
 
 const generateDots = () => {
-  const dots = [];
-  const rows = 14;
-  const cols = 14;
+  const dots = []
+  const rows = 14
+  const cols = 14
 
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
@@ -52,71 +43,77 @@ const generateDots = () => {
         left: `${(j / cols) * 150}%`,
         delay: Math.random() * 10,
         duration: 4 + Math.random() * 2,
-      });
+      })
     }
   }
 
-  return dots;
-};
+  return dots
+}
 
 export default function SpeculationAgent({
   selectedTrade,
 }: SpeculationAgentProps) {
-  const [dots] = useState(() => generateDots());
-
-  const [showAskAI, setShowAskAI] = useState(false);
-  const [askAIData, setAskAIData] = useState<any>(null);
+  const [dots] = useState(() => generateDots())
+  const [showAskAI, setShowAskAI] = useState(false)
+  const [askAIData, setAskAIData] = useState<any>(null)
+  const [copiedOrderId, setCopiedOrderId] = useState(false)
 
   useEffect(() => {
-    setShowAskAI(false);
-    setAskAIData(null);
-  }, [selectedTrade?.id]);
+    setShowAskAI(false)
+    setAskAIData(null)
+  }, [selectedTrade?.id])
 
   const askAIContext = useMemo(() => {
-    if (!selectedTrade) return null;
+    if (!selectedTrade) return null
 
-    // Calculate current performance
     const currentPrice =
-      selectedTrade.price * (1 + (Math.random() - 0.5) * 0.05);
-    const pnlUsd =
-      (currentPrice - selectedTrade.price) * selectedTrade.quantity;
+      selectedTrade.price * (1 + (Math.random() - 0.5) * 0.05)
+    const pnlUsd = (currentPrice - selectedTrade.price) * selectedTrade.quantity
     const pnlPercent =
-      ((currentPrice - selectedTrade.price) / selectedTrade.price) * 100;
+      ((currentPrice - selectedTrade.price) / selectedTrade.price) * 100
 
     return {
-      // Fields AskAI expects at top level
-      type: selectedTrade.trade_type, // 'buy' or 'sell'
+      type: selectedTrade.trade_type,
       price: selectedTrade.price,
       filledQty: selectedTrade.quantity,
       totalValue: selectedTrade.total_value,
-      reason: selectedTrade.trigger_reason ?? 'Manual trade',
-
-      // Additional fields
+      reason: selectedTrade.trigger_reason ?? "Manual trade",
       symbol: selectedTrade.symbol,
       status: selectedTrade.status,
       order_type: selectedTrade.order_type,
       timestamp: selectedTrade.timestamp,
       date_label: selectedTrade.date_label,
       time_label: selectedTrade.time_label,
-
-      // Performance metrics
       current_price: currentPrice,
       pnl: pnlUsd,
       pnl_percent: pnlPercent,
-
-      // Context
       trigger_reason: selectedTrade.trigger_reason,
-      narrative_context: selectedTrade.narrative_context,
-
-      // Meta
+      is_agent_trade: selectedTrade.is_agent_trade,
+      trading_agent_reasonings: selectedTrade.trading_agent_reasonings,
+      risk_evaluation: selectedTrade.risk_evaluation,
+      risk_adjustments_made: selectedTrade.risk_adjustments_made,
+      legs: selectedTrade.legs,
       id: selectedTrade.id,
-    };
-  }, [selectedTrade]);
+    }
+  }, [selectedTrade])
 
   const handleAskAIClick = () => {
-    setAskAIData(askAIContext);
-    setShowAskAI(true);
-  };
+    setAskAIData(askAIContext)
+    setShowAskAI(true)
+  }
+
+  const getRiskStatusColor = (status: string) => {
+    switch (status) {
+      case "APPROVED":
+        return "text-green-500 bg-green-500/10 border-green-500/20"
+      case "WARNING":
+        return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20"
+      case "REJECTED":
+        return "text-red-500 bg-red-500/10 border-red-500/20"
+      default:
+        return "text-gray-500 bg-gray-500/10 border-gray-500/20"
+    }
+  }
 
   if (!selectedTrade) {
     return (
@@ -138,10 +135,10 @@ export default function SpeculationAgent({
         <div className="border w-80 bg-teal-900/20 rounded-full z-10 p-4 flex items-center">
           <Activity className="w-8 h-8 text-teal-900 mx-4" />
           <div className="flex-1 items-start text-left">
-            <h2 className="text-xs font-semibold text-foreground">
+            <h2 className="text-xs font-bold text-foreground">
               View trade analysis
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-foreground">
               Click on any trade from the left to view detailed analysis
             </p>
           </div>
@@ -161,113 +158,371 @@ export default function SpeculationAgent({
           }
         `}</style>
       </div>
-    );
+    )
   }
 
-  // Mock current price (enhance this with real-time data)
-  const currentPrice = selectedTrade.price * (1 + (Math.random() - 0.5) * 0.05);
-  const pnlUsd = (currentPrice - selectedTrade.price) * selectedTrade.quantity;
+  const currentPrice = selectedTrade.price * (1 + (Math.random() - 0.5) * 0.05)
+  const pnlUsd = (currentPrice - selectedTrade.price) * selectedTrade.quantity
   const pnlPercent =
-    ((currentPrice - selectedTrade.price) / selectedTrade.price) * 100;
+    ((currentPrice - selectedTrade.price) / selectedTrade.price) * 100
 
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
-      case 'reddit':
-        return '🔴';
-      case 'twitter':
-        return '🐦';
-      case 'bloomberg':
-        return '📰';
-      case 'seekingalpha':
-        return '📈';
+      case "reddit":
+        return "🔴"
+      case "twitter":
+        return "🐦"
+      case "bloomberg":
+        return "📰"
+      case "seekingalpha":
+        return "📈"
       default:
-        return '🌐';
+        return "🌐"
     }
-  };
+  }
 
   return (
     <div className="h-full flex flex-col overflow-y-auto pr-2">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-shrink-0">
-        <div>
-          <h1 className="text-xl font-bold flex items-center">
-            <Activity className="w-6 h-6 text-primary mr-2" />
-            Trade Analysis
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Detailed breakdown of selected trade
-          </p>
-        </div>
-      </div>
-
-      {/* Trade Details Card - scrollable content */}
-      <Card className="bg-card border-border flex-shrink-0 mt-4 h-[calc(100vh-184px)] overflow-y-auto">
+      <Card className="bg-card border-border flex-shrink-0 h-[calc(100vh-150px)] overflow-y-auto">
         <CardHeader>
+          <div className="flex items-center justify-between flex-shrink-0 border-b border-border pb-4">
+            <div>
+              <h1 className="text-xl font-bold flex items-center">
+                {selectedTrade.is_agent_trade ? (
+                  <>Trade Analysis</>
+                ) : (
+                  <>
+                    <Activity className="w-6 h-6 text-primary mr-2" />
+                    Trade Analysis
+                  </>
+                )}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {selectedTrade.is_agent_trade
+                  ? "Detailed AI agent reasoning and risk analysis"
+                  : "Detailed breakdown of selected trade"}
+              </p>
+            </div>
+          </div>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold">{selectedTrade.symbol}</span>
+
+              {selectedTrade.is_agent_trade ? (
+                <div className="flex items-center gap-1 rounded border border-primary/20 bg-primary/10 px-2 py-1 text-sm font-medium text-primary">
+                  <Bot className="h-4 w-4" />
+                  Agent
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 rounded border border-muted bg-muted/50 px-2 py-1 text-sm font-medium text-muted-foreground">
+                  <User className="h-4 w-4" />
+                  Manual
+                </div>
+              )}
+
               <div
                 className={`px-3 py-1 rounded text-sm font-medium ${
-                  selectedTrade.trade_type === 'buy'
-                    ? 'bg-green-500/10 text-green-500 border border-green-500/20'
-                    : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                  selectedTrade.trade_type === "buy"
+                    ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                    : "bg-red-500/10 text-red-500 border border-red-500/20"
                 }`}
               >
                 {selectedTrade.trade_type.toUpperCase()}
               </div>
-              <div className="text-sm text-muted-foreground">
-                {selectedTrade.date_label} at {selectedTrade.time_label}
-              </div>
             </div>
+
             <div className="text-right">
-              <div className="text-sm text-muted-foreground">Status</div>
+              <div className="">
+                <p className="text-xs text-muted-foreground">Status</p>
+              </div>
               <div
-                className={`text-lg font-semibold ${
-                  selectedTrade.status === 'filled'
-                    ? 'text-green-500'
-                    : 'text-yellow-500'
+                className={`text-lg ${
+                  selectedTrade.status === "filled"
+                    ? "text-green-500"
+                    : selectedTrade.status === "expired" ||
+                        selectedTrade.status === "cancelled"
+                      ? "text-red-500"
+                      : "text-yellow-700"
                 }`}
               >
                 {selectedTrade.status.toUpperCase()}
               </div>
             </div>
           </CardTitle>
+          <div className="text-xs text-muted-foreground mt-0 p-0 space-y-0">
+            Order Made: {selectedTrade.date_label} at {selectedTrade.time_label}
+          </div>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 mt-0">
           {/* Trade Summary */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-muted/50 rounded-lg p-4">
+            <div className="bg-muted rounded-lg p-4 border">
               <div className="text-xs text-muted-foreground mb-1">
                 Entry Price
               </div>
-              <div className="text-2xl font-bold">
+              <div className="text-xl font-bold">
                 ${selectedTrade.price.toFixed(2)}
               </div>
             </div>
-            <div className="bg-muted/50 rounded-lg p-4">
+            <div className="bg-muted rounded-lg p-4 border">
               <div className="text-xs text-muted-foreground mb-1">Quantity</div>
-              <div className="text-2xl font-bold">
+              <div className="text-xl font-bold">
                 {selectedTrade.quantity} shares
               </div>
             </div>
-            <div className="bg-muted/50 rounded-lg p-4">
+            <div className="bg-muted rounded-lg p-4 border">
               <div className="text-xs text-muted-foreground mb-1">
                 Total Value
               </div>
-              <div className="text-2xl font-bold">
+              <div className="text-xl font-bold">
                 ${selectedTrade.total_value.toFixed(2)}
               </div>
             </div>
           </div>
 
-          {selectedTrade.trade_type === 'buy' && (
+          {/* TPSL Legs - Show for ANY bracket order regardless of agent/manual */}
+          {selectedTrade.order_class === "bracket" &&
+            selectedTrade.legs &&
+            selectedTrade.legs.length > 0 && (
+              <div className="rounded-lg border border-border bg-muted p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Target className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-bold">
+                    Take Profit / Stop Loss
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {selectedTrade.legs.map((leg: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between rounded-lg bg-background p-3"
+                    >
+                      <div>
+                        <div className="text-xs text-muted-foreground">
+                          {leg.order_type === "limit" || leg.type === "limit"
+                            ? "Take Profit"
+                            : "Stop Loss"}
+                        </div>
+                        <div className="text-sm font-bold">
+                          {leg.order_type === "limit" || leg.type === "limit"
+                            ? `Limit: $${parseFloat(leg.limit_price).toFixed(2)}`
+                            : `Stop: $${parseFloat(leg.stop_price).toFixed(2)}`}
+                        </div>
+                      </div>
+                      <div
+                        className={`rounded px-2 py-1 text-xs font-medium ${
+                          leg.status === "filled"
+                            ? "bg-green-500/10 text-green-500"
+                            : leg.status === "cancelled"
+                              ? "bg-red-500/10 text-red-500"
+                              : leg.status === "expired"
+                                ? "bg-orange-500/10 text-orange-500"
+                                : "bg-blue-500/10 text-blue-500"
+                        }`}
+                      >
+                        {leg.status}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          {/* Agent Reasoning Section - Only show for real agent trades with reasoning */}
+          {selectedTrade.is_agent_trade &&
+            selectedTrade.trading_agent_reasonings &&
+            !selectedTrade.trading_agent_reasonings.startsWith(
+              "[Trade Conflict]",
+            ) && (
+              <div className="space-y-4">
+                {/* Agent Reasoning Card */}
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem
+                    value="agent-reasoning"
+                    className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4"
+                  >
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-2">
+                        <Bot className="h-5 w-5 text-primary" />
+                        <span className="text-sm font-bold text-primary">
+                          AI Agent Reasoning
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+
+                    <AccordionContent>
+                      <p className="text-sm leading-relaxed text-foreground">
+                        {selectedTrade.trading_agent_reasonings}
+                      </p>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+
+                {/* Risk Evaluation Card - Only show if not empty */}
+                {selectedTrade.risk_evaluation &&
+                  Object.keys(selectedTrade.risk_evaluation).length > 0 && (
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem
+                        value="risk-evaluation"
+                        className="rounded-lg border border-border bg-muted/30 px-4"
+                      >
+                        <AccordionTrigger className="hover:no-underline">
+                          <div className="flex items-center justify-between w-full pr-2">
+                            <div className="flex items-center gap-2">
+                              <Shield className="h-5 w-5 text-muted-foreground" />
+                              <span className="text-sm font-bold">
+                                Risk Evaluation
+                              </span>
+                            </div>
+                            <div
+                              className={`rounded border px-3 py-1 text-xs font-bold ${getRiskStatusColor(selectedTrade.risk_evaluation.risk_status)}`}
+                            >
+                              {selectedTrade.risk_evaluation.risk_status}
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+
+                        <AccordionContent>
+                          {/* Risk Metrics Grid */}
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="rounded-lg bg-background p-3">
+                              <div className="text-xs text-muted-foreground mb-1">
+                                Risk/Reward Ratio
+                              </div>
+                              <div className="text-lg font-bold text-primary">
+                                {selectedTrade.risk_evaluation.actual_rr}
+                              </div>
+                            </div>
+                            <div className="rounded-lg bg-background p-3">
+                              <div className="text-xs text-muted-foreground mb-1">
+                                Total Risk
+                              </div>
+                              <div className="text-lg font-bold text-red-500">
+                                {selectedTrade.risk_evaluation.total_risk}
+                              </div>
+                            </div>
+                            <div className="rounded-lg bg-background p-3">
+                              <div className="text-xs text-muted-foreground mb-1">
+                                Risk per Share
+                              </div>
+                              <div className="text-lg font-bold">
+                                {selectedTrade.risk_evaluation.risk_per_share}
+                              </div>
+                            </div>
+                            <div className="rounded-lg bg-background p-3">
+                              <div className="text-xs text-muted-foreground mb-1">
+                                Reward per Share
+                              </div>
+                              <div className="text-lg font-bold text-green-500">
+                                {selectedTrade.risk_evaluation.reward_per_share}
+                              </div>
+                            </div>
+                            <div className="rounded-lg bg-background p-3">
+                              <div className="text-xs text-muted-foreground mb-1">
+                                ATR Distance
+                              </div>
+                              <div className="text-lg font-bold">
+                                {selectedTrade.risk_evaluation.atr_distance}
+                              </div>
+                            </div>
+                            <div className="rounded-lg bg-background p-3">
+                              <div className="text-xs text-muted-foreground mb-1">
+                                Risk Score
+                              </div>
+                              <div className="text-lg font-bold">
+                                {selectedTrade.risk_evaluation.risk_score.toFixed(
+                                  2,
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {selectedTrade.risk_evaluation.near_resistance && (
+                            <div className="flex items-center gap-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3 text-yellow-500">
+                              <AlertTriangle className="h-4 w-4" />
+                              <span className="text-sm font-medium">
+                                Trade near resistance level
+                              </span>
+                            </div>
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  )}
+
+                {/* Risk Adjustments - Only show if array has items */}
+                {selectedTrade.risk_adjustments_made &&
+                  selectedTrade.risk_adjustments_made.length > 0 && (
+                    <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
+                      <div className="mb-3 flex items-center gap-2">
+                        <Target className="h-5 w-5 text-yellow-600" />
+                        <span className="text-sm font-bold text-yellow-600">
+                          Risk Adjustments Applied (
+                          {selectedTrade.risk_adjustments_made.length})
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedTrade.risk_adjustments_made.map((adj, idx) => (
+                          <div
+                            key={idx}
+                            className="rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3"
+                          >
+                            <div className="mb-2 flex items-center gap-2">
+                              <div className="rounded bg-yellow-500/20 px-2 py-1 text-xs font-bold text-yellow-700">
+                                {adj.field
+                                  .split("_")
+                                  .map(
+                                    (w) =>
+                                      w.charAt(0).toUpperCase() + w.slice(1),
+                                  )
+                                  .join(" ")}
+                              </div>
+                            </div>
+                            <div className="mb-2 text-xs text-muted-foreground">
+                              <span className="font-medium">Reason:</span>{" "}
+                              {adj.reason}
+                            </div>
+                            <div className="text-xs font-medium text-foreground">
+                              <span className="text-muted-foreground">
+                                Adjustment:
+                              </span>{" "}
+                              {adj.adjustment}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+              </div>
+            )}
+
+          {/* Conflict Resolution Badge - Show for conflict trades */}
+          {selectedTrade.is_agent_trade &&
+            selectedTrade.trading_agent_reasonings?.startsWith(
+              "[Trade Conflict]",
+            ) && (
+              <div className="rounded-lg border-2 border-orange-500/30 bg-orange-500/5 p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <Bot className="w-6 h-6 text-orange-500 mr-2" />
+                  <span className="text-sm font-bold text-orange-500">
+                    AI Agent Reasoning
+                  </span>
+                </div>
+                <p className="text-sm text-foreground">
+                  {selectedTrade.trading_agent_reasonings}
+                </p>
+              </div>
+            )}
+
+          {/* Current Performance - Only for buy trades */}
+          {selectedTrade.trade_type === "buy" && (
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold">Current Performance</h3>
                 <div
                   className={`flex items-center gap-1 text-sm font-medium ${
-                    pnlPercent >= 0 ? 'text-green-500' : 'text-red-500'
+                    pnlPercent >= 0 ? "text-green-500" : "text-red-500"
                   }`}
                 >
                   {pnlPercent >= 0 ? (
@@ -275,7 +530,7 @@ export default function SpeculationAgent({
                   ) : (
                     <TrendingDown className="w-4 h-4" />
                   )}
-                  {pnlPercent >= 0 ? '+' : ''}
+                  {pnlPercent >= 0 ? "+" : ""}
                   {pnlPercent.toFixed(2)}%
                 </div>
               </div>
@@ -294,97 +549,67 @@ export default function SpeculationAgent({
                   </div>
                   <div
                     className={`text-xl font-bold ${
-                      pnlUsd >= 0 ? 'text-green-500' : 'text-red-500'
+                      pnlUsd >= 0 ? "text-green-500" : "text-red-500"
                     }`}
                   >
-                    {pnlUsd >= 0 ? '+' : ''}${pnlUsd.toFixed(2)}
+                    {pnlUsd >= 0 ? "+" : ""}${pnlUsd.toFixed(2)}
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Trigger Reason */}
-          {selectedTrade.trigger_reason && (
-            <div className="bg-muted/50 rounded-lg p-3">
-              <div className="flex items-center justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <MessageSquare className="w-4 h-4 text-primary" />
-                  Trade Trigger
+          {/* Trigger Reason - For manual trades */}
+          {selectedTrade.trigger_reason && !selectedTrade.is_agent_trade && (
+            <div className="bg-muted border rounded-lg p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2 text-sm font-bold">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-bold">Trade Trigger</span>
                 </div>
 
-                {/* NEW: AskAI button */}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className=" text-xs relative
-  backdrop-blur-lg
-  bg-gradient-to-r from-teal-900/20 to-cyan-200/20
-  hover:from-teal-500/30 hover:to-cyan-900/10
-  border border-white/30
-  text-white
-  font-semibold
-  px- py-3
-  rounded-full
-  shadow-[0_8px_32px_0_rgba(20,184,166,0.4)]
-  hover:shadow-[0_8px_32px_0_rgba(20,184,166,0.6)]
-  transition-all duration-300
-  before:absolute before:inset-0
-  before:rounded-full
-  before:bg-gradient-to-r before:from-teal-500/0 before:via-white/20 before:to-teal-500/0
-  before:opacity-0 hover:before:opacity-100
-  before:transition-opacity before:duration-500
-
-}"
-                  onClick={handleAskAIClick}
-                >
+                <Button size="sm" variant="outline" onClick={handleAskAIClick}>
                   <Sparkles className="w-3 h-3 mr-2" />
                   Ask AI
                 </Button>
 
-                {/* Keep AskAI mounted here so it can open as a modal/dialog */}
                 <AskAI
                   open={showAskAI}
                   onOpenChange={(open) => {
-                    setShowAskAI(open);
-                    if (!open) setAskAIData(null);
+                    setShowAskAI(open)
+                    if (!open) setAskAIData(null)
                   }}
                   contextData={askAIData}
                 />
               </div>
 
-              <p className="text-sm text-foreground">
+              <p className="text-sm text-foreground bg-card p-4 rounded-lg">
                 {selectedTrade.trigger_reason}
               </p>
             </div>
           )}
 
-          {selectedTrade.narrative_context && (
-            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <MessageSquare className="w-4 h-4 text-primary" />
-                Narrative Context
-                <span className="ml-auto px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">
-                  {selectedTrade.narrative_context.credibility}/10 credibility
-                </span>
-              </div>
+          {/* Ask AI Button - For agent trades */}
+          {selectedTrade.is_agent_trade && (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handleAskAIClick}
+                className="w-full"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Ask AI about this trade
+              </Button>
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>
-                  {getPlatformIcon(selectedTrade.narrative_context.platform)}
-                </span>
-                <span>
-                  Post by{' '}
-                  <span className="text-primary font-medium">
-                    {selectedTrade.narrative_context.author}
-                  </span>{' '}
-                  on {selectedTrade.narrative_context.platform}
-                </span>
-              </div>
-
-              <p className="text-sm text-foreground leading-relaxed">
-                "{selectedTrade.narrative_context.summary}"
-              </p>
+              <AskAI
+                open={showAskAI}
+                onOpenChange={(open) => {
+                  setShowAskAI(open)
+                  if (!open) setAskAIData(null)
+                }}
+                contextData={askAIData}
+              />
             </div>
           )}
 
@@ -398,16 +623,42 @@ export default function SpeculationAgent({
                   {selectedTrade.order_type}
                 </span>
               </div>
+              {selectedTrade.order_class &&
+                selectedTrade.order_class !== "simple" && (
+                  <div>
+                    <span className="text-muted-foreground">Order Class:</span>
+                    <span className="ml-2 font-medium capitalize">
+                      {selectedTrade.order_class}
+                    </span>
+                  </div>
+                )}
               <div>
                 <span className="text-muted-foreground">Order ID:</span>
-                <span className="ml-2 font-mono text-xs">
-                  {selectedTrade.id.slice(0, 16)}...
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs">
+                    {selectedTrade.id.slice(0, 16)}...
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedTrade.id)
+                      setCopiedOrderId(true)
+                      setTimeout(() => setCopiedOrderId(false), 2000)
+                    }}
+                    className="inline-flex items-center justify-center rounded p-1 hover:bg-muted transition-colors"
+                    title={copiedOrderId ? "Copied!" : "Copy full order ID"}
+                  >
+                    {copiedOrderId ? (
+                      <Check className="h-3.5 w-3.5 text-green-500" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

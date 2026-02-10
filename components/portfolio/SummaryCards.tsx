@@ -39,7 +39,7 @@ export default function SummaryCards({
             })}
           </p>
         </CardContent>
-      </Card>{" "}
+      </Card>
       <Card className="border-border bg-card">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">

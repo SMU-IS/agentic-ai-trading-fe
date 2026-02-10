@@ -256,7 +256,7 @@ export default function LiquidateModal({
             <div className="space-y-1 rounded-lg border border-border bg-muted/50 p-3">
               <p className="text-xs text-muted-foreground">Order Summary</p>
               <p className="text-sm text-foreground">
-                {formData.side.toUpperCase()} {formData.qty} shares of{" "}
+                {formData.side.toUpperCase()} {formData.qty} shares of
                 {formData.symbol} at ${formData.limit_price.toFixed(2)}
               </p>
               <p className="text-xs text-muted-foreground">
