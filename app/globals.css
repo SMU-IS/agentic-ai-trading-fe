@@ -46,7 +46,7 @@
     --background: 210 11% 7%; /* #0f1211 */
     --foreground: 160 14% 93%; /* #e7eceb */
 
-    --muted: 240 2% 16%; /* #27272a */
+    --muted: 168 10% 14%; /* #27272a  240 2% 16%;*/
     --muted-foreground: 160 14% 93% / 0.7;
     --muted-foreground-light: 160 14% 93% / 0.5;
     --muted-foreground-dark: 160 14% 93% / 0.6;

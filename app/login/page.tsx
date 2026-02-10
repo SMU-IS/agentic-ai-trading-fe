@@ -58,7 +58,13 @@ export default function LoginPage() {
         }
 
         await signIn(email, password)
+
+        // Set current time as first login for new users
+        localStorage.setItem("lastLoginTime", new Date().toISOString())
       } else {
+        // RETRIEVE LAST LOGIN TIME BEFORE UPDATING IT
+        const previousLoginTime = localStorage.getItem("lastLoginTime")
+
         const loginRes = await fetch(`${baseUrl}/user/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -107,6 +113,14 @@ export default function LoginPage() {
         })
 
         await signIn(email, password)
+
+        // Only update after successful login
+        if (previousLoginTime) {
+          localStorage.setItem("previousLoginTime", previousLoginTime)
+        }
+
+        // Update current login time
+        localStorage.setItem("lastLoginTime", new Date().toISOString())
       }
 
       // Show loading transition before navigating
@@ -122,7 +136,19 @@ export default function LoginPage() {
     setError("")
     setIsLoading(true)
     try {
+      // Retrieve last login time before updating
+      const previousLoginTime = localStorage.getItem("lastLoginTime")
+
       await signInWithTwitter()
+
+      // Store previous login time
+      if (previousLoginTime) {
+        localStorage.setItem("previousLoginTime", previousLoginTime)
+      }
+
+      // Update current login time
+      localStorage.setItem("lastLoginTime", new Date().toISOString())
+
       setIsLoading(false)
       setShowLoadingTransition(true)
     } catch (err) {

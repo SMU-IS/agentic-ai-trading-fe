@@ -1,6 +1,6 @@
 "use client"
 
-import StockLogo from "@/components/StockLogo" // Add this import at top
+import StockLogo from "@/components/StockLogo" 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { getCompanyName } from "@/lib/tickerMap" // Import the utility
@@ -526,9 +526,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                   <tr className="border-b border-border">
                     <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                       Symbol
-                    </th>{" "}
-                    <th className="text-left text-muted-foreground text-sm font-medium px-6 py-4">
-                      Stock
                     </th>
                     <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
                       Stock
@@ -615,7 +612,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           if (!open) setAskAIData(null) // Clear data when closing
         }}
         contextData={askAIData}
-      />{" "}
+      />
     </>
   )
 }
