@@ -568,7 +568,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                 <div className="bg-gradient-conic-smooth animate-spin-border absolute inset-[-100%]" />
               </div>
 
-              <Card className="relative overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl">
+              <Card className="relative min-h-[30vh] overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl">
                 <div className="flex items-center justify-between border-b border-border px-4 pb-2 pt-3">
                   <div>
                     <p className="text-sm font-medium text-foreground">
@@ -644,7 +644,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="flex items-center gap-2 border-t border-border px-4 pb-3 pt-2">
+                <div className="absolute bottom-4 w-full flex items-center gap-2 border-t border-border px-4 pt-4">
                   <div className="flex flex-1 items-center gap-2">
                     <input
                       className="flex-1 rounded-xl border-border bg-border px-4 py-3 text-sm outline-none transition-all focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"

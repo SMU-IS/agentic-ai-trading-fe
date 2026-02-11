@@ -35,7 +35,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
 
     try {
       const response = await fetch(
-        `https://finnhub.io/api/v1/news?category=${newsCategory}&token=${FINNHUB_API_KEY}`
+        `https://finnhub.io/api/v1/news?category=${newsCategory}&token=${FINNHUB_API_KEY}`,
       )
 
       if (!response.ok) {
@@ -84,30 +84,32 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   ]
 
   return (
-    <Card className="border-border bg-card p-6 h-[450px] overflow-y-auto">
+    <Card className="border-border bg-card/60 p-6 h-[450px] overflow-hidden">
       {/* Header with category filters */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-foreground">Market News</h2>
         </div>
 
-              {/* Category tabs */}
-      <div className="flex items-center overflow-hidden rounded-lg border border-border">
-        {categories.map((cat) => (
-          <Button
-            key={cat.value}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+        {/* Category tabs */}
+        <div className="flex items-center overflow-hidden rounded-lg border border-border">
+          {categories.map((cat) => (
+            <Button
+              key={cat.value}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
                 selectedCategory === cat.value
                   ? "bg-card text-foreground hover:bg-card"
                   : "bg-muted/30 text-muted-foreground hover:text-white hover:bg-muted/30"
               }`}
-            onClick={() => setSelectedCategory(cat.value as typeof selectedCategory)}
-            disabled={loading}
-          >
-            {cat.label}
-          </Button>
-        ))}
-      </div>
+              onClick={() =>
+                setSelectedCategory(cat.value as typeof selectedCategory)
+              }
+              disabled={loading}
+            >
+              {cat.label}
+            </Button>
+          ))}
+        </div>
 
         <Button
           size="icon"
@@ -118,9 +120,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
-        
       </div>
-
 
       {/* Error state */}
       {error && (
@@ -133,7 +133,10 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
       {loading && (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse rounded-lg border border-border bg-muted/30 p-3">
+            <div
+              key={i}
+              className="animate-pulse rounded-lg border border-border bg-muted/30 p-3"
+            >
               <div className="flex gap-3">
                 <div className="h-16 w-24 rounded bg-muted" />
                 <div className="flex-1 space-y-2">
@@ -160,7 +163,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
             news.map((article) => (
               <div
                 key={article.id}
-                className="group cursor-pointer rounded-lg border border-border bg-card p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
+                className="group cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
                 onClick={() => window.open(article.url, "_blank")}
               >
                 <div className="flex gap-3">

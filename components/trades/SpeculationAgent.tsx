@@ -469,7 +469,7 @@ export default function SpeculationAgent({
                             className="rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3"
                           >
                             <div className="mb-2 flex items-center gap-2">
-                              <div className="rounded bg-yellow-500/20 px-2 py-1 text-xs font-bold text-yellow-700">
+                              <div className="rounded bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-foreground">
                                 {adj.field
                                   .split("_")
                                   .map(

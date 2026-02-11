@@ -9,8 +9,8 @@ import PerformanceChart from "./PerformanceChart"
 import StockHistoryModal from "./StockHistoryModal"
 import SummaryCards from "./SummaryCards"
 import { Card, CardHeader, CardContent } from "../ui/card"
-import SpeculationAgent from "../agent/SpeculationAgent"
-import TradingTimeline from "../agent/TradingTimeline"
+import SpeculationAgent from "../trades/SpeculationAgent"
+import TradingTimeline from "../trades/TradingTimeline"
 
 // Add TradeEvent type
 export interface TradeEvent {
@@ -114,7 +114,7 @@ export default function PortfolioTab() {
 
   return (
     <>
-      <div className="mb-8">
+      <div className="mb-4">
         <div className="mb-6 flex items-right justify-end content-end">
           {loading ? (
             <div className="flex animate-pulse items-center gap-2">
@@ -162,19 +162,6 @@ export default function PortfolioTab() {
           <MarketNews category="general" />
         </div>
       </div>
-
-      {/* Updated: Fixed height for both components */}
-      {/* <div className="flex gap-6 mb-8">
-        <div className="w-[55%]">
-          <TradingTimeline
-            selectedTrade={selectedTrade}
-            onSelectTrade={setSelectedTrade}
-          />
-        </div>
-        <div className="flex-1">
-          <SpeculationAgent selectedTrade={selectedTrade} />
-        </div>
-      </div> */}
 
       <div>
         {loading ? (

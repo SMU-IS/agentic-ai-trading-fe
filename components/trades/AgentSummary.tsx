@@ -188,7 +188,7 @@ export default function AgentSummary() {
           setResult("Trading activity loaded")
         } else {
           setResult(
-            `No trades have been made since your last login - ${statsData.lastLogin}`,
+            `No trades have been made since your last login - ${lastLoginTime}`,
           )
         }
       } else {
@@ -219,7 +219,7 @@ export default function AgentSummary() {
     } finally {
       // Ensure minimum 3 second loading time
       const elapsedTime = Date.now() - startTime
-      const minLoadingTime = 10000
+      const minLoadingTime = 7000
       const remainingTime = Math.max(0, minLoadingTime - elapsedTime)
 
       await new Promise((resolve) => setTimeout(resolve, remainingTime))
@@ -264,7 +264,7 @@ export default function AgentSummary() {
     } finally {
       // Ensure minimum 3 second loading time
       const elapsedTime = Date.now() - startTime
-      const minLoadingTime = 10000
+      const minLoadingTime = 7000
       const remainingTime = Math.max(0, minLoadingTime - elapsedTime)
 
       await new Promise((resolve) => setTimeout(resolve, remainingTime))
@@ -302,9 +302,7 @@ export default function AgentSummary() {
     <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <p className="text-md ml-3 font-semibold text-foreground">
-          Trades Screener
-        </p>
+        <p className="text-md font-semibold text-foreground">Trades Screener</p>
       </div>
 
       {/* Input Section */}

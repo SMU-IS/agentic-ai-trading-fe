@@ -24,7 +24,7 @@ export default function SummaryCards({
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
       {/* Total Value Card */}
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card/60 backdrop-blur-sm">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Wallet className="h-4 w-4" />
@@ -40,7 +40,7 @@ export default function SummaryCards({
           </p>
         </CardContent>
       </Card>
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card/60">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Wallet className="h-4 w-4" />
@@ -57,7 +57,7 @@ export default function SummaryCards({
         </CardContent>
       </Card>
       {/* Total Gain/Loss Card */}
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card/60">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Total Gain/Loss
@@ -92,7 +92,7 @@ export default function SummaryCards({
         </CardContent>
       </Card>
       {/* Today's Change Card */}
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card/60">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Today's Change

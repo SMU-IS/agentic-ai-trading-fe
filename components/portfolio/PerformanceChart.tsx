@@ -167,7 +167,7 @@ export default function PerformanceChart() {
   }
 
   return (
-    <Card className="border-border bg-card h-[450px]">
+    <Card className="border-border bg-card/60 h-[450px]">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div>
           <CardTitle className="text-xl font-semibold text-foreground">

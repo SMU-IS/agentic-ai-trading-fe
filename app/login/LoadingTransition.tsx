@@ -99,7 +99,7 @@ export default function LoadingTransition({
               className="relative"
               style={{ perspective: "1000px" }}
             >
-              <h1 className="text-4xl font-semibold whitespace-nowrap">
+              <h1 className="text-4xl text-foreground/40 font-semibold whitespace-nowrap">
                 {loadingStages[currentStage].split("").map((char, index) => (
                   <motion.span
                     key={`${currentStage}-${index}`}
