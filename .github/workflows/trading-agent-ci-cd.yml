@@ -54,7 +54,7 @@ jobs:
 
           sleep 10
 
-          JOB_ID=$(aws amplify list-jobs --app-id "$APP_ID" --branch-name "$BRANCH" --query 'jobSummaries[0].jobId' --output text)
+          JOB_ID=$(aws amplify list-jobs --app-id "$APP_ID" --branch-name "$BRANCH" --query 'jobSummaries[?status==`RUNNING` || status==`PENDING`].jobId' --output text | head -n 1)
           echo "🔎 Monitoring Job ID: $JOB_ID"
 
           while true; do
