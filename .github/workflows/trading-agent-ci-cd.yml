@@ -34,5 +34,5 @@ jobs:
 
       - name: Check Amplify Build Status
         run: |
-          chmod +x ./check_amplify_status.sh
-          ./check_amplify_status.sh
+          chmod +x ./amplify_status.sh
+          ./amplify_status.sh
