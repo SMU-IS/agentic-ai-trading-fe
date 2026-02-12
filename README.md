@@ -84,7 +84,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 │   ├── portfolio/        # Components specific to the portfolio feature
 │   ├── ui/               # Base UI components (from shadcn/ui)
 │   └── ...
-├── lib/                  # Utility functions, data, and type definitions.
+├── lib/                  # Utility functions, data, and type definitions
 ├── public/               # Static assets
 └── ...
 ```
