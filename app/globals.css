@@ -116,3 +116,9 @@
 .animate-shimmer {
   animation: shimmer 2s infinite linear;
 }
+
+.react-flow__attribution {
+  /* width: 1px !important; */
+  font-size: 5px !important;
+  background: none !important;
+}
