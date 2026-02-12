@@ -106,7 +106,7 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 ## 💻 Acknowledgement
 
 Developed by Mvidia (Team 2), IS484 Project Experience <br />
-In Collaboration With UBS.
+In Collaboration With UBS
 
 <a href="https://www.linkedin.com/in/joshydavid/">
   <img src="https://github.com/user-attachments/assets/4dfe0c89-8ced-4e08-bcf3-6261bdbb956d" width="80">

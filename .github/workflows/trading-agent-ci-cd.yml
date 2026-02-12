@@ -32,7 +32,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Check Amplify Build Status
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to Amplify
         run: |
-          chmod +x ./amplify_status.sh
-          ./amplify_status.sh
+          URL="${{ secrets.AMPLIFY_WEBHOOK_URL }}"
+          curl -X POST -d '{}' "$URL" -H "Content-Type: application/json"
