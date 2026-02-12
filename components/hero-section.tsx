@@ -22,13 +22,13 @@ export function HeroSection() {
       </div>
 
       <div className="relative z-10 mb-6 mt-16 max-w-md space-y-4 px-4 text-center md:mb-7 md:mt-[120px] md:max-w-[500px] md:space-y-5 lg:mb-9 lg:mt-[160px] lg:max-w-[588px] lg:space-y-6">
-        <h1 className="text-3xl font-semibold leading-tight text-foreground md:text-4xl lg:text-5xl">
-          Meet Agent M.
+        <h1 className="text-3xl  leading-tight text-foreground md:text-4xl lg:text-5xl">
+          Meet <span className="font-geist font-thin">Agent M.</span>
         </h1>
         <p className="mx-auto max-w-lg text-base font-medium leading-relaxed text-muted-foreground md:text-base lg:text-lg">
-          <b>Agent M</b> crawls through insider news, uses AI to detect real
-          signals from noise, and executes high‑conviction trades so your
-          portfolio is always working.
+          <b className="font-geist font-thin">Agent M</b> crawls through insider
+          news, uses AI to detect real signals from noise, and executes
+          high‑conviction trades so your portfolio is always working for you.
         </p>
       </div>
     </section>

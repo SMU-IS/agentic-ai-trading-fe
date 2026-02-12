@@ -6,9 +6,6 @@ import type React from "react"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
-
 export const metadata: Metadata = {
   title: "Agent M - Stock Portfolio",
   description: "AI-powered stock portfolio management",
@@ -31,7 +28,6 @@ export const metadata: Metadata = {
     apple: "/apple-icon.png",
   },
 }
-
 export default function RootLayout({
   children,
 }: Readonly<{

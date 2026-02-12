@@ -180,7 +180,7 @@ export default function LoginPage() {
             href="/"
             className="my-8 flex items-center justify-center gap-2"
           >
-            <span className="text-2xl font-semibold text-foreground">
+            <span className="font-geist font-thin text-2xl text-foreground">
               Agent M
             </span>
           </Link>

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -36,7 +35,9 @@ export function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-            <span className="text-xl font-semibold text-foreground">
+            <span
+              className={`text-xl font-semibold text-foreground font-geist font-thin`}
+            >
               Agent M
             </span>
           </div>

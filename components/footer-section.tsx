@@ -8,7 +8,7 @@ export function FooterSection() {
       {/* Left Section: Logo, Description, Social Links */}
       <div className="flex flex-col items-start justify-start gap-8 p-4 md:p-8">
         <div className="flex items-stretch justify-center gap-3">
-          <div className="text-center text-xl font-semibold leading-4 text-foreground">
+          <div className="font-geist font-thin text-center text-xl font-semibold leading-4 text-foreground">
             Agent M
           </div>
         </div>
@@ -23,7 +23,6 @@ export function FooterSection() {
           >
             <Github className="h-full w-full text-muted-foreground" />
           </a>
-
         </div>
       </div>
       {/* Right Section: Product, Company, Resources */}

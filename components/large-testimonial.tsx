@@ -22,7 +22,7 @@ export function LargeTestimonial() {
                   style={{ border: "1px solid rgba(0, 0, 0, 0.08)" }}
                 />
                 <div className="flex flex-col items-start justify-start">
-                  <div className="text-base font-medium leading-6 text-foreground">
+                  <div className="font-geist font-thin text-base font-medium leading-6 text-foreground">
                     Agent M
                   </div>
                   <div className="text-sm font-normal leading-6 text-muted-foreground">
