@@ -45,42 +45,9 @@ export default function PortfolioPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="relative flex items-center justify-center">
-          {/* Ripple circles */}
-          {/* {[0, 1, 2].map((index) => (
-            <motion.span
-              key={index}
-              className="absolute h-24 w-24 rounded-full border-4 border-primary"
-              animate={{
-                scale: [0, 2.5],
-                opacity: [1, 0],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                repeatType: "loop",
-                delay: index * 0.6,
-                ease: "easeOut",
-              }}
-            />
-          ))} */}
-
-          {/* Center dot */}
-          {/* <motion.div
-            className="h-4 w-4 rounded-full bg-primary"
-            animate={{
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              repeatType: "loop",
-              ease: "easeInOut",
-            }}
-          /> */}
-
           {/* Text below */}
           <motion.p
-            className="font-geist font-thin absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap text-lg font-medium text-foreground"
+            className="font-geist font-thin absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-lg font-medium text-foreground"
             animate={{
               opacity: [0.5, 1, 0.5],
             }}
