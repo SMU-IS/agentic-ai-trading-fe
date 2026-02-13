@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
@@ -21,7 +21,32 @@ import { motion } from "framer-motion"
 import AgentFlowTab from "@/components/agentflow/AgentFlow"
 import { FaRobot } from "react-icons/fa"
 
-export default function PortfolioPage() {
+// Loading component
+function LoadingScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="relative flex items-center justify-center">
+        <motion.p
+          className="font-geist font-thin absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-lg font-medium text-foreground"
+          animate={{
+            opacity: [0.5, 1, 0.5],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            repeatType: "loop",
+            ease: "easeInOut",
+          }}
+        >
+          Agent M
+        </motion.p>
+      </div>
+    </div>
+  )
+}
+
+// Component that uses useSearchParams
+function PortfolioContent() {
   const { user, isLoading, signOut } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -41,28 +66,7 @@ export default function PortfolioPage() {
     router.push(`?tab=${tab}`, { scroll: false })
   }
 
-  if (isLoading)
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="relative flex items-center justify-center">
-          {/* Text below */}
-          <motion.p
-            className="font-geist font-thin absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-lg font-medium text-foreground"
-            animate={{
-              opacity: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              repeatType: "loop",
-              ease: "easeInOut",
-            }}
-          >
-            Agent M
-          </motion.p>
-        </div>
-      </div>
-    )
+  if (isLoading) return <LoadingScreen />
 
   if (!user) return null
 
@@ -125,6 +129,15 @@ export default function PortfolioPage() {
         {activeTab === "agentflow" && <AgentFlowTab />}
       </main>
     </div>
+  )
+}
+
+// Main export with Suspense wrapper
+export default function PortfolioPage() {
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <PortfolioContent />
+    </Suspense>
   )
 }
 
