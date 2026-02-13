@@ -1,0 +1,73 @@
+name: Trading Agent CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - run: npm i
+      - run: npm run format
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Trigger and Monitor
+        env:
+          APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
+          WEBHOOK_URL: ${{ secrets.AMPLIFY_WEBHOOK_URL }}
+          BRANCH: "main"
+        run: |
+          echo "🚀 Triggering build..."
+          curl -X POST -d '{}' "$WEBHOOK_URL" -H "Content-Type: application/json"
+
+          sleep 10
+
+          JOB_ID=$(aws amplify list-jobs --app-id "$APP_ID" --branch-name "$BRANCH" --query 'jobSummaries[?status==`RUNNING` || status==`PENDING`].jobId' --output text | head -n 1)
+          echo "🔎 Monitoring Job ID: $JOB_ID"
+
+          while true; do
+            STATUS=$(aws amplify get-job --app-id "$APP_ID" --branch-name "$BRANCH" --job-id "$JOB_ID" --query 'job.summary.status' --output text)
+            echo "Current Status: $STATUS"
+
+            if [ "$STATUS" == "SUCCEED" ]; then
+              echo "✅ Build Successful!"
+              break
+            elif [[ "$STATUS" == "FAILED" || "$STATUS" == "CANCELLED" ]]; then
+              echo "❌ Build $STATUS. Check AWS Amplify console for logs."
+              exit 1
+            fi
+
+            sleep 30  # Wait 30 seconds before checking again
+          done
