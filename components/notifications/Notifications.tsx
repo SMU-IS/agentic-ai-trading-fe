@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Bell,
   Settings,
@@ -9,6 +9,8 @@ import {
   TrendingUp,
   TrendingDown,
   AlertCircle,
+  DollarSign,
+  Newspaper,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,74 +20,184 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 
-type NotificationType = "filled" | "cancelled" | "partial_fill"
+// WebSocket notification types from backend
+type WSNotificationType = "NEWS_RECEIVED" | "SIGNAL_GENERATED"
 
-interface Notification {
-  id: string
-  type: NotificationType
-  symbol: string
-  side: "buy" | "sell"
-  quantity: number
-  price: number
-  timestamp: Date
-  isRead: boolean
-  orderId: string
+interface WSNewsNotification {
+  type: "NEWS_RECEIVED"
+  news_id: string
+  headline: string
+  tickers: Array<{
+    symbol: string
+    event_type: string
+    sentiment_label: string
+  }>
+  event_description: string
 }
 
-// Mock notifications data
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    type: "filled",
-    symbol: "AAPL",
-    side: "buy",
-    quantity: 10,
-    price: 182.45,
-    timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-    isRead: false,
-    orderId: "abc123def456",
-  },
-  {
-    id: "2",
-    type: "filled",
-    symbol: "TSLA",
-    side: "sell",
-    quantity: 5,
-    price: 245.32,
-    timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-    isRead: false,
-    orderId: "xyz789ghi012",
-  },
-  {
-    id: "3",
-    type: "cancelled",
-    symbol: "NVDA",
-    side: "buy",
-    quantity: 8,
-    price: 875.6,
-    timestamp: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-    isRead: true,
-    orderId: "mno345pqr678",
-  },
-  {
-    id: "4",
-    type: "filled",
-    symbol: "MSFT",
-    side: "buy",
-    quantity: 15,
-    price: 425.8,
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    isRead: true,
-    orderId: "stu901vwx234",
-  },
-]
+interface WSSignalNotification {
+  type: "SIGNAL_GENERATED"
+  news_id: string
+}
+
+type WSNotification = WSNewsNotification | WSSignalNotification
+
+// UI Notification types
+interface BaseNotification {
+  id: string
+  timestamp: Date
+  isRead: boolean
+}
+
+interface NewsNotification extends BaseNotification {
+  type: "news"
+  headline: string
+  tickers: Array<{
+    symbol: string
+    event_type: string
+    sentiment_label: string
+  }>
+  event_description: string
+}
+
+interface SignalNotification extends BaseNotification {
+  type: "signal"
+  news_id: string
+}
+
+type Notification = NewsNotification | SignalNotification
 
 export default function NotificationsDropdown() {
-  const [notifications, setNotifications] =
-    useState<Notification[]>(MOCK_NOTIFICATIONS)
+  const [notifications, setNotifications] = useState<Notification[]>([])
   const [activeTab, setActiveTab] = useState<"inbox" | "general">("inbox")
+  const [isConnected, setIsConnected] = useState(false)
+  const wsRef = useRef<WebSocket | null>(null)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
 
   const unreadCount = notifications.filter((n) => !n.isRead).length
+
+  // WebSocket connection
+  useEffect(() => {
+    let isComponentMounted = true
+
+    const connectWebSocket = () => {
+      // Don't connect if component is unmounting
+      if (!isComponentMounted) return
+
+      try {
+        const wsUrl = "ws://localhost:5004/ws/notifications"
+        console.log("Attempting to connect to:", wsUrl)
+
+        const ws = new WebSocket(wsUrl)
+        wsRef.current = ws
+
+        ws.onopen = () => {
+          if (!isComponentMounted) {
+            ws.close()
+            return
+          }
+          console.log("✅ Connected to notifications WebSocket")
+          setIsConnected(true)
+        }
+
+        ws.onmessage = (event) => {
+          if (!isComponentMounted) return
+
+          console.log("📨 Received message:", event.data)
+          try {
+            const data: WSNotification = JSON.parse(event.data)
+
+            let newNotification: Notification
+
+            if (data.type === "NEWS_RECEIVED") {
+              newNotification = {
+                id: data.news_id,
+                type: "news",
+                headline: data.headline,
+                tickers: data.tickers,
+                event_description: data.event_description,
+                timestamp: new Date(),
+                isRead: false,
+              }
+            } else {
+              newNotification = {
+                id: `signal-${data.news_id}-${Date.now()}`,
+                type: "signal",
+                news_id: data.news_id,
+                timestamp: new Date(),
+                isRead: false,
+              }
+            }
+
+            setNotifications((prev) => [newNotification, ...prev])
+
+            if (
+              "Notification" in window &&
+              Notification.permission === "granted"
+            ) {
+              new Notification("New Market Update", {
+                body:
+                  data.type === "NEWS_RECEIVED"
+                    ? data.headline
+                    : "Trading signal generated",
+                icon: "/favicon.ico",
+              })
+            }
+          } catch (err) {
+            console.error("❌ Failed to parse WebSocket message:", err)
+          }
+        }
+
+        ws.onerror = (error) => {
+          // Only log error if it's not a connection close during unmount
+          if (isComponentMounted) {
+            console.error("❌ WebSocket error")
+          }
+        }
+
+        ws.onclose = (event) => {
+          if (!isComponentMounted) return
+
+          console.log("🔌 WebSocket closed:", event.code)
+          setIsConnected(false)
+
+          // Only reconnect if:
+          // 1. Component is still mounted
+          // 2. Closure was not intentional (code 1000)
+          // 3. Not a strict mode cleanup (code 1006 during development)
+          if (event.code !== 1000 && isComponentMounted) {
+            console.log("⏳ Attempting to reconnect in 5 seconds...")
+            reconnectTimeoutRef.current = setTimeout(() => {
+              if (isComponentMounted) {
+                connectWebSocket()
+              }
+            }, 5000)
+          }
+        }
+      } catch (err) {
+        console.error("❌ Failed to create WebSocket:", err)
+      }
+    }
+
+    connectWebSocket()
+
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission()
+    }
+
+    return () => {
+      isComponentMounted = false
+
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+      }
+
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        console.log("🛑 Closing WebSocket connection")
+        wsRef.current.close(1000, "Component unmounted")
+      }
+    }
+  }, [])
 
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
@@ -111,35 +223,128 @@ export default function NotificationsDropdown() {
     return `${days} day${days > 1 ? "s" : ""} ago`
   }
 
-  const getNotificationIcon = (notification: Notification) => {
-    if (notification.type === "cancelled") {
-      return <AlertCircle className="h-5 w-5 text-red-500" />
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment.toLowerCase()) {
+      case "positive":
+        return "text-green-600 bg-green-50"
+      case "negative":
+        return "text-red-600 bg-red-50"
+      default:
+        return "text-gray-600 bg-gray-50"
     }
-    return notification.side === "buy" ? (
-      <TrendingUp className="h-5 w-5 text-green-500" />
-    ) : (
-      <TrendingDown className="h-5 w-5 text-red-500" />
-    )
   }
 
-  const getNotificationTitle = (notification: Notification) => {
-    if (notification.type === "cancelled") {
-      return `Order cancelled: ${notification.symbol}`
+  const getEventTypeColor = (eventType: string) => {
+    switch (eventType.toUpperCase()) {
+      case "PRICE_ALERT":
+        return "text-orange-600 bg-orange-50"
+      case "VOLUME_SPIKE":
+        return "text-blue-600 bg-blue-50"
+      default:
+        return "text-purple-600 bg-purple-50"
     }
-    return `Order filled: ${notification.side.toUpperCase()} ${notification.symbol}`
   }
 
-  const getNotificationDescription = (notification: Notification) => {
-    if (notification.type === "cancelled") {
-      return `${notification.quantity} shares at $${notification.price.toFixed(2)}`
-    }
-    return `${notification.quantity} shares filled at $${notification.price.toFixed(2)}`
-  }
+  const renderNewsNotification = (notification: NewsNotification) => (
+    <div
+      key={notification.id}
+      onClick={() => markAsRead(notification.id)}
+      className={cn(
+        "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
+        !notification.isRead && "bg-muted/30",
+      )}
+    >
+      {/* Icon */}
+      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-50">
+        <Newspaper className="h-5 w-5 text-blue-500" />
+      </div>
 
-  const getNotificationBgColor = (notification: Notification) => {
-    if (notification.type === "cancelled") return "bg-red-50"
-    return notification.side === "buy" ? "bg-green-50" : "bg-red-50"
-  }
+      {/* Content */}
+      <div className="flex-1 space-y-2">
+        <p className="text-sm font-semibold text-foreground line-clamp-2">
+          {notification.headline}
+        </p>
+
+        {/* Tickers */}
+        <div className="flex flex-wrap gap-2">
+          {notification.tickers.map((ticker, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <span className="text-xs font-medium text-foreground">
+                {ticker.symbol}
+              </span>
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                  getEventTypeColor(ticker.event_type),
+                )}
+              >
+                {ticker.event_type}
+              </span>
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                  getSentimentColor(ticker.sentiment_label),
+                )}
+              >
+                {ticker.sentiment_label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Event description */}
+        {notification.event_description && (
+          <p className="text-xs text-muted-foreground line-clamp-2">
+            {notification.event_description}
+          </p>
+        )}
+
+        <p className="text-xs text-muted-foreground">
+          {getTimeAgo(notification.timestamp)}
+        </p>
+      </div>
+
+      {/* Unread indicator */}
+      {!notification.isRead && (
+        <div className="flex-shrink-0">
+          <div className="h-2 w-2 rounded-full bg-primary" />
+        </div>
+      )}
+    </div>
+  )
+
+  const renderSignalNotification = (notification: SignalNotification) => (
+    <div
+      key={notification.id}
+      onClick={() => markAsRead(notification.id)}
+      className={cn(
+        "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
+        !notification.isRead && "bg-muted/30",
+      )}
+    >
+      {/* Icon */}
+      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-purple-50">
+        <TrendingUp className="h-5 w-5 text-purple-500" />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 space-y-1">
+        <p className="text-sm font-semibold text-foreground">
+          Trading Signal Generated
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {getTimeAgo(notification.timestamp)} • News ID: {notification.news_id}
+        </p>
+      </div>
+
+      {/* Unread indicator */}
+      {!notification.isRead && (
+        <div className="flex-shrink-0">
+          <div className="h-2 w-2 rounded-full bg-primary" />
+        </div>
+      )}
+    </div>
+  )
 
   return (
     <DropdownMenu>
@@ -154,13 +359,32 @@ export default function NotificationsDropdown() {
               {unreadCount}
             </span>
           )}
+          {/* Connection status indicator */}
+          <span
+            className={cn(
+              "absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-background",
+              isConnected ? "bg-green-500" : "bg-red-500",
+            )}
+          />
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-[480px] p-0">
         {/* Header */}
         <div className="flex items-center justify-between border-b px-4 py-3">
-          <h3 className="text-lg font-semibold">Notifications</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">Notifications</h3>
+            <span
+              className={cn(
+                "text-xs px-2 py-0.5 rounded-full",
+                isConnected
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700",
+              )}
+            >
+              {isConnected ? "Live" : "Offline"}
+            </span>
+          </div>
           <button
             onClick={markAllAsRead}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -216,44 +440,11 @@ export default function NotificationsDropdown() {
           {activeTab === "inbox" ? (
             notifications.length > 0 ? (
               <div className="divide-y">
-                {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    onClick={() => markAsRead(notification.id)}
-                    className={cn(
-                      "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
-                      !notification.isRead && "bg-muted/30",
-                    )}
-                  >
-                    {/* Avatar/Icon */}
-                    <div
-                      className={cn(
-                        "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full",
-                        getNotificationBgColor(notification),
-                      )}
-                    >
-                      {getNotificationIcon(notification)}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-semibold text-foreground">
-                        {getNotificationTitle(notification)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {getTimeAgo(notification.timestamp)} •{" "}
-                        {getNotificationDescription(notification)}
-                      </p>
-                    </div>
-
-                    {/* Unread indicator */}
-                    {!notification.isRead && (
-                      <div className="flex-shrink-0">
-                        <div className="h-2 w-2 rounded-full bg-primary" />
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {notifications.map((notification) =>
+                  notification.type === "news"
+                    ? renderNewsNotification(notification)
+                    : renderSignalNotification(notification),
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -262,7 +453,9 @@ export default function NotificationsDropdown() {
                   All caught up!
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  No new notifications
+                  {isConnected
+                    ? "Listening for new notifications..."
+                    : "Reconnecting..."}
                 </p>
               </div>
             )
