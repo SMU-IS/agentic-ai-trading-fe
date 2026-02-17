@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils"
 // WebSocket notification types from backend
 type WSNotificationType = "NEWS_RECEIVED" | "SIGNAL_GENERATED"
 
+const NOTIF_URL = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}`
+
 interface WSNewsNotification {
   type: "NEWS_RECEIVED"
   news_id: string
@@ -85,7 +87,7 @@ export default function NotificationsDropdown() {
       if (!isComponentMounted) return
 
       try {
-        const wsUrl = "ws://localhost:5004/ws/notifications"
+        const wsUrl = `${NOTIF_URL}/ws/notifications`
         console.log("Attempting to connect to:", wsUrl)
 
         const ws = new WebSocket(wsUrl)
@@ -110,11 +112,20 @@ export default function NotificationsDropdown() {
             let newNotification: Notification
 
             if (data.type === "NEWS_RECEIVED") {
+              // Validate and normalize tickers
+              const tickers = Array.isArray(data.tickers)
+                ? data.tickers
+                : data.tickers
+                  ? [data.tickers] // Convert single object to array
+                  : [] // Default to empty array
+
+              console.log("✅ Parsed tickers:", tickers) // Debug log
+
               newNotification = {
                 id: data.news_id,
                 type: "news",
                 headline: data.headline,
-                tickers: data.tickers,
+                tickers: tickers,
                 event_description: data.event_description,
                 timestamp: new Date(),
                 isRead: false,
@@ -144,7 +155,11 @@ export default function NotificationsDropdown() {
               })
             }
           } catch (err) {
-            console.error("❌ Failed to parse WebSocket message:", err)
+            console.error(
+              "❌ Failed to parse WebSocket message:",
+              err,
+              event.data,
+            )
           }
         }
 
@@ -265,32 +280,36 @@ export default function NotificationsDropdown() {
           {notification.headline}
         </p>
 
-        {/* Tickers */}
-        <div className="flex flex-wrap gap-2">
-          {notification.tickers.map((ticker, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <span className="text-xs font-medium text-foreground">
-                {ticker.symbol}
-              </span>
-              <span
-                className={cn(
-                  "rounded-full px-2 py-0.5 text-[10px] font-medium",
-                  getEventTypeColor(ticker.event_type),
-                )}
-              >
-                {ticker.event_type}
-              </span>
-              <span
-                className={cn(
-                  "rounded-full px-2 py-0.5 text-[10px] font-medium",
-                  getSentimentColor(ticker.sentiment_label),
-                )}
-              >
-                {ticker.sentiment_label}
-              </span>
+        {/* Tickers - Add safety check */}
+        {notification.tickers &&
+          Array.isArray(notification.tickers) &&
+          notification.tickers.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {notification.tickers.map((ticker, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-foreground">
+                    {ticker.symbol}
+                  </span>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                      getEventTypeColor(ticker.event_type),
+                    )}
+                  >
+                    {ticker.event_type}
+                  </span>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                      getSentimentColor(ticker.sentiment_label),
+                    )}
+                  >
+                    {ticker.sentiment_label}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
 
         {/* Event description */}
         {notification.event_description && (

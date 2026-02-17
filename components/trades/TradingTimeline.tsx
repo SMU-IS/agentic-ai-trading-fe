@@ -112,6 +112,7 @@ export default function TradingTimeline({
       id: order.id,
       symbol: order.symbol,
       timestamp,
+      datetime: order.created_at,
       date_label: dateLabel,
       time_label: timeLabel,
       trade_type: order.side as "buy" | "sell",

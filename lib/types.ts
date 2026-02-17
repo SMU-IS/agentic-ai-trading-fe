@@ -34,6 +34,7 @@ export interface TradeEvent {
   symbol: string
   timestamp: string
   date_label: string
+  datetime: string
   time_label: string
   trade_type: "buy" | "sell"
   quantity: number

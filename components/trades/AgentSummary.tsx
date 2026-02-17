@@ -21,8 +21,9 @@ const SAVED_QUERIES: SavedQuery[] = [
   },
   {
     id: "past-7-days",
-    title: "Past 7 days performance",
-    query: "Show me stocks with strong performance in the past 7 days",
+    title: "Trades made by agent in the past 7 days",
+    query:
+      "Show me a summary of agent trades since last login in the past 7 days",
   },
   {
     id: "high-volume",
@@ -153,6 +154,47 @@ export default function AgentSummary() {
     }
   }
 
+  // Handle "past-7-days" logic
+  const processPast7Days = (trades: any[]) => {
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    sevenDaysAgo.setHours(0, 0, 0, 0) // Start of day 7 days ago
+
+    const tradesPast7Days = trades.filter((trade) => {
+      const tradeTime = new Date(trade.created_at)
+      return tradeTime.getTime() > sevenDaysAgo.getTime()
+    })
+
+    if (tradesPast7Days.length === 0) {
+      return {
+        stats: null,
+        trades: [],
+      }
+    }
+
+    const filled = tradesPast7Days.filter((t) => t.status === "filled")
+    const pending = tradesPast7Days.filter((t) =>
+      ["accepted", "pending", "new"].includes(t.status),
+    )
+    const cancelled = tradesPast7Days.filter((t) => t.status === "canceled")
+
+    const totalBuys = tradesPast7Days.filter((t) => t.side === "buy").length
+    const totalSells = tradesPast7Days.filter((t) => t.side === "sell").length
+
+    return {
+      stats: {
+        dateRange: `${sevenDaysAgo.toLocaleDateString()} - ${new Date().toLocaleDateString()}`,
+        totalTrades: tradesPast7Days.length,
+        filled: filled.length,
+        pending: pending.length,
+        cancelled: cancelled.length,
+        totalBuys,
+        totalSells,
+      },
+      trades: tradesPast7Days,
+    }
+  }
+
   // Handle quick query (uses trading orders API)
   const handleQuickQuerySearch = async (queryId: string, query: string) => {
     setCurrentQuery(query)
@@ -162,10 +204,10 @@ export default function AgentSummary() {
     setStatsData(null)
     setCurrentStage(0)
 
-    const startTime = Date.now() // Track start time
+    const startTime = Date.now()
 
     try {
-      if (queryId === "since-last-login") {
+      if (queryId === "since-last-login" || queryId === "past-7-days") {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/orders/all`,
           {
@@ -180,16 +222,23 @@ export default function AgentSummary() {
         }
 
         const trades = await response.json()
-        const { stats, trades: filteredTrades } = processSinceLastLogin(trades)
+
+        // Choose processing function based on query ID
+        const { stats, trades: filteredTrades } =
+          queryId === "since-last-login"
+            ? processSinceLastLogin(trades)
+            : processPast7Days(trades)
 
         if (stats) {
           setStatsData(stats)
           setTradesData(filteredTrades)
           setResult("Trading activity loaded")
         } else {
-          setResult(
-            `No trades have been made since your last login - ${lastLoginTime}`,
-          )
+          const message =
+            queryId === "since-last-login"
+              ? `No trades have been made since your last login at ${lastLoginTime.toLocaleString()}`
+              : "No trades have been made in the past 7 days"
+          setResult(message)
         }
       } else {
         const response = await fetch(
@@ -217,7 +266,6 @@ export default function AgentSummary() {
       console.error("Error processing query:", error)
       setResult("This query is not currently supported by the trades screener.")
     } finally {
-      // Ensure minimum 3 second loading time
       const elapsedTime = Date.now() - startTime
       const minLoadingTime = 7000
       const remainingTime = Math.max(0, minLoadingTime - elapsedTime)
@@ -226,7 +274,6 @@ export default function AgentSummary() {
       setLoading(false)
     }
   }
-
   // Handle custom user input (uses chat API)
   const handleCustomSearch = async (userMessage: string) => {
     setCurrentQuery(userMessage)

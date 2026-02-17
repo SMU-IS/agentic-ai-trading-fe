@@ -73,6 +73,8 @@ export default function SpeculationAgent({
       ((currentPrice - selectedTrade.price) / selectedTrade.price) * 100
 
     return {
+      dataType: "transaction",
+      orderId: selectedTrade.id, // duplicate
       type: selectedTrade.trade_type,
       price: selectedTrade.price,
       filledQty: selectedTrade.quantity,
@@ -83,6 +85,7 @@ export default function SpeculationAgent({
       order_type: selectedTrade.order_type,
       timestamp: selectedTrade.timestamp,
       date_label: selectedTrade.date_label,
+      datetime: selectedTrade.datetime,
       time_label: selectedTrade.time_label,
       current_price: currentPrice,
       pnl: pnlUsd,
