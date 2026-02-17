@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ArrowUp, Square, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { motion, useAnimation } from "framer-motion"
 
 function MarkdownStreamingContent({
   content,
@@ -213,12 +214,14 @@ interface AskAIProps {
   onOpenChange: (open: boolean) => void
   contextData?: any
 }
+
 type ChatMessage = {
   id: string
   role: "user" | "assistant"
   content: string
   isStreaming?: boolean
 }
+
 export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -229,13 +232,45 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const [error, setError] = useState<string | null>(null)
   const hasAutoSentRef = useRef(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const scrollAnimationFrameRef = useRef<number>()
 
   const CHAT_URL = `${process.env.NEXT_PUBLIC_CHAT_API_URL}`
 
+  // Aggressive auto-scroll that works during streaming
+  const scrollToBottom = () => {
+    const scroll = () => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop =
+          scrollContainerRef.current.scrollHeight
+      }
+    }
+
+    // Execute immediately
+    scroll()
+
+    // And also schedule for next frame to catch any rendering delays
+    if (scrollAnimationFrameRef.current) {
+      cancelAnimationFrame(scrollAnimationFrameRef.current)
+    }
+    scrollAnimationFrameRef.current = requestAnimationFrame(scroll)
+  }
+
+  // Trigger scroll on every message update
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    scrollToBottom()
   }, [messages])
+
+  // Additional scroll trigger specifically for streaming content changes
+  useEffect(() => {
+    if (loading) {
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage?.isStreaming) {
+        scrollToBottom()
+      }
+    }
+  }, [messages, loading])
 
   useEffect(() => {
     if (!open) {
@@ -255,16 +290,18 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
     return () => {
       document.body.style.overflow = "unset"
+      if (scrollAnimationFrameRef.current) {
+        cancelAnimationFrame(scrollAnimationFrameRef.current)
+      }
     }
   }, [open])
 
   const streamBackendResponse = async (
     userMessage: string,
-    order_id: string | string[] | undefined, // Add order_id parameter
+    order_id: string | string[] | undefined,
     assistantMessageId: string,
     signal: AbortSignal,
   ) => {
-    // Determine if order_id should be included
     const shouldIncludeOrderId =
       order_id &&
       (typeof order_id === "string" ? order_id.length > 0 : order_id.length > 0)
@@ -348,6 +385,9 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       : msg,
                   ),
                 )
+
+                // Force scroll after each token
+                scrollToBottom()
               }
             } catch (parseError) {
               if (data.trim() && data.trim() !== "[DONE]") {
@@ -366,6 +406,8 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       : msg,
                   ),
                 )
+
+                scrollToBottom()
               }
             }
           }
@@ -395,6 +437,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       : msg,
                   ),
                 )
+                scrollToBottom()
               }
             } catch {
               accumulatedContent += data
@@ -405,6 +448,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                     : msg,
                 ),
               )
+              scrollToBottom()
             }
           }
         }
@@ -443,7 +487,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     try {
       let order_id: string | undefined = undefined
 
-      // Only include order_id when explicitly requested AND it exists
       if (
         includeOrderId &&
         contextData?.dataType === "transaction" &&
@@ -491,7 +534,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }
 
-  // Update the auto-send useEffect to pass includeOrderId flag
   useEffect(() => {
     if (open && contextData && !hasAutoSentRef.current) {
       hasAutoSentRef.current = true
@@ -507,7 +549,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           `- Avg Entry Price: $${contextData.avgPrice.toFixed(2)}\n` +
           `- Total P/L: ${contextData.totalPL >= 0 ? "+" : ""}$${contextData.totalPL.toFixed(2)} (${contextData.changePercent.toFixed(2)}%)\n\n` +
           `Can you analyze this position and provide insights?`
-        shouldIncludeOrderId = false // No order_id for holdings
+        shouldIncludeOrderId = false
       } else if (contextData.dataType === "transaction") {
         const txDate = new Date(contextData.datetime).toLocaleString("en-US", {
           month: "short",
@@ -525,21 +567,21 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           `- Total Value: $${contextData.totalValue.toFixed(2)}\n` +
           `- Trade Reason: ${contextData.reason}\n\n` +
           `Can you analyze this transaction and provide insights?`
-        shouldIncludeOrderId = true // Include order_id for transactions
+        shouldIncludeOrderId = true
       } else {
         contextData = []
       }
 
       if (autoMessage) {
-        handleSendMessage(autoMessage, shouldIncludeOrderId) // Pass the flag
+        handleSendMessage(autoMessage, shouldIncludeOrderId)
       }
     }
   }, [open, contextData])
 
-  // Update handleSend to NOT include order_id for manual messages
   const handleSend = () => {
-    handleSendMessage(undefined, false) // User-typed messages don't include order_id
+    handleSendMessage(undefined, false)
   }
+
   const handleStop = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -568,7 +610,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                 <div className="bg-gradient-conic-smooth animate-spin-border absolute inset-[-100%]" />
               </div>
 
-              <Card className="relative min-h-[30vh] overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl">
+              <Card className="relative min-h-[30vh] max-h-[60vh] overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl">
                 <div className="flex items-center justify-between border-b border-border px-4 pb-2 pt-3">
                   <div>
                     <p className="text-sm font-medium text-foreground">
@@ -590,7 +632,11 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   </button>
                 </div>
 
-                <div className="max-h-96 space-y-2 overflow-y-scroll px-4 py-3 text-sm">
+                <div
+                  ref={scrollContainerRef}
+                  className="max-h-96 space-y-2 overflow-y-auto px-4 py-3 text-sm mb-20"
+                  style={{ scrollBehavior: "auto" }}
+                >
                   {messages.length === 0 && !error && !loading && (
                     <p className="text-xs text-muted-foreground">
                       {contextData
@@ -600,9 +646,12 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   )}
 
                   {messages.map((m) => (
-                    <div
+                    <motion.div
                       key={m.id}
-                      className={`animate-slide-up flex ${m.role === "user" ? "justify-end" : "justify-start"} `}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} `}
                     >
                       <div
                         className={`max-w-[80%] font-medium rounded-xl px-3 py-2 ${
@@ -633,13 +682,17 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                           </span>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
 
                   {error && (
-                    <p className="animate-shake text-xs text-red-400">
+                    <motion.p
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="text-xs text-red-400"
+                    >
                       {error}
-                    </p>
+                    </motion.p>
                   )}
                   <div ref={messagesEndRef} />
                 </div>
@@ -663,7 +716,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       <Button
                         size="icon"
                         variant="destructive"
-                        className="rounded-xl transition-transform hover:scale-110 active:scale-95"
+                        className="rounded-xl transition-transform hover:scale-110 active:scale-95 bg-muted"
                         onClick={handleStop}
                         aria-label="Stop streaming"
                       >
@@ -689,30 +742,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       </div>
 
       <style jsx global>{`
-        @keyframes slide-up {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes shake {
-          0%,
-          100% {
-            transform: translateX(0);
-          }
-          25% {
-            transform: translateX(-4px);
-          }
-          75% {
-            transform: translateX(4px);
-          }
-        }
-
         @keyframes spin-border {
           from {
             transform: rotate(0deg);
@@ -720,14 +749,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           to {
             transform: rotate(360deg);
           }
-        }
-
-        .animate-slide-up {
-          animation: slide-up 0.3s ease-out;
-        }
-
-        .animate-shake {
-          animation: shake 0.4s ease-in-out;
         }
 
         .animate-spin-border {

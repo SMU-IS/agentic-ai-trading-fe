@@ -13,7 +13,7 @@ export function DashboardPreview() {
         </div>
 
         {/* Actual content (on top, covers the center) */}
-        <div className="relative rounded-2xl bg-primary-light/10 p-2 shadow-2xl">
+        <div className="relative rounded-2xl bg-primary-light/10 p-1 shadow-2xl">
           <Image
             src="/images/dashboard-preview.png"
             alt="Dashboard preview"
