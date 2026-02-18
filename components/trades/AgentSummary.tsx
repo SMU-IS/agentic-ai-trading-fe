@@ -22,8 +22,7 @@ const SAVED_QUERIES: SavedQuery[] = [
   {
     id: "past-7-days",
     title: "Trades made by agent in the past 7 days",
-    query:
-      "Show me a summary of agent trades since last login in the past 7 days",
+    query: "Show me a summary of agent trades in the past 7 days",
   },
   {
     id: "high-volume",
@@ -140,6 +139,55 @@ export default function AgentSummary() {
     const totalBuys = tradesSinceLogin.filter((t) => t.side === "buy").length
     const totalSells = tradesSinceLogin.filter((t) => t.side === "sell").length
 
+    // Calculate P/L for filled trades only
+    let totalPL = 0
+    const buyTrades = new Map<string, { qty: number; totalCost: number }>()
+
+    // Process trades in chronological order
+    const sortedTrades = [...tradesSinceLogin].sort(
+      (a, b) =>
+        new Date(a.filled_at || a.created_at).getTime() -
+        new Date(b.filled_at || b.created_at).getTime(),
+    )
+
+    sortedTrades.forEach((trade) => {
+      if (trade.status !== "filled") return
+
+      const qty = parseFloat(trade.filled_qty || trade.qty || "0")
+      const price = parseFloat(
+        trade.filled_avg_price || trade.limit_price || "0",
+      )
+      const symbol = trade.symbol
+
+      if (trade.side === "buy") {
+        // Track buy position
+        const existing = buyTrades.get(symbol) || { qty: 0, totalCost: 0 }
+        buyTrades.set(symbol, {
+          qty: existing.qty + qty,
+          totalCost: existing.totalCost + qty * price,
+        })
+      } else if (trade.side === "sell") {
+        // Calculate P/L on sell
+        const buyPosition = buyTrades.get(symbol)
+        if (buyPosition && buyPosition.qty > 0) {
+          const avgBuyPrice = buyPosition.totalCost / buyPosition.qty
+          const pl = (price - avgBuyPrice) * qty
+          totalPL += pl
+
+          // Update or remove buy position
+          const remainingQty = buyPosition.qty - qty
+          if (remainingQty > 0) {
+            buyTrades.set(symbol, {
+              qty: remainingQty,
+              totalCost: avgBuyPrice * remainingQty,
+            })
+          } else {
+            buyTrades.delete(symbol)
+          }
+        }
+      }
+    })
+
     return {
       stats: {
         lastLogin: lastLoginTime.toLocaleString(),
@@ -149,6 +197,7 @@ export default function AgentSummary() {
         cancelled: cancelled.length,
         totalBuys,
         totalSells,
+        totalPL, // Add P/L to stats
       },
       trades: tradesSinceLogin,
     }
@@ -158,7 +207,7 @@ export default function AgentSummary() {
   const processPast7Days = (trades: any[]) => {
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    sevenDaysAgo.setHours(0, 0, 0, 0) // Start of day 7 days ago
+    sevenDaysAgo.setHours(0, 0, 0, 0)
 
     const tradesPast7Days = trades.filter((trade) => {
       const tradeTime = new Date(trade.created_at)
@@ -181,6 +230,55 @@ export default function AgentSummary() {
     const totalBuys = tradesPast7Days.filter((t) => t.side === "buy").length
     const totalSells = tradesPast7Days.filter((t) => t.side === "sell").length
 
+    // Calculate P/L for filled trades only
+    let totalPL = 0
+    const buyTrades = new Map<string, { qty: number; totalCost: number }>()
+
+    // Process trades in chronological order
+    const sortedTrades = [...tradesPast7Days].sort(
+      (a, b) =>
+        new Date(a.filled_at || a.created_at).getTime() -
+        new Date(b.filled_at || b.created_at).getTime(),
+    )
+
+    sortedTrades.forEach((trade) => {
+      if (trade.status !== "filled") return
+
+      const qty = parseFloat(trade.filled_qty || trade.qty || "0")
+      const price = parseFloat(
+        trade.filled_avg_price || trade.limit_price || "0",
+      )
+      const symbol = trade.symbol
+
+      if (trade.side === "buy") {
+        // Track buy position
+        const existing = buyTrades.get(symbol) || { qty: 0, totalCost: 0 }
+        buyTrades.set(symbol, {
+          qty: existing.qty + qty,
+          totalCost: existing.totalCost + qty * price,
+        })
+      } else if (trade.side === "sell") {
+        // Calculate P/L on sell
+        const buyPosition = buyTrades.get(symbol)
+        if (buyPosition && buyPosition.qty > 0) {
+          const avgBuyPrice = buyPosition.totalCost / buyPosition.qty
+          const pl = (price - avgBuyPrice) * qty
+          totalPL += pl
+
+          // Update or remove buy position
+          const remainingQty = buyPosition.qty - qty
+          if (remainingQty > 0) {
+            buyTrades.set(symbol, {
+              qty: remainingQty,
+              totalCost: avgBuyPrice * remainingQty,
+            })
+          } else {
+            buyTrades.delete(symbol)
+          }
+        }
+      }
+    })
+
     return {
       stats: {
         dateRange: `${sevenDaysAgo.toLocaleDateString()} - ${new Date().toLocaleDateString()}`,
@@ -190,6 +288,7 @@ export default function AgentSummary() {
         cancelled: cancelled.length,
         totalBuys,
         totalSells,
+        totalPL, // Add P/L to stats
       },
       trades: tradesPast7Days,
     }
@@ -482,9 +581,9 @@ export default function AgentSummary() {
                           <div className="space-y-4">
                             {/* Statistics Cards */}
                             {statsData && (
-                              <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
+                              <div className="grid grid-cols-2 gap-2 md:grid-cols-7">
                                 {/* Total Trades */}
-                                <div className="rounded-lg bg-card/95 backdrop-blur-sm border border-border p-3 ">
+                                <div className="rounded-lg bg-card/95 backdrop-blur-sm border border-border p-3">
                                   <div className="mb-1 text-[10px] font-medium text-muted-foreground">
                                     Total Trades
                                   </div>
@@ -494,7 +593,7 @@ export default function AgentSummary() {
                                 </div>
 
                                 {/* Filled */}
-                                <div className="rounded-lg bg-card/95 backdrop-blur-sm border border-border p-3 ">
+                                <div className="rounded-lg bg-card/95 backdrop-blur-sm border border-border p-3">
                                   <div className="mb-1 flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
                                     <span className="text-green-500">✅</span>
                                     Filled
@@ -505,7 +604,7 @@ export default function AgentSummary() {
                                 </div>
 
                                 {/* Pending */}
-                                <div className="rounded-lg bg-card/95 backdrop-blur-sm border border-border p-3 ">
+                                <div className="rounded-lg bg-card/95 backdrop-blur-sm border border-border p-3">
                                   <div className="mb-1 flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
                                     <span className="text-blue-500">⏳</span>
                                     Pending
@@ -516,7 +615,7 @@ export default function AgentSummary() {
                                 </div>
 
                                 {/* Cancelled */}
-                                <div className="rounded-lg bg-card/95 backdrop-blur-sm border border-border p-3 ">
+                                <div className="rounded-lg bg-card/95 backdrop-blur-sm border border-border p-3">
                                   <div className="mb-1 flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
                                     <span className="text-red-500">❌</span>
                                     Cancelled
@@ -527,7 +626,7 @@ export default function AgentSummary() {
                                 </div>
 
                                 {/* Buy Orders */}
-                                <div className="rounded-lg bg-gradient-to-br from-green-500/20 to-green-500/5 backdrop-blur-sm border border-green-500/20 p-3 ">
+                                <div className="rounded-lg bg-gradient-to-br from-green-500/20 to-green-500/5 backdrop-blur-sm border border-green-500/20 p-3">
                                   <div className="mb-1 flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
                                     <TrendingUp className="h-3 w-3 text-green-500" />
                                     Buys
@@ -538,13 +637,37 @@ export default function AgentSummary() {
                                 </div>
 
                                 {/* Sell Orders */}
-                                <div className="rounded-lg bg-gradient-to-br from-red-500/20 to-red-500/5 backdrop-blur-sm border border-red-500/20 p-3 ">
+                                <div className="rounded-lg bg-gradient-to-br from-red-500/20 to-red-500/5 backdrop-blur-sm border border-red-500/20 p-3">
                                   <div className="mb-1 flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
                                     <TrendingDown className="h-3 w-3 text-red-500" />
                                     Sells
                                   </div>
                                   <div className="text-xl font-bold text-red-500">
                                     {statsData.totalSells}
+                                  </div>
+                                </div>
+
+                                {/* P/L - NEW CARD */}
+                                <div
+                                  className={`rounded-lg backdrop-blur-sm border p-3 ${
+                                    statsData.totalPL >= 0
+                                      ? "bg-gradient-to-br from-green-500/20 to-green-500/5 border-green-500/20"
+                                      : "bg-gradient-to-br from-red-500/20 to-red-500/5 border-red-500/20"
+                                  }`}
+                                >
+                                  <div className="mb-1 flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
+                                    {statsData.totalPL >= 0 ? "💰" : "📉"}
+                                    P/L
+                                  </div>
+                                  <div
+                                    className={`text-xl font-bold ${
+                                      statsData.totalPL >= 0
+                                        ? "text-green-500"
+                                        : "text-red-500"
+                                    }`}
+                                  >
+                                    {statsData.totalPL >= 0 ? "+" : ""}$
+                                    {statsData.totalPL.toFixed(2)}
                                   </div>
                                 </div>
                               </div>
@@ -558,7 +681,9 @@ export default function AgentSummary() {
                                 </h3>
                                 {statsData && (
                                   <p className="text-xs text-muted-foreground">
-                                    Last Login: {statsData.lastLogin}
+                                    {statsData.lastLogin
+                                      ? `Last Login: ${statsData.lastLogin}`
+                                      : `Period: ${statsData.dateRange}`}
                                   </p>
                                 )}
                               </div>
