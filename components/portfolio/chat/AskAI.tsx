@@ -610,8 +610,9 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                 <div className="bg-gradient-conic-smooth animate-spin-border absolute inset-[-100%]" />
               </div>
 
-              <Card className="relative min-h-[30vh] max-h-[60vh] overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl">
-                <div className="flex items-center justify-between border-b border-border px-4 pb-2 pt-3">
+              <Card className="relative flex flex-col min-h-[30vh] max-h-[60vh] overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl">
+                {/* Header - fixed */}
+                <div className="flex items-center justify-between border-b border-border px-4 pb-2 pt-3 flex-shrink-0">
                   <div>
                     <p className="text-sm font-medium text-foreground">
                       Ask Agent M.
@@ -632,9 +633,10 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   </button>
                 </div>
 
+                {/* Messages - scrollable, fills remaining space */}
                 <div
                   ref={scrollContainerRef}
-                  className="max-h-96 space-y-2 overflow-y-auto px-4 py-3 text-sm mb-20"
+                  className="flex-1 overflow-y-auto space-y-2 px-4 py-3 text-sm" // ✅ Removed mb-20, max-h-96
                   style={{ scrollBehavior: "auto" }}
                 >
                   {messages.length === 0 && !error && !loading && (
@@ -651,7 +653,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
-                      className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} `}
+                      className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
                         className={`max-w-[80%] font-medium rounded-xl px-3 py-2 ${
@@ -664,9 +666,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                         m.isStreaming &&
                         !m.content ? (
                           <div className="flex flex-row items-center justify-start gap-2">
-                            <span
-                              className={`h-2 w-2 animate-pulse rounded-full bg-teal-300`}
-                            />
+                            <span className="h-2 w-2 animate-pulse rounded-full bg-teal-300" />
                             <span className="animate-pulse text-muted-foreground">
                               Thinking...
                             </span>
@@ -697,7 +697,10 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="absolute bottom-4 w-full flex items-center gap-2 border-t border-border px-4 pt-4">
+                {/* Input - fixed at bottom, never overlaps */}
+                <div className="flex-shrink-0 flex items-center gap-2 border-t border-border px-4 py-3">
+                  {" "}
+                  {/* ✅ Removed absolute positioning */}
                   <div className="flex flex-1 items-center gap-2">
                     <input
                       className="flex-1 rounded-xl border-border bg-border px-4 py-3 text-sm outline-none transition-all focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
