@@ -54,7 +54,6 @@ export default function TradingTimeline({
 
     if (qty === 0) return null
 
-    // ✅ Updated status mapping logic
     let status: "filled" | "partial" | "pending" | "cancelled" | "expired" =
       "pending"
 
@@ -131,6 +130,11 @@ export default function TradingTimeline({
       risk_adjustments_made: order.risk_adjustments_made,
 
       legs: legs ?? (Array.isArray(order.legs) ? order.legs : undefined),
+
+      // ── Signal data — null if not present ────────────────────────────────
+      signal_data: order.signal_data ?? null,
+
+      closed_position: order.closed_position ?? null,
     }
   }
 
@@ -241,9 +245,8 @@ export default function TradingTimeline({
             {/* Filter Dropdown */}
             <div className="relative">
               <Button
-                variant="outline"
                 size="sm"
-                className="h-8 text-xs"
+                className="h-8 text-xs rounded-lg border border-foreground/30 bg-muted text-foreground hover:bg-muted/20"
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter className="mr-2 h-3 w-3" />
@@ -393,7 +396,7 @@ export default function TradingTimeline({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 text-xs"
+                  className="h-8 text-xs rounded-lg border border-foreground/30 bg-muted text-foreground hover:bg-muted/20"
                   onClick={() => setShowStats(!showStats)}
                 >
                   <Info className="mr-2 h-3 w-3" />
@@ -556,7 +559,7 @@ export default function TradingTimeline({
                                     name={trade.symbol}
                                     size="sm"
                                   />
-                                  <p className="text-sm">{trade.symbol}</p>
+                                  <p className="text-xs">{trade.symbol}</p>
                                 </div>
                               </div>
 
@@ -652,7 +655,6 @@ export default function TradingTimeline({
         </CardContent>
       </Card>
 
-      {/* Click outside to close dropdowns */}
       {(showFilters || showStats) && (
         <div
           className="fixed inset-0 z-40"

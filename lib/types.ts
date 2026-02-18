@@ -45,6 +45,28 @@ export interface TradeEvent {
   status: "filled" | "partial" | "pending" | "cancelled" | "expired"
   trigger_reason?: string
   is_agent_trade: boolean
+  signal_data?: {
+    _id?: string
+    ticker?: string
+    rumor_summary: string
+    credibility: string
+    credibility_reason: string
+    references: string[]
+    trade_signal: string
+    confidence: number
+    trade_rationale: string
+    position_size_pct: number
+    stop_loss_pct: number
+    target_pct: number
+  } | null
+
+  closed_position?: {
+    qty: number
+    side: string
+    market_value: number
+    avg_entry_price: number
+    pnl: number
+  } | null
 
   // Agent-specific fields
   trading_agent_reasonings?: string
