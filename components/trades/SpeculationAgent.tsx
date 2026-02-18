@@ -284,7 +284,7 @@ export default function SpeculationAgent({
             </div>
           </div>
 
-          {/* TPSL Legs - Show for ANY bracket order regardless of agent/manual */}
+          {/* TPSL Legs - Show for ANY bracket order regardless of agent/manual, with P/L calculation */}
           {selectedTrade.order_class === "bracket" &&
             selectedTrade.legs &&
             selectedTrade.legs.length > 0 && (
@@ -295,40 +295,154 @@ export default function SpeculationAgent({
                     Take Profit / Stop Loss
                   </span>
                 </div>
-                <div className="space-y-2">
-                  {selectedTrade.legs.map((leg: any, idx: number) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between rounded-lg bg-background p-3"
-                    >
-                      <div>
-                        <div className="text-xs text-muted-foreground">
-                          {leg.order_type === "limit" || leg.type === "limit"
-                            ? "Take Profit"
-                            : "Stop Loss"}
+
+                {/* Calculate overall P/L for filled legs */}
+                {(() => {
+                  let legPL = 0
+                  const filledLegs = selectedTrade.legs.filter(
+                    (leg: any) => leg.status === "filled",
+                  )
+
+                  if (filledLegs.length > 0) {
+                    filledLegs.forEach((leg: any) => {
+                      const legQty = parseFloat(
+                        leg.filled_qty || leg.quantity || "0",
+                      )
+                      const legPrice = parseFloat(
+                        leg.filled_avg_price ||
+                          leg.limit_price ||
+                          leg.stop_price ||
+                          "0",
+                      )
+                      // For TP (limit): profit = (legPrice - entry) * qty
+                      // For SL (stop): loss = (entry - legPrice) * qty
+                      const isTakeProfit =
+                        leg.order_type === "limit" || leg.type === "limit"
+                      const pl = isTakeProfit
+                        ? (legPrice - selectedTrade.price) * legQty
+                        : (selectedTrade.price - legPrice) * legQty * -1
+                      legPL += pl
+                    })
+                  }
+
+                  return (
+                    <>
+                      {/* P/L Summary if any leg filled */}
+                      {filledLegs.length > 0 && (
+                        <div className="mb-4 p-3 rounded-lg bg-card border flex items-center justify-between">
+                          <div>
+                            <div className="text-sm font-semibold text-foreground">
+                              Leg P/L ({filledLegs.length}/
+                              {selectedTrade.legs.length} filled)
+                            </div>
+                            <div className="text-2xl font-bold">
+                              <span
+                                className={
+                                  legPL >= 0 ? "text-green-500" : "text-red-500"
+                                }
+                              >
+                                {legPL >= 0 ? "+" : ""}${legPL.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                          <div
+                            className={`px-3 py-1 rounded-full text-xs font-bold ${
+                              legPL >= 0
+                                ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                                : "bg-red-500/10 text-red-500 border border-red-500/20"
+                            }`}
+                          >
+                            {legPL >= 0 ? "PROFIT" : "LOSS"}
+                          </div>
                         </div>
-                        <div className="text-sm font-bold">
-                          {leg.order_type === "limit" || leg.type === "limit"
-                            ? `Limit: $${parseFloat(leg.limit_price).toFixed(2)}`
-                            : `Stop: $${parseFloat(leg.stop_price).toFixed(2)}`}
-                        </div>
+                      )}
+
+                      {/* Individual Legs */}
+                      <div className="space-y-2">
+                        {selectedTrade.legs.map((leg: any, idx: number) => {
+                          const legQty = parseFloat(
+                            leg.filled_qty || leg.quantity || "0",
+                          )
+                          const legPrice = parseFloat(
+                            leg.filled_avg_price ||
+                              leg.limit_price ||
+                              leg.stop_price ||
+                              "0",
+                          )
+                          const isFilled = leg.status === "filled"
+                          const isTakeProfit =
+                            leg.order_type === "limit" || leg.type === "limit"
+
+                          // Calculate individual leg P/L
+                          const legPL = isFilled
+                            ? isTakeProfit
+                              ? (legPrice - selectedTrade.price) * legQty
+                              : (selectedTrade.price - legPrice) * legQty * -1
+                            : 0
+
+                          return (
+                            <div
+                              key={idx}
+                              className={`flex items-center justify-between rounded-lg p-3 border transition-all ${
+                                isFilled
+                                  ? legPL >= 0
+                                    ? "bg-green-500/10 border-green-500/20"
+                                    : "bg-red-500/10 border-red-500/20"
+                                  : "bg-background border-border"
+                              }`}
+                            >
+                              <div>
+                                <div className="text-xs text-muted-foreground">
+                                  {isTakeProfit ? "Take Profit" : "Stop Loss"}
+                                </div>
+                                <div className="text-sm font-bold">
+                                  {isTakeProfit
+                                    ? `Limit: $${legPrice.toFixed(2)}`
+                                    : `Stop: $${legPrice.toFixed(2)}`}
+                                </div>
+                                {isFilled && (
+                                  <div className="text-xs mt-1">
+                                    <span
+                                      className={`font-bold px-2 py-0.5 rounded-full ${
+                                        legPL >= 0
+                                          ? "bg-green-500/20 text-green-500"
+                                          : "bg-red-500/20 text-red-500"
+                                      }`}
+                                    >
+                                      {legPL >= 0 ? "+" : ""}${legPL.toFixed(2)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <div
+                                  className={`rounded px-2 py-1 text-xs font-medium ${
+                                    isFilled
+                                      ? legPL >= 0
+                                        ? "bg-green-500/10 text-green-500"
+                                        : "bg-red-500/10 text-red-500"
+                                      : leg.status === "cancelled"
+                                        ? "bg-red-500/10 text-red-500"
+                                        : leg.status === "expired"
+                                          ? "bg-orange-500/10 text-orange-500"
+                                          : "bg-blue-500/10 text-blue-500"
+                                  }`}
+                                >
+                                  {leg.status}
+                                </div>
+                                {isFilled && (
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {legQty} shares
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
-                      <div
-                        className={`rounded px-2 py-1 text-xs font-medium ${
-                          leg.status === "filled"
-                            ? "bg-green-500/10 text-green-500"
-                            : leg.status === "cancelled"
-                              ? "bg-red-500/10 text-red-500"
-                              : leg.status === "expired"
-                                ? "bg-orange-500/10 text-orange-500"
-                                : "bg-blue-500/10 text-blue-500"
-                        }`}
-                      >
-                        {leg.status}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    </>
+                  )
+                })()}
               </div>
             )}
 

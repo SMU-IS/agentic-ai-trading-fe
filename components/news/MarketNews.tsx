@@ -18,7 +18,7 @@ interface NewsArticle {
 }
 
 interface MarketNewsProps {
-  category?: "general" | "forex" | "crypto" | "merger"
+  category?: "general" | "forex" | "crypto" | "merger" | "agent"
 }
 
 export default function MarketNews({ category = "general" }: MarketNewsProps) {
@@ -81,6 +81,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const categories = [
     { value: "general", label: "General" },
     { value: "crypto", label: "Crypto" },
+    { value: "agent", label: "Agent" },
   ]
 
   return (
@@ -99,7 +100,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 selectedCategory === cat.value
                   ? "bg-card text-foreground hover:bg-card"
-                  : "bg-muted/30 text-muted-foreground hover:text-white hover:bg-muted/30"
+                  : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/30"
               }`}
               onClick={() =>
                 setSelectedCategory(cat.value as typeof selectedCategory)
@@ -167,20 +168,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                 onClick={() => window.open(article.url, "_blank")}
               >
                 <div className="flex gap-3">
-                  {/* Thumbnail */}
-                  {/* {article.image && (
-                    <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded">
-                      <img
-                        src={article.image}
-                        alt={article.headline}
-                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none"
-                        }}
-                      />
-                    </div>
-                  )} */}
-
                   {/* Content */}
                   <div className="flex min-w-0 flex-1 flex-col">
                     <div className="flex items-start justify-between gap-2">

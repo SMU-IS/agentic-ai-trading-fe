@@ -71,12 +71,25 @@ type Notification = NewsNotification | SignalNotification
 
 export default function NotificationsDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [activeTab, setActiveTab] = useState<"inbox" | "general">("inbox")
+  const [activeTab, setActiveTab] = useState<"news" | "signals">("news") // Changed from "inbox" | "general"
   const [isConnected, setIsConnected] = useState(false)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
 
   const unreadCount = notifications.filter((n) => !n.isRead).length
+
+  // Filter notifications based on active tab
+  const filteredNotifications = notifications.filter((n) =>
+    activeTab === "news" ? n.type === "news" : n.type === "signal",
+  )
+
+  // Count unread by type
+  const unreadNewsCount = notifications.filter(
+    (n) => !n.isRead && n.type === "news",
+  ).length
+  const unreadSignalsCount = notifications.filter(
+    (n) => !n.isRead && n.type === "signal",
+  ).length
 
   // WebSocket connection
   useEffect(() => {
@@ -214,6 +227,31 @@ export default function NotificationsDropdown() {
     }
   }, [])
 
+  // Load notifications from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("mvdia_notifications")
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        setNotifications(
+          parsed.map((n: any) => ({
+            ...n,
+            timestamp: new Date(n.timestamp),
+          })),
+        )
+      } catch (err) {
+        console.error("Failed to restore notifications:", err)
+      }
+    }
+  }, [])
+
+  // Save to localStorage whenever notifications change
+  useEffect(() => {
+    if (notifications.length > 0) {
+      localStorage.setItem("mvdia_notifications", JSON.stringify(notifications))
+    }
+  }, [notifications])
+
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
   }
@@ -238,18 +276,9 @@ export default function NotificationsDropdown() {
     return `${days} day${days > 1 ? "s" : ""} ago`
   }
 
-  const getSentimentColor = (sentiment: string) => {
-    switch (sentiment.toLowerCase()) {
-      case "positive":
-        return "text-green-600 bg-green-50"
-      case "negative":
-        return "text-red-600 bg-red-50"
-      default:
-        return "text-gray-600 bg-gray-50"
-    }
-  }
-
   const getEventTypeColor = (eventType: string) => {
+    if (!eventType) return "text-purple-600 bg-purple-50" // Default fallback
+
     switch (eventType.toUpperCase()) {
       case "PRICE_ALERT":
         return "text-orange-600 bg-orange-50"
@@ -257,6 +286,19 @@ export default function NotificationsDropdown() {
         return "text-blue-600 bg-blue-50"
       default:
         return "text-purple-600 bg-purple-50"
+    }
+  }
+
+  const getSentimentColor = (sentiment: string) => {
+    if (!sentiment) return "text-gray-600 bg-gray-50" // Default fallback
+
+    switch (sentiment.toLowerCase()) {
+      case "positive":
+        return "text-green-600 bg-green-50"
+      case "negative":
+        return "text-red-600 bg-red-50"
+      default:
+        return "text-gray-600 bg-gray-50"
     }
   }
 
@@ -280,7 +322,7 @@ export default function NotificationsDropdown() {
           {notification.headline}
         </p>
 
-        {/* Tickers - Add safety check */}
+        {/* Tickers - Add null checks */}
         {notification.tickers &&
           Array.isArray(notification.tickers) &&
           notification.tickers.length > 0 && (
@@ -288,24 +330,28 @@ export default function NotificationsDropdown() {
               {notification.tickers.map((ticker, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <span className="text-xs font-medium text-foreground">
-                    {ticker.symbol}
+                    {ticker.symbol || "N/A"}
                   </span>
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
-                      getEventTypeColor(ticker.event_type),
-                    )}
-                  >
-                    {ticker.event_type}
-                  </span>
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
-                      getSentimentColor(ticker.sentiment_label),
-                    )}
-                  >
-                    {ticker.sentiment_label}
-                  </span>
+                  {ticker.event_type && (
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                        getEventTypeColor(ticker.event_type),
+                      )}
+                    >
+                      {ticker.event_type}
+                    </span>
+                  )}
+                  {ticker.sentiment_label && (
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                        getSentimentColor(ticker.sentiment_label),
+                      )}
+                    >
+                      {ticker.sentiment_label}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -415,36 +461,41 @@ export default function NotificationsDropdown() {
         {/* Tabs */}
         <div className="flex items-center gap-4 border-b px-4">
           <button
-            onClick={() => setActiveTab("inbox")}
+            onClick={() => setActiveTab("news")}
             className={cn(
               "relative pb-3 pt-3 text-sm font-medium transition-colors",
-              activeTab === "inbox"
+              activeTab === "news"
                 ? "text-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            Inbox
-            {unreadCount > 0 && (
+            News
+            {unreadNewsCount > 0 && (
               <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                {unreadCount}
+                {unreadNewsCount}
               </span>
             )}
-            {activeTab === "inbox" && (
+            {activeTab === "news" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
             )}
           </button>
 
           <button
-            onClick={() => setActiveTab("general")}
+            onClick={() => setActiveTab("signals")}
             className={cn(
               "relative pb-3 pt-3 text-sm font-medium transition-colors",
-              activeTab === "general"
+              activeTab === "signals"
                 ? "text-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            General
-            {activeTab === "general" && (
+            Trade Signals
+            {unreadSignalsCount > 0 && (
+              <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                {unreadSignalsCount}
+              </span>
+            )}
+            {activeTab === "signals" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
             )}
           </button>
@@ -456,35 +507,41 @@ export default function NotificationsDropdown() {
 
         {/* Notifications List */}
         <div className="max-h-[500px] overflow-y-auto">
-          {activeTab === "inbox" ? (
-            notifications.length > 0 ? (
-              <div className="divide-y">
-                {notifications.map((notification) =>
-                  notification.type === "news"
-                    ? renderNewsNotification(notification)
-                    : renderSignalNotification(notification),
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <CheckCheck className="mb-3 h-12 w-12 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">
-                  All caught up!
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {isConnected
-                    ? "Listening for new notifications..."
-                    : "Reconnecting..."}
-                </p>
-              </div>
-            )
+          {filteredNotifications.length > 0 ? (
+            <div className="divide-y">
+              {filteredNotifications.map((notification) =>
+                notification.type === "news"
+                  ? renderNewsNotification(notification)
+                  : renderSignalNotification(notification),
+              )}
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Bell className="mb-3 h-12 w-12 text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">
-                No general notifications
-              </p>
-              <p className="text-xs text-muted-foreground">Check back later</p>
+              {activeTab === "news" ? (
+                <>
+                  <Newspaper className="mb-3 h-12 w-12 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground">
+                    No news notifications
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {isConnected
+                      ? "Listening for new updates..."
+                      : "Reconnecting..."}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <TrendingUp className="mb-3 h-12 w-12 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground">
+                    No trade signals
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {isConnected
+                      ? "Listening for new signals..."
+                      : "Reconnecting..."}
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>
