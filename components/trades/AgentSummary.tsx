@@ -24,16 +24,16 @@ const SAVED_QUERIES: SavedQuery[] = [
     title: "Trades made by agent in the past 7 days",
     query: "Show me a summary of agent trades in the past 7 days",
   },
-  {
-    id: "high-volume",
-    title: "High volume today",
-    query: "Find stocks with unusually high trading volume today",
-  },
-  {
-    id: "tech-growth",
-    title: "Tech growth potential",
-    query: "Analyze technology stocks showing growth indicators",
-  },
+  // {
+  //   id: "high-volume",
+  //   title: "High volume today",
+  //   query: "Find stocks with unusually high trading volume today",
+  // },
+  // {
+  //   id: "tech-growth",
+  //   title: "Tech growth potential",
+  //   query: "Analyze technology stocks showing growth indicators",
+  // },
 ]
 
 const PLACEHOLDERS = [

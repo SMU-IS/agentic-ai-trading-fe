@@ -200,23 +200,23 @@ export default function TradingTimeline({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "filled":
-        return "text-green-500 bg-green-500/10 border-green-500/20"
+        return "text-green-600 bg-muted/10 border-none"
       case "partial":
-        return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20"
+        return "text-yellow-500 bg-muted/10 border-none "
       case "pending":
-        return "text-yellow-700 bg-yellow-500/10 border-yellow-500/20"
+        return "text-yellow-700 bg-muted/10 border-none "
       case "cancelled":
       case "expired":
-        return "text-red-500 bg-red-500/10 border-red-500/20"
+        return "text-red-500 bg-muted/10  border-none"
       default:
-        return "text-gray-500 bg-gray-500/10 border-gray-500/20"
+        return "text-gray-500 bg-muted/10 border-none"
     }
   }
 
   const getRiskStatusColor = (status: string) => {
     switch (status) {
       case "APPROVED":
-        return "text-green-500 bg-green-500/10"
+        return "text-green-600 bg-green-500/10"
       case "WARNING":
         return "text-yellow-500 bg-yellow-500/10"
       case "REJECTED":
@@ -461,7 +461,7 @@ export default function TradingTimeline({
                           <TrendingUp className="h-3 w-3" />
                           <span className="text-xs">Buy Orders</span>
                         </div>
-                        <div className="text-xl font-bold text-green-500">
+                        <div className="text-xl font-bold text-green-600">
                           {
                             filteredTrades.filter((t) => t.trade_type === "buy")
                               .length
@@ -549,33 +549,22 @@ export default function TradingTimeline({
                               </div>
 
                               {/* Stock/Symbol Name */}
-                              <div className="flex flex-row items-center gap-2 flex-1 text-sm font-semibold">
-                                <StockLogo
-                                  symbol={trade.symbol}
-                                  name={trade.symbol}
-                                  size="sm"
-                                />
-                                <p className="text-sm">{trade.symbol}</p>
+                              <div className="bg-muted/50 border p-2 flex flex-row gap-2 rounded-xl">
+                                <div className="flex flex-row items-center gap-2 flex-1 text-sm font-semibold">
+                                  <StockLogo
+                                    symbol={trade.symbol}
+                                    name={trade.symbol}
+                                    size="sm"
+                                  />
+                                  <p className="text-sm">{trade.symbol}</p>
+                                </div>
                               </div>
 
-                              {/* Agent/Manual Badge */}
-                              {trade.is_agent_trade ? (
-                                <div className="flex items-center gap-1 rounded border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                                  <Bot className="h-3 w-3" />
-                                  Agent
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-1 rounded border border-muted bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                                  <User className="h-3 w-3" />
-                                  Manual
-                                </div>
-                              )}
-
-                              <div className="bg-muted/50 border p-3 flex flex-row gap-2 rounded-xl">
+                              <div className="bg-muted/50 border p-2 flex flex-row gap-2 rounded-xl">
                                 <div
                                   className={`flex-1 rounded border px-2 py-1 text-xs font-medium ${
                                     trade.trade_type === "buy"
-                                      ? "border-green-500/20 bg-green-500/10 text-green-500"
+                                      ? "border-green-500/20 bg-green-500/10 text-green-600"
                                       : "border-red-500/20 bg-red-500/10 text-red-500"
                                   }`}
                                 >
@@ -600,12 +589,28 @@ export default function TradingTimeline({
                             </div>
                           </div>
 
-                          {trade.trigger_reason && (
-                            <div className="mb-2 text-xs text-muted-foreground">
-                              <span className="font-medium">Trigger:</span>{" "}
-                              {trade.trigger_reason}
-                            </div>
-                          )}
+                          <div className="flex items-center justify-between">
+                            {/* Left side — Trigger reason */}
+                            {trade.trigger_reason && (
+                              <div className="text-xs text-muted-foreground">
+                                <span className="font-medium">Trigger:</span>{" "}
+                                {trade.trigger_reason}
+                              </div>
+                            )}
+
+                            {/* Right side — Agent/Manual Badge */}
+                            {trade.is_agent_trade ? (
+                              <div className="flex items-center gap-1 rounded border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                <Bot className="h-3 w-3" />
+                                Agent
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 rounded border border-muted bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                                <User className="h-3 w-3" />
+                                Manual
+                              </div>
+                            )}
+                          </div>
 
                           {/* Agent Reasoning Section */}
                           {trade.is_agent_trade &&

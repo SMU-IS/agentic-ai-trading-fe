@@ -26,8 +26,14 @@ import {
   AccordionContent,
 } from "../ui/accordion"
 
+interface HoldingInfo {
+  avg_entry_price: number
+  quantity: number
+}
+
 interface SpeculationAgentProps {
   selectedTrade: TradeEvent | null
+  holdings: Record<string, HoldingInfo> // e.g. { AAPL: { avg_entry_price: 150, quantity: 7 } }
 }
 
 const generateDots = () => {
@@ -52,6 +58,7 @@ const generateDots = () => {
 
 export default function SpeculationAgent({
   selectedTrade,
+  holdings,
 }: SpeculationAgentProps) {
   const [dots] = useState(() => generateDots())
   const [showAskAI, setShowAskAI] = useState(false)
@@ -63,18 +70,89 @@ export default function SpeculationAgent({
     setAskAIData(null)
   }, [selectedTrade?.id])
 
+  // ─── Single source of truth for P&L ───────────────────────────────────────
+  const pnlData = useMemo(() => {
+    if (!selectedTrade) return null
+
+    const isFilled = selectedTrade.status === "filled"
+    const hasBracketLegs =
+      selectedTrade.order_class === "bracket" &&
+      selectedTrade.legs &&
+      selectedTrade.legs.length > 0
+
+    // Detect conflict close trades — these are closures regardless of trade_type
+    const isConflict =
+      selectedTrade.is_agent_trade &&
+      selectedTrade.trading_agent_reasonings?.startsWith("[Trade Conflict]")
+
+    const isConflictClose =
+      isConflict &&
+      selectedTrade.trading_agent_reasonings?.toLowerCase().includes("closed")
+
+    // Treat conflict close as a SELL regardless of trade_type field
+    const isSell = selectedTrade.trade_type === "sell" || isConflictClose
+    const isBuy = !isSell
+
+    if (!isFilled) {
+      return { type: "unfilled" as const }
+    }
+
+    if (hasBracketLegs) {
+      return { type: "bracket" as const }
+    }
+
+    // ── Now correctly routes conflict "Closed" trades to realized P&L ─────────
+    if (isBuy) {
+      return { type: "open_position" as const }
+    }
+
+    if (isSell) {
+      const sellPrice = selectedTrade.price
+      const quantitySold = Math.abs(selectedTrade.quantity)
+      const holding = holdings[selectedTrade.symbol]
+
+      // ── Guard: if no holding found, avg entry is unknown ──────────────────
+      // This happens when the position was fully closed and no longer in holdings
+      if (!holding) {
+        return {
+          type: "realized_no_entry" as const,
+          sellPrice,
+          quantitySold,
+        }
+      }
+
+      const avgEntryPrice = holding.avg_entry_price // ✅ safe, holding exists
+
+      const realizedPnlUsd = (sellPrice - avgEntryPrice) * quantitySold
+      const realizedPnlPercent =
+        avgEntryPrice !== 0
+          ? ((sellPrice - avgEntryPrice) / avgEntryPrice) * 100
+          : 0
+
+      const remainingQty = holding.quantity - quantitySold
+
+      return {
+        type: "realized" as const,
+        sellPrice,
+        avgEntryPrice,
+        quantitySold,
+        realizedPnlUsd,
+        realizedPnlPercent,
+        remainingQty: isConflict ? remainingQty : null,
+        isPartialClose: isConflict && remainingQty > 0,
+      }
+    }
+
+    return null
+  }, [selectedTrade, holdings])
+
+  // ─── AskAI context now uses pnlData instead of Math.random() ─────────────
   const askAIContext = useMemo(() => {
     if (!selectedTrade) return null
 
-    const currentPrice =
-      selectedTrade.price * (1 + (Math.random() - 0.5) * 0.05)
-    const pnlUsd = (currentPrice - selectedTrade.price) * selectedTrade.quantity
-    const pnlPercent =
-      ((currentPrice - selectedTrade.price) / selectedTrade.price) * 100
-
     return {
       dataType: "transaction",
-      orderId: selectedTrade.id, // duplicate
+      orderId: selectedTrade.id,
       type: selectedTrade.trade_type,
       price: selectedTrade.price,
       filledQty: selectedTrade.quantity,
@@ -87,9 +165,12 @@ export default function SpeculationAgent({
       date_label: selectedTrade.date_label,
       datetime: selectedTrade.datetime,
       time_label: selectedTrade.time_label,
-      current_price: currentPrice,
-      pnl: pnlUsd,
-      pnl_percent: pnlPercent,
+      // Use real pnlData instead of Math.random()
+      pnl: pnlData?.type === "realized" ? pnlData.realizedPnlUsd : null,
+      pnl_percent:
+        pnlData?.type === "realized" ? pnlData.realizedPnlPercent : null,
+      avg_entry_price:
+        pnlData?.type === "realized" ? pnlData.avgEntryPrice : null,
       trigger_reason: selectedTrade.trigger_reason,
       is_agent_trade: selectedTrade.is_agent_trade,
       trading_agent_reasonings: selectedTrade.trading_agent_reasonings,
@@ -98,7 +179,7 @@ export default function SpeculationAgent({
       legs: selectedTrade.legs,
       id: selectedTrade.id,
     }
-  }, [selectedTrade])
+  }, [selectedTrade, pnlData])
 
   const handleAskAIClick = () => {
     setAskAIData(askAIContext)
@@ -163,11 +244,6 @@ export default function SpeculationAgent({
       </div>
     )
   }
-
-  const currentPrice = selectedTrade.price * (1 + (Math.random() - 0.5) * 0.05)
-  const pnlUsd = (currentPrice - selectedTrade.price) * selectedTrade.quantity
-  const pnlPercent =
-    ((currentPrice - selectedTrade.price) / selectedTrade.price) * 100
 
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
@@ -235,9 +311,7 @@ export default function SpeculationAgent({
             </div>
 
             <div className="text-right">
-              <div className="">
-                <p className="text-xs text-muted-foreground">Status</p>
-              </div>
+              <p className="text-xs text-muted-foreground">Status</p>
               <div
                 className={`text-lg ${
                   selectedTrade.status === "filled"
@@ -258,11 +332,122 @@ export default function SpeculationAgent({
         </CardHeader>
 
         <CardContent className="space-y-4 mt-0">
+          {/* ── P&L Section ─────────────────────────────────────────────────── */}
+
+          {pnlData?.type === "realized_no_entry" && (
+            <div className="bg-muted border border-border rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <h3 className="text-sm font-semibold">Position Closed</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {selectedTrade.trade_type === "buy" ? "Bought" : "Sold"}{" "}
+                {pnlData.quantitySold} share(s) @ $
+                {pnlData.sellPrice.toFixed(2)}. Entry price unavailable —
+                position fully closed and no longer in holdings.
+              </p>
+            </div>
+          )}
+
+          {/* BUY (filled, non-bracket): Open position — no realized P&L yet */}
+          {pnlData?.type === "open_position" && (
+            <div className="bg-muted border border-border rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold">Position Open</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                No realized P&L yet. This position is still open.
+              </p>
+            </div>
+          )}
+
+          {/* SELL (filled, non-bracket): Realized P&L */}
+          {pnlData?.type === "realized" && (
+            <div
+              className={`rounded-lg p-4 border ${
+                pnlData.realizedPnlUsd >= 0
+                  ? "bg-green-500/5 border-green-500/20"
+                  : "bg-red-500/5 border-red-500/20"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold">Realized P&L</h3>
+                <div
+                  className={`flex items-center gap-1 text-sm font-medium ${
+                    pnlData.realizedPnlUsd >= 0
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }`}
+                >
+                  {pnlData.realizedPnlUsd >= 0 ? (
+                    <TrendingUp className="w-4 h-4" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4" />
+                  )}
+                  {pnlData.realizedPnlPercent >= 0 ? "+" : ""}
+                  {pnlData.realizedPnlPercent.toFixed(2)}%
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Avg Entry Price
+                  </div>
+                  <div className="text-xl font-bold">
+                    ${pnlData.avgEntryPrice.toFixed(2)}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Realized P&L
+                  </div>
+                  <div
+                    className={`text-xl font-bold ${
+                      pnlData.realizedPnlUsd >= 0
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    {pnlData.realizedPnlUsd >= 0 ? "+" : ""}$
+                    {pnlData.realizedPnlUsd.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Conflict resolution: show remaining position */}
+              {pnlData.isPartialClose && pnlData.remainingQty !== null && (
+                <div className="mt-3 rounded-lg bg-orange-500/10 border border-orange-500/20 p-3">
+                  <p className="text-xs text-orange-500 font-medium">
+                    Partial close — {pnlData.quantitySold} shares sold.{" "}
+                    {pnlData.remainingQty} shares still open.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Unfilled trade: no P&L */}
+          {pnlData?.type === "unfilled" && (
+            <div className="bg-muted border border-border rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                <h3 className="text-sm font-semibold">Order Not Filled</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                This order was not executed. No P&L to display.
+              </p>
+            </div>
+          )}
+
           {/* Trade Summary */}
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-muted rounded-lg p-4 border">
               <div className="text-xs text-muted-foreground mb-1">
-                Entry Price
+                {selectedTrade.trade_type === "buy"
+                  ? "Entry Price"
+                  : "Sell Price"}
               </div>
               <div className="text-xl font-bold">
                 ${selectedTrade.price.toFixed(2)}
@@ -284,7 +469,7 @@ export default function SpeculationAgent({
             </div>
           </div>
 
-          {/* TPSL Legs - Show for ANY bracket order regardless of agent/manual, with P/L calculation */}
+          {/* TPSL Legs */}
           {selectedTrade.order_class === "bracket" &&
             selectedTrade.legs &&
             selectedTrade.legs.length > 0 && (
@@ -296,7 +481,6 @@ export default function SpeculationAgent({
                   </span>
                 </div>
 
-                {/* Calculate overall P/L for filled legs */}
                 {(() => {
                   let legPL = 0
                   const filledLegs = selectedTrade.legs.filter(
@@ -314,8 +498,6 @@ export default function SpeculationAgent({
                           leg.stop_price ||
                           "0",
                       )
-                      // For TP (limit): profit = (legPrice - entry) * qty
-                      // For SL (stop): loss = (entry - legPrice) * qty
                       const isTakeProfit =
                         leg.order_type === "limit" || leg.type === "limit"
                       const pl = isTakeProfit
@@ -327,12 +509,11 @@ export default function SpeculationAgent({
 
                   return (
                     <>
-                      {/* P/L Summary if any leg filled */}
                       {filledLegs.length > 0 && (
                         <div className="mb-4 p-3 rounded-lg bg-card border flex items-center justify-between">
                           <div>
                             <div className="text-sm font-semibold text-foreground">
-                              Leg P/L ({filledLegs.length}/
+                              Realized P/L ({filledLegs.length}/
                               {selectedTrade.legs.length} filled)
                             </div>
                             <div className="text-2xl font-bold">
@@ -357,7 +538,6 @@ export default function SpeculationAgent({
                         </div>
                       )}
 
-                      {/* Individual Legs */}
                       <div className="space-y-2">
                         {selectedTrade.legs.map((leg: any, idx: number) => {
                           const legQty = parseFloat(
@@ -372,8 +552,6 @@ export default function SpeculationAgent({
                           const isFilled = leg.status === "filled"
                           const isTakeProfit =
                             leg.order_type === "limit" || leg.type === "limit"
-
-                          // Calculate individual leg P/L
                           const legPL = isFilled
                             ? isTakeProfit
                               ? (legPrice - selectedTrade.price) * legQty
@@ -446,14 +624,13 @@ export default function SpeculationAgent({
               </div>
             )}
 
-          {/* Agent Reasoning Section - Only show for real agent trades with reasoning */}
+          {/* Agent Reasoning Section */}
           {selectedTrade.is_agent_trade &&
             selectedTrade.trading_agent_reasonings &&
             !selectedTrade.trading_agent_reasonings.startsWith(
               "[Trade Conflict]",
             ) && (
               <div className="space-y-4">
-                {/* Agent Reasoning Card */}
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem
                     value="agent-reasoning"
@@ -467,7 +644,6 @@ export default function SpeculationAgent({
                         </span>
                       </div>
                     </AccordionTrigger>
-
                     <AccordionContent>
                       <p className="text-sm leading-relaxed text-foreground">
                         {selectedTrade.trading_agent_reasonings}
@@ -476,7 +652,6 @@ export default function SpeculationAgent({
                   </AccordionItem>
                 </Accordion>
 
-                {/* Risk Evaluation Card - Only show if not empty */}
                 {selectedTrade.risk_evaluation &&
                   Object.keys(selectedTrade.risk_evaluation).length > 0 && (
                     <Accordion type="single" collapsible className="w-full">
@@ -499,9 +674,7 @@ export default function SpeculationAgent({
                             </div>
                           </div>
                         </AccordionTrigger>
-
                         <AccordionContent>
-                          {/* Risk Metrics Grid */}
                           <div className="grid grid-cols-2 gap-3 mb-3">
                             <div className="rounded-lg bg-background p-3">
                               <div className="text-xs text-muted-foreground mb-1">
@@ -554,7 +727,6 @@ export default function SpeculationAgent({
                               </div>
                             </div>
                           </div>
-
                           {selectedTrade.risk_evaluation.near_resistance && (
                             <div className="flex items-center gap-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3 text-yellow-500">
                               <AlertTriangle className="h-4 w-4" />
@@ -568,7 +740,6 @@ export default function SpeculationAgent({
                     </Accordion>
                   )}
 
-                {/* Risk Adjustments - Only show if array has items */}
                 {selectedTrade.risk_adjustments_made &&
                   selectedTrade.risk_adjustments_made.length > 0 && (
                     <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
@@ -614,7 +785,7 @@ export default function SpeculationAgent({
               </div>
             )}
 
-          {/* Conflict Resolution Badge - Show for conflict trades */}
+          {/* Conflict Resolution Badge */}
           {selectedTrade.is_agent_trade &&
             selectedTrade.trading_agent_reasonings?.startsWith(
               "[Trade Conflict]",
@@ -632,50 +803,6 @@ export default function SpeculationAgent({
               </div>
             )}
 
-          {/* Current Performance - Only for buy trades */}
-          {selectedTrade.trade_type === "buy" && (
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold">Current Performance</h3>
-                <div
-                  className={`flex items-center gap-1 text-sm font-medium ${
-                    pnlPercent >= 0 ? "text-green-500" : "text-red-500"
-                  }`}
-                >
-                  {pnlPercent >= 0 ? (
-                    <TrendingUp className="w-4 h-4" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4" />
-                  )}
-                  {pnlPercent >= 0 ? "+" : ""}
-                  {pnlPercent.toFixed(2)}%
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">
-                    Current Price
-                  </div>
-                  <div className="text-xl font-bold">
-                    ${currentPrice.toFixed(2)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">
-                    Unrealized P/L
-                  </div>
-                  <div
-                    className={`text-xl font-bold ${
-                      pnlUsd >= 0 ? "text-green-500" : "text-red-500"
-                    }`}
-                  >
-                    {pnlUsd >= 0 ? "+" : ""}${pnlUsd.toFixed(2)}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Trigger Reason - For manual trades */}
           {selectedTrade.trigger_reason && !selectedTrade.is_agent_trade && (
             <div className="bg-muted border rounded-lg p-4">
@@ -684,22 +811,7 @@ export default function SpeculationAgent({
                   <MessageSquare className="h-5 w-5 text-primary" />
                   <span className="text-sm font-bold">Trade Trigger</span>
                 </div>
-
-                <Button size="sm" variant="outline" onClick={handleAskAIClick}>
-                  <Sparkles className="w-3 h-3 mr-2" />
-                  Ask AI
-                </Button>
-
-                <AskAI
-                  open={showAskAI}
-                  onOpenChange={(open) => {
-                    setShowAskAI(open)
-                    if (!open) setAskAIData(null)
-                  }}
-                  contextData={askAIData}
-                />
               </div>
-
               <p className="text-sm text-foreground bg-card p-4 rounded-lg">
                 {selectedTrade.trigger_reason}
               </p>
@@ -718,7 +830,6 @@ export default function SpeculationAgent({
                 <Sparkles className="w-4 h-4 mr-2" />
                 Ask AI about this trade
               </Button>
-
               <AskAI
                 open={showAskAI}
                 onOpenChange={(open) => {
