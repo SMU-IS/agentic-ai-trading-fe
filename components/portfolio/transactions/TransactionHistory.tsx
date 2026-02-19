@@ -114,7 +114,7 @@ export default function TransactionsModal({
     if (onAskAI) {
       const transactionData = {
         dataType: "transaction",
-        orderId: transaction.id, // taking client_order_id
+        orderId: transaction.id,
         symbol: transaction.symbol,
         name: transaction.name,
         type: transaction.type,

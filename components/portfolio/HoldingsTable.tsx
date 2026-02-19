@@ -169,7 +169,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             const side = o.side as "buy" | "sell"
 
             allTx.push({
-              id: o.client_order_id,
+              id: o.id,
               symbol: o.symbol,
               name: getCompanyName(o.symbol),
               type: side,
@@ -197,7 +197,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 const side = leg.side as "buy" | "sell"
 
                 allTx.push({
-                  id: leg.client_order_id,
+                  id: leg.id,
                   symbol: leg.symbol,
                   name: getCompanyName(leg.symbol),
                   type: side,
@@ -263,7 +263,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             shares: Number(o.filled_qty),
             pricePerShare: Number(o.filled_avg_price ?? 0),
             side: o.side as "buy" | "sell",
-            sourceOrderId: o.client_order_id,
+            sourceOrderId: o.id,
           })
         }
 
@@ -281,7 +281,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 shares: Number(leg.filled_qty),
                 pricePerShare: Number(leg.filled_avg_price ?? 0),
                 side: leg.side as "buy" | "sell",
-                sourceOrderId: leg.client_order_id,
+                sourceOrderId: leg.id,
               })
             }
           }
