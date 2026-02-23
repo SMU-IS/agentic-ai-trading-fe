@@ -42,6 +42,8 @@ import {
 } from "framer-motion"
 import { initialNodes, initialEdges } from "./flow-data"
 import { nodeStatistics } from "./node-statistics"
+import { useHealthCheck } from "@/hooks/use-health-check"
+import { HealthDot } from "@/components/agentflow/HealthDot"
 
 // Animated Counter Component
 const AnimatedCounter = ({
@@ -139,6 +141,8 @@ const CustomNode = ({ data, id }: any) => {
       <Handle type="source" position={Position.Bottom} id="bottom-source" />
 
       <div className="relative min-w-[220px] space-y-3 rounded-xl border-2 border-border bg-card p-4 shadow-lg">
+        <HealthDot status={data.healthStatus ?? "loading"} />
+
         {/* Main Icon */}
         <div className="flex justify-center">
           <div className="flex h-10 w-10 items-center justify-center">
@@ -272,6 +276,7 @@ function AgentFlowContent() {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
   const [currentStepIndex, setCurrentStepIndex] = useState(-1)
   const tourCancelledRef = useRef(false)
+  const healthStatuses = useHealthCheck(30000) // poll every 30s
 
   const nodeSequence = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 
@@ -296,10 +301,10 @@ function AgentFlowContent() {
         data: {
           ...n.data,
           isDeveloperMode,
+          healthStatus: healthStatuses[n.id] ?? "loading",
         },
       })),
     )
-
     // Trigger shimmer effect
     setIsShimmering(true)
     const timer = setTimeout(() => {
@@ -307,7 +312,7 @@ function AgentFlowContent() {
     }, 800)
 
     return () => clearTimeout(timer)
-  }, [isDeveloperMode, setNodes])
+  }, [isDeveloperMode, setNodes, healthStatuses])
 
   // Update edges when developer mode changes
   useEffect(() => {
