@@ -210,15 +210,15 @@ export const initialNodes: Node[] = [
         "4. Decision engine",
       ],
     },
-    position: { x: 900, y: 800 },
+    position: { x: 1150, y: 300 },
   },
-  // News Notification Stream
+  // News Aggregator Stream
   {
     id: "10",
     type: "custom",
     data: {
-      label: "News Notification Stream",
-      humanized: "Notifications",
+      label: "News Aggregator Stream",
+      humanized: "News Aggregator",
       description: "Redis",
       icon: Bell,
       variant: "stream",
@@ -232,7 +232,73 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 900, y: 285 },
+    position: { x: 800, y: 285 },
+  },
+  // News Notifications Stream
+  {
+    id: "11",
+    type: "custom",
+    data: {
+      label: "News Notifications Stream",
+      humanized: "News Notifications",
+      description: "Redis",
+      icon: Newspaper,
+      variant: "stream",
+      sources: [
+        {
+          name: "Redis",
+          icon: DiRedis,
+          color: "bg-muted",
+          textColor: "text-red-600",
+          hasToggle: false,
+        },
+      ],
+    },
+    position: { x: 800, y: 100 },
+  },
+  //  Aggregator Analysis Stream
+  {
+    id: "12",
+    type: "custom",
+    data: {
+      label: "Aggregator Analysis Stream",
+      humanized: "Aggregator Analysis Stream",
+      description: "Redis",
+      icon: Newspaper,
+      variant: "stream",
+      sources: [
+        {
+          name: "Redis",
+          icon: DiRedis,
+          color: "bg-muted",
+          textColor: "text-red-600",
+          hasToggle: false,
+        },
+      ],
+    },
+    position: { x: 950, y: 600 },
+  },
+  // Trading Signal Stream
+  {
+    id: "13",
+    type: "custom",
+    data: {
+      label: "Trading Signal Stream",
+      humanized: "Trading Signal Stream",
+      description: "Redis",
+      icon: Newspaper,
+      variant: "stream",
+      sources: [
+        {
+          name: "Redis",
+          icon: DiRedis,
+          color: "bg-muted",
+          textColor: "text-red-600",
+          hasToggle: false,
+        },
+      ],
+    },
+    position: { x: 1250, y: 600 },
   },
 ]
 
@@ -377,7 +443,7 @@ export const initialEdges: CustomEdge[] = [
     source: "4",
     target: "10",
     type: "smoothstep",
-    label: "Trigger Incoming News",
+    label: "Publish",
     humanizedLabel: "Signals new news",
     animated: false,
     sourceHandle: "right-source",
@@ -391,7 +457,27 @@ export const initialEdges: CustomEdge[] = [
     labelStyle: { fill: "hsl(var(--foreground))", fontSize: 11 },
     labelBgStyle: { fill: "hsl(var(--card))", fillOpacity: 0.1 },
   },
-  // News Aggregator to News Notification Stream
+  // News Analysis to News Aggregator Stream
+  {
+    id: "e4-11",
+    source: "4",
+    target: "11",
+    type: "smoothstep",
+    label: "Publish",
+    humanizedLabel: "Signals new news",
+    animated: false,
+    sourceHandle: "right-source",
+    targetHandle: "left-target",
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 25,
+      height: 25,
+      color: "hsl(var(--primary))",
+    },
+    labelStyle: { fill: "hsl(var(--foreground))", fontSize: 11 },
+    labelBgStyle: { fill: "hsl(var(--card))", fillOpacity: 0.1 },
+  },
+  // News Aggregator to News Aggregator Stream
   {
     id: "e9-10",
     source: "9",
@@ -405,21 +491,40 @@ export const initialEdges: CustomEdge[] = [
       height: 25,
       color: "hsl(var(--primary))",
     },
-    sourceHandle: "top-source",
-    targetHandle: "bottom-target",
+    sourceHandle: "left-source",
+    targetHandle: "right-target",
     labelStyle: { fill: "hsl(var(--foreground))", fontSize: 11 },
     labelBgStyle: { fill: "hsl(var(--card))", fillOpacity: 0.1 },
   },
-  // News Aggregator to Trading Agent
+  // News Aggregator to Aggregator Analysis Stream
   {
-    id: "e9-8",
+    id: "e9-12",
     source: "9",
-    target: "8",
+    target: "12",
     type: "smoothstep",
     label: "Calls",
     humanizedLabel: "Triggers",
-    sourceHandle: "right-source",
-    targetHandle: "right-target",
+    sourceHandle: "bottom-source",
+    targetHandle: "top-target",
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 25,
+      height: 25,
+      color: "hsl(var(--primary))",
+    },
+    labelStyle: { fill: "hsl(var(--foreground))", fontSize: 11 },
+    labelBgStyle: { fill: "hsl(var(--card))", fillOpacity: 0.1 },
+  },
+  // News Aggregator to trading signal Stream
+  {
+    id: "e9-13",
+    source: "9",
+    target: "13",
+    type: "smoothstep",
+    label: "Calls",
+    humanizedLabel: "Triggers",
+    sourceHandle: "bottom-source",
+    targetHandle: "top-target",
     markerEnd: {
       type: MarkerType.ArrowClosed,
       width: 25,
