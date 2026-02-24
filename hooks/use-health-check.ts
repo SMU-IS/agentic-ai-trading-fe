@@ -1,17 +1,16 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 export type HealthStatus = "healthy" | "unhealthy" | "loading"
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_API_URL ?? "http://localhost:8000/api/v1"
 
-// Map each nodeId to its health endpoint
 const HEALTH_ENDPOINTS: Record<string, string> = {
-  "7": `${BASE_URL}/rag/healthcheck`,
-  "8": `${BASE_URL}/trading/healthcheck`,
-  "11": `${BASE_URL}/notification/healthcheck`,
-  "9": `${BASE_URL}/notification/healthcheck`,
-  // add remaining nodes...
+  "14": `${BASE_URL}/rag/healthcheck`,
+  "15": `${BASE_URL}/trading/healthcheck`,
+  "16": `${BASE_URL}/trading/healthcheck`,
+  "18": `${BASE_URL}/user/healthcheck`,
+  "17": `${BASE_URL}/notification/healthcheck`,
 }
 
 export function useHealthCheck(intervalMs = 30000) {
@@ -24,6 +23,15 @@ export function useHealthCheck(intervalMs = 30000) {
       {} as Record<string, HealthStatus>,
     ),
   )
+
+  const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(
+    Math.floor(intervalMs / 1000),
+  )
+  const countdownRef = useRef<NodeJS.Timeout | null>(null)
+
+  const resetCountdown = () => {
+    setSecondsUntilRefresh(Math.floor(intervalMs / 1000))
+  }
 
   const checkAll = async () => {
     const results = await Promise.allSettled(
@@ -44,13 +52,28 @@ export function useHealthCheck(intervalMs = 30000) {
       })
       return next
     })
+
+    resetCountdown()
   }
 
   useEffect(() => {
     checkAll()
     const interval = setInterval(checkAll, intervalMs)
-    return () => clearInterval(interval)
+
+    // Tick countdown every second
+    countdownRef.current = setInterval(() => {
+      setSecondsUntilRefresh((prev) =>
+        prev <= 1 ? Math.floor(intervalMs / 1000) : prev - 1,
+      )
+    }, 1000)
+
+    return () => {
+      clearInterval(interval)
+      if (countdownRef.current) clearInterval(countdownRef.current)
+    }
   }, [])
 
-  return statuses
+  return { statuses, secondsUntilRefresh }
 }
+
+export const MONITORED_NODE_IDS = new Set(Object.keys(HEALTH_ENDPOINTS))

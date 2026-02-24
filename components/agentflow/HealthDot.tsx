@@ -7,10 +7,22 @@ const statusConfig = {
   loading: { color: "bg-yellow-500", ring: "bg-yellow-500/40", pulse: true },
 }
 
-export const HealthDot = ({ status }: { status: HealthStatus }) => {
+export const HealthDot = ({
+  status,
+  variant = "absolute",
+}: {
+  status: HealthStatus
+  variant?: "absolute" | "inline"
+}) => {
   const cfg = statusConfig[status]
   return (
-    <div className="absolute right-2 top-2 flex items-center justify-center">
+    <div
+      className={
+        variant === "absolute"
+          ? "absolute right-2 top-2 flex items-center justify-center"
+          : "relative flex items-center justify-center h-4 w-4"
+      }
+    >
       {cfg.pulse && (
         <motion.div
           className={`absolute h-3 w-3 rounded-full ${cfg.ring}`}

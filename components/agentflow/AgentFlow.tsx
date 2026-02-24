@@ -13,6 +13,10 @@ import {
   useReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react"
+import { GroupNode } from "@/components/labeled-group-node"
+import { CustomSmoothEdge } from "@/components/CustomSmoothEdge"
+import { MONITORED_NODE_IDS } from "@/hooks/use-health-check"
+
 import "@xyflow/react/dist/style.css"
 import {
   Database,
@@ -30,8 +34,7 @@ import {
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FaDiscord, FaReddit } from "react-icons/fa"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { Toggle } from "@/components/ui/toggle"
 import {
   motion,
@@ -44,6 +47,10 @@ import { initialNodes, initialEdges } from "./flow-data"
 import { nodeStatistics } from "./node-statistics"
 import { useHealthCheck } from "@/hooks/use-health-check"
 import { HealthDot } from "@/components/agentflow/HealthDot"
+
+const edgeTypes = {
+  customSmooth: CustomSmoothEdge,
+}
 
 // Animated Counter Component
 const AnimatedCounter = ({
@@ -131,25 +138,88 @@ const CustomNode = ({ data, id }: any) => {
   return (
     <>
       {/* Handles */}
-      <Handle type="target" position={Position.Left} id="left-target" />
-      <Handle type="source" position={Position.Left} id="left-source" />
-      <Handle type="target" position={Position.Right} id="right-target" />
-      <Handle type="source" position={Position.Right} id="right-source" />
-      <Handle type="target" position={Position.Top} id="top-target" />
-      <Handle type="source" position={Position.Top} id="top-source" />
-      <Handle type="target" position={Position.Bottom} id="bottom-target" />
-      <Handle type="source" position={Position.Bottom} id="bottom-source" />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left-target"
+        className={
+          data.connectedHandles?.has(`${id}-left-target`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left-source"
+        className={
+          data.connectedHandles?.has(`${id}-left-source`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right-target"
+        className={
+          data.connectedHandles?.has(`${id}-right-target`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
+        className={
+          data.connectedHandles?.has(`${id}-right-source`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top-target"
+        className={
+          data.connectedHandles?.has(`${id}-top-target`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="source"
+        position={Position.Top}
+        id="top-source"
+        className={
+          data.connectedHandles?.has(`${id}-top-source`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="target"
+        position={Position.Bottom}
+        id="bottom-target"
+        className={
+          data.connectedHandles?.has(`${id}-bottom-target`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom-source"
+        className={
+          data.connectedHandles?.has(`${id}-bottom-source`) ? "" : "!opacity-0"
+        }
+      />
 
-      <div className="relative min-w-[220px] space-y-3 rounded-xl border-2 border-border bg-card p-4 shadow-lg">
-        <HealthDot status={data.healthStatus ?? "loading"} />
-
+      <div
+        className="relative min-w-[220px] space-y-3 rounded-xl border-2 border-border p-4 shadow-lg"
+        style={{
+          backgroundColor: data.customBg ?? "hsl(var(--card))",
+          minHeight: data.customHeight ?? " ",
+        }}
+      >
+        {/* ← Only show dot if this node is monitored */}
+        {MONITORED_NODE_IDS.has(id) && (
+          <HealthDot status={data.healthStatus ?? "loading"} />
+        )}
         {/* Main Icon */}
         <div className="flex justify-center">
           <div className="flex h-10 w-10 items-center justify-center">
             {data.icon && <data.icon className="h-6 w-6" />}
           </div>
         </div>
-
         {/* Title */}
         <div className="text-center">
           <p className="text-sm font-semibold text-foreground">
@@ -161,7 +231,6 @@ const CustomNode = ({ data, id }: any) => {
             </p>
           )}
         </div>
-
         {/* Source Cards - Only show if sources exist */}
         {data.sources && data.sources.length > 0 && (
           <div className="nodrag space-y-2">
@@ -200,7 +269,6 @@ const CustomNode = ({ data, id }: any) => {
             ))}
           </div>
         )}
-
         {/* Statistics - Show when node is active */}
         {data.showStats && <NodeStatistics nodeId={id} />}
       </div>
@@ -221,23 +289,77 @@ const PipelineNode = ({ data, id }: any) => {
 
   return (
     <>
-      {/* LEFT - both target and source */}
-      <Handle type="target" position={Position.Left} id="left-target" />
-      <Handle type="source" position={Position.Left} id="left-source" />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left-target"
+        className={
+          data.connectedHandles?.has(`${id}-left-target`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left-source"
+        className={
+          data.connectedHandles?.has(`${id}-left-source`) ? "" : "!opacity-0"
+        }
+      />
 
-      {/* RIGHT - both target and source */}
-      <Handle type="target" position={Position.Right} id="right-target" />
-      <Handle type="source" position={Position.Right} id="right-source" />
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right-target"
+        className={
+          data.connectedHandles?.has(`${id}-right-target`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
+        className={
+          data.connectedHandles?.has(`${id}-right-source`) ? "" : "!opacity-0"
+        }
+      />
 
-      {/* TOP - both target and source */}
-      <Handle type="target" position={Position.Top} id="top-target" />
-      <Handle type="source" position={Position.Top} id="top-source" />
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top-target"
+        className={
+          data.connectedHandles?.has(`${id}-top-target`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="source"
+        position={Position.Top}
+        id="top-source"
+        className={
+          data.connectedHandles?.has(`${id}-top-source`) ? "" : "!opacity-0"
+        }
+      />
 
-      {/* BOTTOM - both target and source */}
-      <Handle type="target" position={Position.Bottom} id="bottom-target" />
-      <Handle type="source" position={Position.Bottom} id="bottom-source" />
-
-      <div className="relative flex flex-col gap-3 rounded-xl border-2 border-border bg-card p-4 shadow-lg">
+      <Handle
+        type="target"
+        position={Position.Bottom}
+        id="bottom-target"
+        className={
+          data.connectedHandles?.has(`${id}-bottom-target`) ? "" : "!opacity-0"
+        }
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom-source"
+        className={
+          data.connectedHandles?.has(`${id}-bottom-source`) ? "" : "!opacity-0"
+        }
+      />
+      <div
+        className="relative flex flex-col gap-3 rounded-xl border-2 border-border p-4 shadow-lg"
+        style={{ backgroundColor: data.customBg ?? "hsl(var(--card))" }}
+      >
         <p className="text-center text-sm font-bold text-foreground">
           {displayLabel}
         </p>
@@ -251,7 +373,6 @@ const PipelineNode = ({ data, id }: any) => {
             </div>
           ))}
         </div>
-
         {/* Statistics - Show when node is active */}
         {data.showStats && <NodeStatistics nodeId={id} />}
       </div>
@@ -262,6 +383,9 @@ const PipelineNode = ({ data, id }: any) => {
 const nodeTypes: NodeTypes = {
   custom: CustomNode,
   pipeline: PipelineNode,
+  labeledGroupNode: ({ data, id }: any) => (
+    <GroupNode id={id} label={data.label} />
+  ),
 }
 
 function AgentFlowContent() {
@@ -276,7 +400,8 @@ function AgentFlowContent() {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
   const [currentStepIndex, setCurrentStepIndex] = useState(-1)
   const tourCancelledRef = useRef(false)
-  const healthStatuses = useHealthCheck(30000) // poll every 30s
+  const { statuses: healthStatuses, secondsUntilRefresh } =
+    useHealthCheck(30000)
 
   const nodeSequence = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 
@@ -321,6 +446,7 @@ function AgentFlowContent() {
         const originalEdge: any = originalEdgesRef.current[index]
         return {
           ...edge,
+          data: originalEdge.data, // ← add this to preserve offset/borderRadius
           label: isDeveloperMode
             ? originalEdge.label
             : originalEdge.humanizedLabel || originalEdge.label,
@@ -328,6 +454,17 @@ function AgentFlowContent() {
       }),
     )
   }, [isDeveloperMode, setEdges])
+
+  const connectedHandles = useMemo(
+    () =>
+      new Set(
+        edges.flatMap((e) => [
+          `${e.source}-${e.sourceHandle}`,
+          `${e.target}-${e.targetHandle}`,
+        ]),
+      ),
+    [edges],
+  )
 
   const focusOnNode = (nodeId: string) => {
     const node = nodes.find((n) => n.id === nodeId)
@@ -485,11 +622,15 @@ function AgentFlowContent() {
 
   const highlightedNodes = nodes.map((node) => ({
     ...node,
+    data: {
+      ...node.data,
+      connectedHandles, // ← inject here instead of via setNodes
+    },
     style: {
       ...node.style,
       opacity: activeNodeId ? (node.id === activeNodeId ? 1 : 0.3) : 1,
       transition: "opacity 0.3s ease",
-      zIndex: node.id === activeNodeId ? 1000 : 1,
+      zIndex: node.id === activeNodeId ? 1000 : (node.zIndex ?? 1), // ← use node's own zIndex if set, else default to 1
     },
   }))
 
@@ -584,7 +725,7 @@ function AgentFlowContent() {
                       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                       exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
                       transition={{ duration: 0.3 }}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 text-xs"
                     >
                       <motion.div
                         animate={{ rotate: 360 }}
@@ -605,7 +746,7 @@ function AgentFlowContent() {
                       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                       exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
                       transition={{ duration: 0.3 }}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 text-xs"
                     >
                       <motion.div
                         animate={{ rotate: 0 }}
@@ -641,7 +782,6 @@ function AgentFlowContent() {
               }}
             />
           )}
-
           {/* Developer Mode Toggle */}
           <Toggle
             pressed={isDeveloperMode}
@@ -652,6 +792,32 @@ function AgentFlowContent() {
             <span className="text-xs font-medium">Dev Mode</span>
           </Toggle>
 
+          {/* Developer Mode Toggle */}
+          <Card className="w-28 absolute right-4 top-20 z-[1000] rounded-xl border border-foreground/25 bg-card/80 px-3 py-2 shadow-lg">
+            <div className="flex flex-col gap-2">
+              {/* Legend */}
+              <div className="flex items-center gap-2">
+                <HealthDot status="healthy" variant="inline" />
+                <span className="text-xs text-muted-foreground">Online</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <HealthDot status="unhealthy" variant="inline" />
+                <span className="text-xs text-muted-foreground">Error</span>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-border" />
+
+              {/* Countdown */}
+              <span className="inline-block w-26 text-xs text-muted-foreground text-center">
+                Refresh in{" "}
+                <span className="font-semibold text-foreground">
+                  {secondsUntilRefresh}s
+                </span>
+              </span>
+            </div>
+          </Card>
+
           <ReactFlow
             nodes={highlightedNodes}
             edges={edges}
@@ -661,6 +827,7 @@ function AgentFlowContent() {
             onNodeClick={handleNodeClick}
             nodesDraggable={false}
             fitView
+            edgeTypes={edgeTypes}
             attributionPosition="bottom-left"
             defaultViewport={{
               x: 200,

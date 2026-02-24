@@ -1,14 +1,52 @@
 import { Node, Edge, MarkerType } from "@xyflow/react"
-import { Database, Newspaper, Brain, Bot, Bell } from "lucide-react"
+import {
+  Database,
+  Newspaper,
+  Brain,
+  Bot,
+  Bell,
+  User,
+  ChartCandlestick,
+} from "lucide-react"
 import { FaDiscord, FaReddit } from "react-icons/fa"
 import { DiDatabase, DiRedis } from "react-icons/di"
-import { SiLangchain, SiKong } from "react-icons/si"
+import {
+  SiLangchain,
+  SiKong,
+  SiOllama,
+  SiTradingview,
+  SiRedis,
+} from "react-icons/si"
 
 interface CustomEdge extends Edge {
   humanizedLabel?: string
+  data?: {
+    offset?: number
+    borderRadius?: number
+  }
 }
 
 export const initialNodes: Node[] = [
+  // The group container node
+  {
+    id: "group-lower-backend",
+    type: "labeledGroupNode",
+    position: { x: 0, y: 0 },
+    data: { label: "Backend Services" },
+    width: 1600,
+    height: 1400,
+    zIndex: -1, // ← add this
+  },
+  // The other group container node
+  {
+    id: "group-backend",
+    type: "labeledGroupNode",
+    position: { x: 1800, y: 0 },
+    data: { label: "Main Services" },
+    width: 330,
+    height: 1100,
+  },
+
   //   News Data Sources
   {
     id: "1",
@@ -36,7 +74,9 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 50, y: 0 },
+    position: { x: 50, y: 70 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   //   Scraper Service
   {
@@ -50,7 +90,9 @@ export const initialNodes: Node[] = [
       icon: Newspaper,
       variant: "process",
     },
-    position: { x: 50, y: 250 },
+    position: { x: 50, y: 320 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   //  Raw News Stream
   {
@@ -72,7 +114,9 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 50, y: 450 },
+    position: { x: 50, y: 520 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   //  News Analysis Pipeline
   {
@@ -96,7 +140,9 @@ export const initialNodes: Node[] = [
         "5. Smart Indexing",
       ],
     },
-    position: { x: 400, y: 250 },
+    position: { x: 400, y: 320 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   //  Vector Database
   {
@@ -118,7 +164,9 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 425, y: 600 },
+    position: { x: 425, y: 670 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   // RAG AI
   {
@@ -141,7 +189,9 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 100, y: 750 },
+    position: { x: 100, y: 820 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   // Chatbot Module
   {
@@ -164,7 +214,9 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 400, y: 900 },
+    position: { x: 400, y: 970 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   // Trading Agent Module
   {
@@ -188,7 +240,9 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 400, y: 1100 },
+    position: { x: 400, y: 1170 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   // News Aggregator Service
   {
@@ -210,7 +264,9 @@ export const initialNodes: Node[] = [
         "4. Decision engine",
       ],
     },
-    position: { x: 1150, y: 300 },
+    position: { x: 1150, y: 420 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   // News Aggregator Stream
   {
@@ -232,7 +288,9 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 800, y: 285 },
+    position: { x: 800, y: 430 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   // News Notifications Stream
   {
@@ -254,7 +312,9 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 800, y: 100 },
+    position: { x: 800, y: 230 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   //  Aggregator Analysis Stream
   {
@@ -276,7 +336,9 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 950, y: 600 },
+    position: { x: 950, y: 820 },
+    parentId: "group-lower-backend",
+    extent: "parent",
   },
   // Trading Signal Stream
   {
@@ -298,7 +360,129 @@ export const initialNodes: Node[] = [
         },
       ],
     },
-    position: { x: 1250, y: 600 },
+    position: { x: 1350, y: 820 },
+    parentId: "group-lower-backend",
+    extent: "parent",
+  },
+
+  // Node 1
+  {
+    id: "14",
+    type: "custom",
+    data: {
+      label: "Chatbot Service",
+      humanized: "Chatbot",
+      description: "Ollama",
+      icon: Bot,
+      variant: "stream",
+      sources: [
+        {
+          name: "Ollama",
+          icon: SiOllama,
+          color: "bg-muted",
+          textColor: "text-orange-600",
+          hasToggle: false,
+        },
+      ],
+    },
+    position: { x: 50, y: 60 }, // ← relative to parent, not absolute
+    parentId: "group-backend",
+    extent: "parent",
+  },
+
+  // Node 2
+  {
+    id: "15",
+    type: "custom",
+    data: {
+      label: "Trading Agent Service",
+      humanized: "Automatic Trading System",
+      description: "Ollama",
+      icon: Newspaper,
+      variant: "stream",
+      sources: [
+        {
+          name: "Ollama",
+          icon: SiOllama,
+          color: "bg-muted",
+          textColor: "text-orange-600",
+          hasToggle: false,
+        },
+        // {
+        //   name: "Redis",
+        //   icon: SiRedis,
+        //   color: "bg-muted",
+        //   textColor: "text-red-600",
+        //   hasToggle: false,
+        // },
+      ],
+    },
+    position: { x: 50, y: 260 }, // ← relative to parent, not absolute
+    parentId: "group-backend",
+    extent: "parent",
+  },
+  // Node 3
+  {
+    id: "16",
+    type: "custom",
+    data: {
+      label: "Trading Service (Brokerage)",
+      humanized: "Trading Brokerage",
+      description: "Alpaca",
+      icon: ChartCandlestick,
+      variant: "stream",
+      sources: [
+        {
+          name: "Alpaca",
+          icon: SiTradingview,
+          color: "bg-muted",
+          textColor: "text-yellow-600",
+          hasToggle: false,
+        },
+      ],
+    },
+    position: { x: 50, y: 460 }, // ← relative to parent, not absolute
+    parentId: "group-backend",
+    extent: "parent",
+  },
+  // Node 4
+  {
+    id: "17",
+    type: "custom",
+    data: {
+      label: "Notifications Service",
+      humanized: "Notifications",
+      description: "Notifications",
+      icon: Bell,
+      variant: "stream",
+      sources: [
+        {
+          name: "Redis",
+          icon: SiRedis,
+          color: "bg-muted",
+          textColor: "text-red-600",
+          hasToggle: false,
+        },
+      ],
+    },
+    position: { x: 50, y: 660 }, // ← relative to parent, not absolute
+    parentId: "group-backend",
+    extent: "parent",
+  },
+  // Node 5
+  {
+    id: "18",
+    type: "custom",
+    data: {
+      label: "User Service",
+      humanized: "User Account",
+      description: "User",
+      icon: User,
+      variant: "stream",
+    },
+    position: { x: 50, y: 860 }, // ← relative to parent, not absolute
+    parentId: "group-backend",
+    extent: "parent",
   },
 ]
 
@@ -531,6 +715,44 @@ export const initialEdges: CustomEdge[] = [
       height: 25,
       color: "hsl(var(--primary))",
     },
+    labelStyle: { fill: "hsl(var(--foreground))", fontSize: 11 },
+    labelBgStyle: { fill: "hsl(var(--card))", fillOpacity: 0.1 },
+  },
+  // Trading Agent module to trading signal Stream
+  {
+    id: "e8-13",
+    source: "13",
+    target: "8",
+    type: "smoothstep",
+    label: "Listens for trades",
+    humanizedLabel: "Waits for trades",
+    sourceHandle: "bottom-source",
+    targetHandle: "right-target",
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 25,
+      height: 25,
+      color: "hsl(var(--primary))",
+    },
+    labelStyle: { fill: "hsl(var(--foreground))", fontSize: 11 },
+    labelBgStyle: { fill: "hsl(var(--card))", fillOpacity: 0.1 },
+  },
+  // group connection
+  {
+    id: "group-group-to-something",
+    source: "group-lower-backend",
+    target: "group-backend",
+    type: "customSmooth",
+    // data: { offset: 650 }, // ← moved here
+    sourceHandle: "right-source",
+    targetHandle: "left-target",
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 25,
+      height: 25,
+      color: "hsl(var(--primary))",
+    },
+    animated: true,
     labelStyle: { fill: "hsl(var(--foreground))", fontSize: 11 },
     labelBgStyle: { fill: "hsl(var(--card))", fillOpacity: 0.1 },
   },
