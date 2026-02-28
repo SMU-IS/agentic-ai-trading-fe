@@ -43,7 +43,9 @@ async function loadTickerData() {
   }
 
   try {
-    const response = await fetch("/company_tickers.json")
+    const response = await fetch("/company_tickers.json", {
+      credentials: "include",
+    })
     const data = await response.json()
 
     Object.values(data).forEach((entry: any) => {

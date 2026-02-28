@@ -73,6 +73,7 @@ export default function PortfolioTab() {
       try {
         const accountRes = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/account`,
+          { credentials: "include" },
         )
         if (!accountRes.ok) throw new Error("Failed to fetch account")
         const account: AccountResponse = await accountRes.json()
@@ -82,6 +83,7 @@ export default function PortfolioTab() {
 
         const posRes = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
+          { credentials: "include" },
         )
         if (!posRes.ok) throw new Error("Failed to fetch positions")
         const posData: Position[] = await posRes.json()

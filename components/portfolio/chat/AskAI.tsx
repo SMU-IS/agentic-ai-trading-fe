@@ -310,13 +310,13 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
         query: userMessage,
         ...(shouldIncludeOrderId && { order_id }),
       }),
       signal: signal,
+      credentials: "include",
     })
 
     if (!response.ok) {

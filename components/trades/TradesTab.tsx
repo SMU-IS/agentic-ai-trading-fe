@@ -22,9 +22,7 @@ export default function TradesTab() {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          },
+          { credentials: "include" },
         )
         const data = await response.json()
         console.log("testing", data)
