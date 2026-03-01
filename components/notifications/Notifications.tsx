@@ -39,7 +39,20 @@ interface WSNewsNotification {
 
 interface WSSignalNotification {
   type: "SIGNAL_GENERATED"
-  news_id: string
+  signal_id: {
+    id: string
+    ticker: string
+    rumor_summary: string
+    credibility: string
+    credibility_reason: string
+    references: string[]
+    trade_signal: string
+    confidence: number
+    trade_rationale: string
+    position_size_pct: number
+    stop_loss_pct: number
+    target_pct: number
+  }
 }
 
 type WSNotification = WSNewsNotification | WSSignalNotification
@@ -64,7 +77,11 @@ interface NewsNotification extends BaseNotification {
 
 interface SignalNotification extends BaseNotification {
   type: "signal"
-  news_id: string
+  ticker: string
+  trade_signal: string
+  credibility: string
+  confidence: number
+  rumor_summary: string
 }
 
 type Notification = NewsNotification | SignalNotification
@@ -144,16 +161,23 @@ export default function NotificationsDropdown() {
                 isRead: false,
               }
             } else {
+              const signal = data.signal_id
               newNotification = {
-                id: `signal-${data.news_id}-${Date.now()}`,
+                id: `signal-${signal.id}-${Date.now()}`,
                 type: "signal",
-                news_id: data.news_id,
+                ticker: signal.ticker,
+                trade_signal: signal.trade_signal,
+                credibility: signal.credibility,
+                confidence: signal.confidence,
+                rumor_summary: signal.rumor_summary,
                 timestamp: new Date(),
                 isRead: false,
               }
             }
-
-            setNotifications((prev) => [newNotification, ...prev])
+            setNotifications((prev) => {
+              if (prev.some((n) => n.id === newNotification.id)) return prev
+              return [newNotification, ...prev]
+            })
 
             if (
               "Notification" in window &&
@@ -163,7 +187,7 @@ export default function NotificationsDropdown() {
                 body:
                   data.type === "NEWS_RECEIVED"
                     ? data.headline
-                    : "Trading signal generated",
+                    : `${data.signal_id.ticker} — ${data.signal_id.trade_signal} signal (${data.signal_id.credibility} credibility)`, // ← updated
                 icon: "/favicon.ico",
               })
             }
@@ -393,12 +417,49 @@ export default function NotificationsDropdown() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 space-y-1">
-        <p className="text-sm font-semibold text-foreground">
-          Trading Signal Generated
+      <div className="flex-1 space-y-2">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-foreground">
+            {notification.ticker}
+          </p>
+          {/* Trade signal badge */}
+          <span
+            className={cn(
+              "rounded border px-2 py-0.5 text-[10px] font-bold",
+              notification.trade_signal === "BUY"
+                ? "border-green-500/20 bg-green-500/10 text-green-600"
+                : notification.trade_signal === "SELL"
+                  ? "border-red-500/20 bg-red-500/10 text-red-500"
+                  : "border-gray-500/20 bg-gray-500/10 text-gray-500",
+            )}
+          >
+            {notification.trade_signal}
+          </span>
+          {/* Credibility badge */}
+          <span
+            className={cn(
+              "rounded border px-2 py-0.5 text-[10px] font-medium",
+              notification.credibility.toLowerCase() === "high"
+                ? "border-green-500/20 bg-green-500/10 text-green-600"
+                : notification.credibility.toLowerCase() === "medium"
+                  ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-600"
+                  : "border-red-500/20 bg-red-500/10 text-red-500",
+            )}
+          >
+            {notification.credibility}
+          </span>
+          {/* Confidence */}
+          <span className="text-[10px] text-muted-foreground">
+            {notification.confidence}/10
+          </span>
+        </div>
+
+        <p className="text-xs text-muted-foreground line-clamp-2">
+          {notification.rumor_summary}
         </p>
+
         <p className="text-xs text-muted-foreground">
-          {getTimeAgo(notification.timestamp)} • News ID: {notification.news_id}
+          {getTimeAgo(notification.timestamp)}
         </p>
       </div>
 

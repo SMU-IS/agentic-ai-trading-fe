@@ -559,14 +559,15 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           minute: "2-digit",
         })
         autoMessage =
-          `I have a transaction for ${contextData.symbol}:\n` +
+          `I'm reviewing transactions made by the agent and I'd like to expand my understanding of one of them.` +
+          `This transaction is made for ${contextData.symbol}:\n` +
           `- Type: ${contextData.type.toUpperCase()}\n` +
           `- Date: ${txDate}\n` +
           `- Price: $${contextData.price.toFixed(2)}\n` +
           `- Quantity: ${contextData.filledQty} shares\n` +
           `- Total Value: $${contextData.totalValue.toFixed(2)}\n` +
           `- Trade Reason: ${contextData.reason}\n\n` +
-          `Can you analyze this transaction and provide insights?`
+          `Can you analyze this transaction and provide detailed insights?`
         shouldIncludeOrderId = true
       } else {
         contextData = []
