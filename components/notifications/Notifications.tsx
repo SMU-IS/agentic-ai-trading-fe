@@ -490,7 +490,7 @@ export default function NotificationsDropdown() {
           {/* Connection status indicator */}
           <span
             className={cn(
-              "absolute -top-0 -right-1 h-3.5 w-3.5 rounded-full border-2 border-background animate-pulse",
+              "absolute -top-0 -left-1 h-3.5 w-3.5 rounded-full border-2 border-background animate-pulse",
               isConnected ? "bg-green-500" : "bg-red-500",
             )}
           />
