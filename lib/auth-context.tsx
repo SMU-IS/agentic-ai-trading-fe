@@ -30,8 +30,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Check for existing session on mount (mock implementation)
   useEffect(() => {
+    // ↓↓↓ ADD THIS BLOCK ↓↓↓
+    if (process.env.NEXT_PUBLIC_SKIP_AUTH === "true") {
+      const devUser: User = {
+        id: "dev-bypass-id",
+        username: "dev@test.com",
+        email: "dev@test.com",
+        provider: "credentials",
+      }
+      sessionStorage.setItem("pointer_user", JSON.stringify(devUser))
+      setUser(devUser)
+      setIsLoading(false)
+      return
+    }
+    // ↑↑↑ END OF BLOCK ↑↑↑
+
     const storedUser = sessionStorage.getItem("pointer_user")
     if (storedUser) {
       setUser(JSON.parse(storedUser))

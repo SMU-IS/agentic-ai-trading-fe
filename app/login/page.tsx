@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useEffect } from "react"
 
 import LoaderSpinner from "@/components/loader-spinner"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,20 @@ export default function LoginPage() {
 
   const { signIn, signInWithTwitter } = useAuth()
   const router = useRouter()
+
+  // ↓↓↓ ADD THIS BLOCK ↓↓↓
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_SKIP_AUTH === "true") {
+      Cookies.set("jwt", "dev-bypass-token", {
+        expires: 1,
+        path: "/",
+        sameSite: "lax",
+      })
+      localStorage.setItem("lastLoginTime", new Date().toISOString())
+      router.replace("/portfolio")
+    }
+  }, [])
+  // ↑↑↑ END OF BLOCK ↑↑↑
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
