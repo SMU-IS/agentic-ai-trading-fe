@@ -41,7 +41,7 @@ export default function LoginPage() {
           throw new Error("Passwords do not match")
         }
 
-        const registerRes = await fetch(`${baseUrl}/user/auth/register`, {
+        const registerRes = await fetch(`${baseUrl}/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -65,7 +65,7 @@ export default function LoginPage() {
         // RETRIEVE LAST LOGIN TIME BEFORE UPDATING IT
         const previousLoginTime = localStorage.getItem("lastLoginTime")
 
-        const loginRes = await fetch(`${baseUrl}/user/auth/login`, {
+        const loginRes = await fetch(`${baseUrl}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
