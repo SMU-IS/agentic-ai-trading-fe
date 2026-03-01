@@ -350,6 +350,7 @@ export default function AgentSummary() {
             },
             body: JSON.stringify({
               query: query,
+              session_id: "0f19c4d2-7e5b-48a1-9c3f-d4e6b7a8c9d0", // TODO: remove hardcoded session_id
             }),
             credentials: "include",
           },
@@ -383,7 +384,7 @@ export default function AgentSummary() {
     setStatsData(null)
     setCurrentStage(0)
 
-    const startTime = Date.now() // Track start time
+    const startTime = Date.now()
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_API_URL}`, {
@@ -393,6 +394,7 @@ export default function AgentSummary() {
         },
         body: JSON.stringify({
           query: userMessage,
+          session_id: "0f19c4d2-7e5b-48a1-9c3f-d4e6b7a8c9d0", // TODO: remove hardcoded session_id
         }),
         credentials: "include",
       })

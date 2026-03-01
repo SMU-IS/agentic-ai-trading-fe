@@ -18,6 +18,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TradeEvent } from "@/lib/types"
+import LoaderSpinner from "@/components/loader-spinner"
 
 interface TradingTimelineProps {
   selectedTrade: TradeEvent | null
@@ -497,8 +498,8 @@ export default function TradingTimeline({
         {/* Scrollable Content Area */}
         <CardContent className="h-[calc(100vh-300px)] min-h-0 flex-1 overflow-y-auto">
           {loading ? (
-            <div className="py-8 text-center text-muted-foreground">
-              Loading trade history...
+            <div className="flex justify-center items-center py-8 text-center text-muted-foreground">
+              <LoaderSpinner customSize="h-10 w-10" />
             </div>
           ) : filteredTrades.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
