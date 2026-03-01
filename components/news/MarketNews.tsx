@@ -36,7 +36,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     try {
       const response = await fetch(
         `https://finnhub.io/api/v1/news?category=${newsCategory}&token=${FINNHUB_API_KEY}`,
-        { credentials: "include" },
       )
 
       if (!response.ok) {
