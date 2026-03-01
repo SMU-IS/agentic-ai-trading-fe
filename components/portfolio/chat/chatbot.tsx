@@ -251,6 +251,7 @@ export default function ChatComponent() {
       body: JSON.stringify({
         message: userMessage,
         tickers: [],
+        session_id: "0f19c4d2-7e5b-48a1-9c3f-d4e6b7a8c9d0", // TODO: remove hardcoded session_id
       }),
       signal: signal,
       credentials: "include",
