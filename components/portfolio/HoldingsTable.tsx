@@ -73,6 +73,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
       const res = await fetch(`${BASE_URL}/trading/positions`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
       })
 
       if (!res.ok) {
@@ -135,6 +136,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         const res = await fetch(`${BASE_URL}/trading/orders/all`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
         })
 
         if (!res.ok) {
@@ -229,6 +231,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
       const res = await fetch(`${BASE_URL}/trading/orders/all`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
       })
 
       if (!res.ok) {

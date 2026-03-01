@@ -41,6 +41,7 @@ export default function PerformanceChart() {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/portfolio_history`,
+          { credentials: "include" },
         )
 
         if (!response.ok) {

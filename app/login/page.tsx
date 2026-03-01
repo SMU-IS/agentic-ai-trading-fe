@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/lib/auth-context"
-import Cookies from "js-cookie"
 import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -57,7 +56,7 @@ export default function LoginPage() {
           throw new Error("Passwords do not match")
         }
 
-        const registerRes = await fetch(`${baseUrl}/user/auth/register`, {
+        const registerRes = await fetch(`${baseUrl}/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -65,6 +64,7 @@ export default function LoginPage() {
             full_name: fullname,
             password: password,
           }),
+          credentials: "include",
         })
 
         if (!registerRes.ok) {
@@ -80,13 +80,14 @@ export default function LoginPage() {
         // RETRIEVE LAST LOGIN TIME BEFORE UPDATING IT
         const previousLoginTime = localStorage.getItem("lastLoginTime")
 
-        const loginRes = await fetch(`${baseUrl}/user/auth/login`, {
+        const loginRes = await fetch(`${baseUrl}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: email,
             password: password,
           }),
+          credentials: "include",
         })
 
         if (!loginRes.ok) {
@@ -117,15 +118,6 @@ export default function LoginPage() {
 
           throw new Error(errorMessage)
         }
-
-        const loginData = await loginRes.json()
-        const accessToken = loginData.token
-
-        Cookies.set("jwt", accessToken, {
-          expires: 1,
-          path: "/",
-          sameSite: "lax",
-        })
 
         await signIn(email, password)
 

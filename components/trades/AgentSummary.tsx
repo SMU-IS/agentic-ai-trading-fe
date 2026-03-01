@@ -311,8 +311,9 @@ export default function AgentSummary() {
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/orders/all`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
             },
+            credentials: "include",
           },
         )
 
@@ -346,11 +347,11 @@ export default function AgentSummary() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({
               query: query,
             }),
+            credentials: "include",
           },
         )
 
@@ -389,11 +390,11 @@ export default function AgentSummary() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           query: userMessage,
         }),
+        credentials: "include",
       })
 
       if (!response.ok) {

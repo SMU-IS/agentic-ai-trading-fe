@@ -97,6 +97,7 @@ export default function AutoTradeCard() {
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
           },
         )
 
@@ -154,6 +155,7 @@ export default function AutoTradeCard() {
     try {
       const searchResponse = await fetch(
         `https://finnhub.io/api/v1/search?q=${encodeURIComponent(query)}&token=${FINNHUB_API_KEY}`,
+        { credentials: "include" },
       )
       const searchData = await searchResponse.json()
 
@@ -170,6 +172,7 @@ export default function AutoTradeCard() {
           try {
             const quoteResponse = await fetch(
               `https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${FINNHUB_API_KEY}`,
+              { credentials: "include" },
             )
             const quoteData: FinnhubQuote = await quoteResponse.json()
 
@@ -307,6 +310,7 @@ export default function AutoTradeCard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbol }),
+        credentials: "include",
       })
     } catch (e) {
       console.error("Failed to notify auto-trade enable", e)

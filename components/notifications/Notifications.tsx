@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
+import { v4 as uuidv4 } from "uuid"
 
 // WebSocket notification types from backend
 type WSNotificationType = "NEWS_RECEIVED" | "SIGNAL_GENERATED"
@@ -328,7 +329,7 @@ export default function NotificationsDropdown() {
 
   const renderNewsNotification = (notification: NewsNotification) => (
     <div
-      key={notification.id}
+      key={`${notification.id}-${uuidv4()}`}
       onClick={() => markAsRead(notification.id)}
       className={cn(
         "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
@@ -481,14 +482,15 @@ export default function NotificationsDropdown() {
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-              {unreadCount}
-            </span>
+            // <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+            //   {unreadCount}
+            // </span>
+            <></>
           )}
           {/* Connection status indicator */}
           <span
             className={cn(
-              "absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-background",
+              "absolute -top-0 -right-1 h-3.5 w-3.5 rounded-full border-2 border-background animate-pulse",
               isConnected ? "bg-green-500" : "bg-red-500",
             )}
           />

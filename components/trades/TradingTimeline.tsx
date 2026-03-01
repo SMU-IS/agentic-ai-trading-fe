@@ -143,6 +143,7 @@ export default function TradingTimeline({
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/orders/all`,
+        { credentials: "include" },
       )
 
       if (!res.ok) {

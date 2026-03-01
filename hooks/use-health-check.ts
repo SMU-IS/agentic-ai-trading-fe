@@ -36,7 +36,10 @@ export function useHealthCheck(intervalMs = 30000) {
   const checkAll = async () => {
     const results = await Promise.allSettled(
       Object.entries(HEALTH_ENDPOINTS).map(async ([nodeId, url]) => {
-        const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
+        const res = await fetch(url, {
+          signal: AbortSignal.timeout(5000),
+          credentials: "include",
+        })
         return { nodeId, ok: res.ok }
       }),
     )
