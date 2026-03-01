@@ -389,33 +389,65 @@ export default function AgentSummary() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_API_URL}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query: userMessage,
-          session_id: "0f19c4d2-7e5b-48a1-9c3f-d4e6b7a8c9d0", // TODO: remove hardcoded session_id
+          session_id: "0f19c4d2-7e5b-48a1-9c3f-d4e6b7a8c9d0",
         }),
         credentials: "include",
       })
 
-      if (!response.ok) {
-        throw new Error("Query not supported")
+      if (!response.ok) throw new Error("Query not supported")
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      if (!reader) throw new Error("No response body")
+
+      let accumulatedContent = ""
+      let buffer = ""
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const events = buffer.split("\n\n")
+        buffer = events.pop() || ""
+
+        for (const event of events) {
+          if (!event.trim()) continue
+          for (const line of event.split("\n")) {
+            if (!line.startsWith("data: ")) continue
+            const data = line.slice(6).trim()
+            if (data === "[DONE]") continue
+
+            try {
+              const parsed = JSON.parse(data)
+              if (parsed.error) throw new Error(parsed.error)
+              const token = parsed.token || ""
+              if (token) {
+                accumulatedContent += token
+                setResult(accumulatedContent) // ← update in real time as tokens arrive
+              }
+            } catch {
+              if (data && data !== "[DONE]") {
+                accumulatedContent += data
+                setResult(accumulatedContent)
+              }
+            }
+          }
+        }
       }
 
-      const data = await response.json()
-      setResult(data.response || data.result || "No results found")
+      if (!accumulatedContent) setResult("No results found")
     } catch (error) {
       console.error("Error querying chat API:", error)
       setResult(
         "This query is not currently supported by the finance screener.",
       )
     } finally {
-      // Ensure minimum 3 second loading time
       const elapsedTime = Date.now() - startTime
-      const minLoadingTime = 7000
-      const remainingTime = Math.max(0, minLoadingTime - elapsedTime)
-
+      const remainingTime = Math.max(0, 7000 - elapsedTime)
       await new Promise((resolve) => setTimeout(resolve, remainingTime))
       setLoading(false)
     }

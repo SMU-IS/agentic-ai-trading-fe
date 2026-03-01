@@ -1,11 +1,11 @@
 "use client"
 
-import { accessToken } from "@/app/util/getAccessToken"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowUp, Square, X } from "lucide-react"
+import { ArrowUp, Square, X, PanelLeft, ChevronUp } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { motion, useAnimation } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import ChatLibrary from "@/components/portfolio/chat/ChatLibrary"
 
 function MarkdownStreamingContent({
   content,
@@ -29,34 +29,26 @@ function MarkdownStreamingContent({
       setCurrentIndex(0)
       setDisplayedText("")
     }
-    // Streaming animation
-    const speed = 30 // milliseconds per character
+    const speed = 30
 
     const animate = (timestamp: number) => {
-      if (lastUpdateRef.current === 0) {
-        lastUpdateRef.current = timestamp
-      }
-
+      if (lastUpdateRef.current === 0) lastUpdateRef.current = timestamp
       const elapsed = timestamp - lastUpdateRef.current
-
       if (elapsed >= speed && currentIndex < content.length) {
         const nextIndex = Math.min(currentIndex + 1, content.length)
         setDisplayedText(content.slice(0, nextIndex))
         setCurrentIndex(nextIndex)
         lastUpdateRef.current = timestamp
       }
-
       if (currentIndex < content.length) {
         animationFrameRef.current = requestAnimationFrame(animate)
       }
     }
 
     animationFrameRef.current = requestAnimationFrame(animate)
-
     return () => {
-      if (animationFrameRef.current) {
+      if (animationFrameRef.current)
         cancelAnimationFrame(animationFrameRef.current)
-      }
     }
   }, [content, currentIndex, isStreaming])
 
@@ -66,18 +58,14 @@ function MarkdownStreamingContent({
     let i = 0
 
     while (i < text.length) {
-      // Check for bold: **text**
       if (text[i] === "*" && text[i + 1] === "*") {
-        // Save any buffer text first
         if (buffer) {
           parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
           buffer = ""
         }
-        // Find closing **
-        let j = i + 2
-        let boldText = ""
-        let foundClosing = false
-
+        let j = i + 2,
+          boldText = "",
+          foundClosing = false
         while (j < text.length - 1) {
           if (text[j] === "*" && text[j + 1] === "*") {
             boldText = text.slice(i + 2, j)
@@ -87,7 +75,6 @@ function MarkdownStreamingContent({
           }
           j++
         }
-
         if (foundClosing) {
           parts.push(
             <strong key={`bold-${parts.length}`} className="font-semibold">
@@ -96,13 +83,10 @@ function MarkdownStreamingContent({
           )
           i = j
         } else {
-          // No closing **, treat as regular text (still streaming)
           buffer += text.slice(i, j)
           i = j
         }
-      }
-      // Check for italic: *text* (single asterisk, not **)
-      else if (
+      } else if (
         text[i] === "*" &&
         text[i + 1] !== "*" &&
         (i === 0 || text[i - 1] !== "*")
@@ -111,11 +95,9 @@ function MarkdownStreamingContent({
           parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
           buffer = ""
         }
-
-        let j = i + 1
-        let italicText = ""
-        let foundClosing = false
-
+        let j = i + 1,
+          italicText = "",
+          foundClosing = false
         while (j < text.length) {
           if (
             text[j] === "*" &&
@@ -128,7 +110,6 @@ function MarkdownStreamingContent({
           }
           j++
         }
-
         if (foundClosing) {
           parts.push(
             <em key={`italic-${parts.length}`} className="italic">
@@ -140,18 +121,14 @@ function MarkdownStreamingContent({
           buffer += text.slice(i, j)
           i = j
         }
-      }
-      // Check for inline code: `text`
-      else if (text[i] === "`") {
+      } else if (text[i] === "`") {
         if (buffer) {
           parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
           buffer = ""
         }
-
-        let j = i + 1
-        let codeText = ""
-        let foundClosing = false
-
+        let j = i + 1,
+          codeText = "",
+          foundClosing = false
         while (j < text.length) {
           if (text[j] === "`") {
             codeText = text.slice(i + 1, j)
@@ -161,7 +138,6 @@ function MarkdownStreamingContent({
           }
           j++
         }
-
         if (foundClosing) {
           parts.push(
             <code
@@ -176,28 +152,20 @@ function MarkdownStreamingContent({
           buffer += text.slice(i, j)
           i = j
         }
-      }
-      // Check for newlines
-      else if (text[i] === "\n") {
+      } else if (text[i] === "\n") {
         if (buffer) {
           parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
           buffer = ""
         }
         parts.push(<br key={`br-${parts.length}`} />)
         i++
-      }
-      // Regular character
-      else {
+      } else {
         buffer += text[i]
         i++
       }
     }
 
-    // Add any remaining buffer
-    if (buffer) {
-      parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
-    }
-
+    if (buffer) parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
     return parts
   }
 
@@ -230,54 +198,44 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     null,
   )
   const [error, setError] = useState<string | null>(null)
+  const [showLibrary, setShowLibrary] = useState(false) // ← new
   const hasAutoSentRef = useRef(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const scrollAnimationFrameRef = useRef<number>()
+  const sessionIdRef = useRef<string>(crypto.randomUUID()) // ← stable session per mount
 
   const CHAT_URL = `${process.env.NEXT_PUBLIC_CHAT_API_URL}`
 
-  // Aggressive auto-scroll that works during streaming
   const scrollToBottom = () => {
     const scroll = () => {
-      if (scrollContainerRef.current) {
+      if (scrollContainerRef.current)
         scrollContainerRef.current.scrollTop =
           scrollContainerRef.current.scrollHeight
-      }
     }
-
-    // Execute immediately
     scroll()
-
-    // And also schedule for next frame to catch any rendering delays
-    if (scrollAnimationFrameRef.current) {
+    if (scrollAnimationFrameRef.current)
       cancelAnimationFrame(scrollAnimationFrameRef.current)
-    }
     scrollAnimationFrameRef.current = requestAnimationFrame(scroll)
   }
 
-  // Trigger scroll on every message update
   useEffect(() => {
     scrollToBottom()
   }, [messages])
 
-  // Additional scroll trigger specifically for streaming content changes
   useEffect(() => {
     if (loading) {
       const lastMessage = messages[messages.length - 1]
-      if (lastMessage?.isStreaming) {
-        scrollToBottom()
-      }
+      if (lastMessage?.isStreaming) scrollToBottom()
     }
   }, [messages, loading])
 
   useEffect(() => {
     if (!open) {
       hasAutoSentRef.current = false
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
+      if (abortControllerRef.current) abortControllerRef.current.abort()
+      setShowLibrary(false) // ← reset library on close
     }
   }, [open])
 
@@ -287,36 +245,30 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     } else {
       document.body.style.overflow = "unset"
     }
-
     return () => {
       document.body.style.overflow = "unset"
-      if (scrollAnimationFrameRef.current) {
+      if (scrollAnimationFrameRef.current)
         cancelAnimationFrame(scrollAnimationFrameRef.current)
-      }
     }
   }, [open])
 
   const streamBackendResponse = async (
     userMessage: string,
-    order_id: string | string[] | undefined,
+    order_id: string | undefined,
     assistantMessageId: string,
     signal: AbortSignal,
   ) => {
-    const shouldIncludeOrderId =
-      order_id &&
-      (typeof order_id === "string" ? order_id.length > 0 : order_id.length > 0)
+    const shouldIncludeOrderId = order_id && order_id.length > 0
 
     const response = await fetch(`${CHAT_URL}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         query: userMessage,
+        session_id: sessionIdRef.current,
         ...(shouldIncludeOrderId && { order_id }),
-        session_id: "0f19c4d2-7e5b-48a1-9c3f-d4e6b7a8c9d0", // TODO: remove hardcoded session_id
       }),
-      signal: signal,
+      signal,
       credentials: "include",
     })
 
@@ -327,120 +279,42 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
     const reader = response.body?.getReader()
     const decoder = new TextDecoder()
-
-    if (!reader) {
-      throw new Error("No response body")
-    }
+    if (!reader) throw new Error("No response body")
 
     let accumulatedContent = ""
     let buffer = ""
-    let hasReceivedFirstToken = false
 
     while (true) {
       const { done, value } = await reader.read()
-
       if (done) break
 
       buffer += decoder.decode(value, { stream: true })
-
       const events = buffer.split("\n\n")
       buffer = events.pop() || ""
 
       for (const event of events) {
         if (!event.trim()) continue
-
-        const lines = event.split("\n")
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6)
-
-            if (data.trim() === "[DONE]") {
-              continue
-            }
-
-            try {
-              const parsed = JSON.parse(data)
-
-              if (parsed.error) {
-                throw new Error(parsed.error)
-              }
-
-              const token = parsed.token || ""
-
-              if (token) {
-                if (!hasReceivedFirstToken) {
-                  hasReceivedFirstToken = true
-                }
-
-                accumulatedContent += token
-
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantMessageId
-                      ? {
-                          ...msg,
-                          content: accumulatedContent,
-                          isStreaming: true,
-                        }
-                      : msg,
-                  ),
-                )
-
-                // Force scroll after each token
-                scrollToBottom()
-              }
-            } catch (parseError) {
-              if (data.trim() && data.trim() !== "[DONE]") {
-                if (!hasReceivedFirstToken) {
-                  hasReceivedFirstToken = true
-                }
-                accumulatedContent += data
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantMessageId
-                      ? {
-                          ...msg,
-                          content: accumulatedContent,
-                          isStreaming: true,
-                        }
-                      : msg,
-                  ),
-                )
-
-                scrollToBottom()
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (buffer.trim()) {
-      const lines = buffer.split("\n")
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
+        for (const line of event.split("\n")) {
+          if (!line.startsWith("data: ")) continue
           const data = line.slice(6)
-          if (data.trim() && data.trim() !== "[DONE]") {
-            try {
-              const parsed = JSON.parse(data)
-              const token = parsed.token || ""
-              if (token) {
-                accumulatedContent += token
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantMessageId
-                      ? {
-                          ...msg,
-                          content: accumulatedContent,
-                          isStreaming: true,
-                        }
-                      : msg,
-                  ),
-                )
-                scrollToBottom()
-              }
-            } catch {
+          if (data.trim() === "[DONE]") continue
+          try {
+            const parsed = JSON.parse(data)
+            if (parsed.error) throw new Error(parsed.error)
+            const token = parsed.token || ""
+            if (token) {
+              accumulatedContent += token
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, content: accumulatedContent, isStreaming: true }
+                    : msg,
+                ),
+              )
+              scrollToBottom()
+            }
+          } catch {
+            if (data.trim() && data.trim() !== "[DONE]") {
               accumulatedContent += data
               setMessages((prev) =>
                 prev.map((msg) =>
@@ -467,27 +341,20 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     const userMessageId = `user-${Date.now()}`
     const assistantMessageId = `assistant-${Date.now()}`
 
-    const userMessage: ChatMessage = {
-      id: userMessageId,
-      role: "user",
-      content: textToSend,
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-
-    if (!messageText) {
-      setInput("")
-    }
+    setMessages((prev) => [
+      ...prev,
+      { id: userMessageId, role: "user", content: textToSend },
+    ])
+    if (!messageText) setInput("")
 
     setLoading(true)
     setError(null)
     setStreamingMessageId(assistantMessageId)
-
+    setShowLibrary(false) // ← collapse library when sending a message
     abortControllerRef.current = new AbortController()
 
     try {
       let order_id: string | undefined = undefined
-
       if (
         includeOrderId &&
         contextData?.dataType === "transaction" &&
@@ -526,7 +393,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           e instanceof Error ? e.message : "Unexpected error talking to Ask AI",
         )
       }
-
       setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId))
     } finally {
       setLoading(false)
@@ -538,7 +404,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   useEffect(() => {
     if (open && contextData && !hasAutoSentRef.current) {
       hasAutoSentRef.current = true
-
       let autoMessage = ""
       let shouldIncludeOrderId = false
 
@@ -550,7 +415,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           `- Avg Entry Price: $${contextData.avgPrice.toFixed(2)}\n` +
           `- Total P/L: ${contextData.totalPL >= 0 ? "+" : ""}$${contextData.totalPL.toFixed(2)} (${contextData.changePercent.toFixed(2)}%)\n\n` +
           `Can you analyze this position and provide insights?`
-        shouldIncludeOrderId = false
       } else if (contextData.dataType === "transaction") {
         const txDate = new Date(contextData.datetime).toLocaleString("en-US", {
           month: "short",
@@ -570,37 +434,42 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           `- Trade Reason: ${contextData.reason}\n\n` +
           `Can you analyze this transaction and provide detailed insights?`
         shouldIncludeOrderId = true
-      } else {
-        contextData = []
       }
 
-      if (autoMessage) {
-        handleSendMessage(autoMessage, shouldIncludeOrderId)
-      }
+      if (autoMessage) handleSendMessage(autoMessage, shouldIncludeOrderId)
     }
   }, [open, contextData])
 
-  const handleSend = () => {
-    handleSendMessage(undefined, false)
+  // Load a historical session into the chat
+  const handleSelectSession = (sessionId: string, sessionMessages: any[]) => {
+    const mapped: ChatMessage[] = sessionMessages.map((m, i) => ({
+      id: `history-${i}`,
+      role: m.role,
+      content: m.content,
+      isStreaming: false,
+    }))
+    sessionIdRef.current = sessionId
+    setMessages(mapped)
+    setShowLibrary(false)
   }
 
+  const handleSend = () => handleSendMessage(undefined, false)
+
   const handleStop = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
+    if (abortControllerRef.current) abortControllerRef.current.abort()
   }
 
   return (
     <>
       <div
-        className={`fixed inset-0 z-40 bg-background/40 backdrop-blur-sm transition-opacity duration-300 ease-out ${open ? "opacity-100" : "pointer-events-none opacity-0"} `}
+        className={`fixed inset-0 z-40 bg-background/40 backdrop-blur-sm transition-opacity duration-300 ease-out ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
         onClick={() => onOpenChange(false)}
       />
 
       <div className="pointer-events-none fixed bottom-2 left-0 right-0 z-50">
         <div className="pointer-events-none mx-auto max-w-5xl px-4 pb-4">
           <div
-            className={`pointer-events-auto transform transition-all duration-500 ease-out ${open ? "translate-y-0 scale-100 opacity-100" : "translate-y-[calc(100%+2rem)] scale-95 opacity-0"} `}
+            className={`pointer-events-auto transform transition-all duration-500 ease-out ${open ? "translate-y-0 scale-100 opacity-100" : "translate-y-[calc(100%+2rem)] scale-95 opacity-0"}`}
             style={{
               transitionTimingFunction: open
                 ? "cubic-bezier(0.16, 1, 0.3, 1)"
@@ -612,33 +481,94 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                 <div className="bg-gradient-conic-smooth animate-spin-border absolute inset-[-100%]" />
               </div>
 
-              <Card className="relative flex flex-col min-h-[30vh] max-h-[60vh] overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl">
-                {/* Header - fixed */}
-                <div className="flex items-center justify-between border-b border-border px-4 pb-2 pt-3 flex-shrink-0">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      Ask Agent M.
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {contextData?.symbol
-                        ? `Analyzing ${contextData.symbol}`
-                        : "Ask about your holdings, risk, or what to do next."}
-                    </p>
+              <Card
+                className="relative flex flex-col overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl"
+                style={{
+                  minHeight: "30vh",
+                  maxHeight: showLibrary ? "80vh" : "60vh",
+                  transition: "max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                }}
+              >
+                {/* Header */}
+                <div className="relative flex items-center justify-between border-b border-border px-4 pb-2 pt-3 flex-shrink-0 overflow-visible">
+                  <div className="flex items-center gap-2">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Ask Agent M.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {contextData?.symbol
+                          ? `Analyzing ${contextData.symbol}`
+                          : "Ask about your holdings, risk, or what to do next."}
+                      </p>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    aria-label="Close Ask AI"
-                    onClick={() => onOpenChange(false)}
-                    className="ml-2 inline-flex items-center justify-center rounded-full border border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+
+                  {/* Right side buttons */}
+                  <div className="flex items-center gap-2">
+                    {/* Library Toggle Button */}
+                    <div className="relative group/library">
+                      <button
+                        type="button"
+                        aria-label="Chat Library"
+                        onClick={() => setShowLibrary((v) => !v)}
+                        className={`inline-flex items-center gap-1.5 text-xs justify-center rounded-full px-3 py-1.5 transition-all duration-200 border font-medium ${
+                          showLibrary
+                            ? "border-teal-500/50 bg-teal-500/10 text-teal-400"
+                            : "border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-muted-foreground/30"
+                        }`}
+                      >
+                        <PanelLeft className="h-3.5 w-3.5" />
+                        Library
+                      </button>
+
+                      {/* Tooltip */}
+                      <div className="pointer-events-none absolute right-0 top-full mt-2 z-[999] opacity-0 group-hover/library:opacity-100 translate-y-1 group-hover/library:translate-y-0 transition-all duration-200">
+                        <div className="relative rounded-lg border border-border bg-card px-2.5 py-1.5 shadow-lg">
+                          <p className="whitespace-nowrap text-[11px] text-muted-foreground">
+                            {showLibrary
+                              ? "Close chat history"
+                              : "Browse past conversations"}
+                          </p>
+                          <div className="absolute -top-1 right-4 h-2 w-2 rotate-45 border-l border-t border-border bg-card" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Close Button */}
+                    <button
+                      type="button"
+                      aria-label="Close Ask AI"
+                      onClick={() => onOpenChange(false)}
+                      className="inline-flex items-center justify-center rounded-full border border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
-                {/* Messages - scrollable, fills remaining space */}
+                {/* Chat Library Panel */}
+                <AnimatePresence>
+                  {showLibrary && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden border-b border-border flex-shrink-0"
+                    >
+                      <ChatLibrary
+                        currentSessionId={sessionIdRef.current}
+                        onSelectSession={handleSelectSession}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Messages */}
                 <div
                   ref={scrollContainerRef}
-                  className="flex-1 overflow-y-auto space-y-2 px-4 py-3 text-sm" // ✅ Removed mb-20, max-h-96
+                  className="flex-1 overflow-y-auto space-y-2 px-4 py-3 text-sm"
                   style={{ scrollBehavior: "auto" }}
                 >
                   {messages.length === 0 && !error && !loading && (
@@ -660,7 +590,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       <div
                         className={`max-w-[80%] font-medium rounded-xl px-3 py-2 ${
                           m.role === "user"
-                            ? "bg-primary text-primary-foreground"
+                            ? "bg-primary/10 border-2 border-foreground/10 text-foreground"
                             : "bg-transparent text-foreground"
                         }`}
                       >
@@ -699,14 +629,12 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input - fixed at bottom, never overlaps */}
+                {/* Input */}
                 <div className="flex-shrink-0 flex items-center gap-2 border-t border-border px-4 py-3">
-                  {" "}
-                  {/* ✅ Removed absolute positioning */}
                   <div className="flex flex-1 items-center gap-2">
                     <input
                       className="flex-1 rounded-xl border-border bg-border px-4 py-3 text-sm outline-none transition-all focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
-                      placeholder={"Ask anything about your portfolio..."}
+                      placeholder="Ask anything about your portfolio..."
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -755,11 +683,9 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
             transform: rotate(360deg);
           }
         }
-
         .animate-spin-border {
           animation: spin-border 4s linear infinite;
         }
-
         .bg-gradient-conic-smooth {
           background: conic-gradient(
             from 0deg,

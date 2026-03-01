@@ -122,3 +122,19 @@
   font-size: 5px !important;
   background: none !important;
 }
+
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotate-angle {
+  to {
+    --angle: 360deg;
+  }
+}
+
+.animate-rotate-border {
+  animation: rotate-angle 2s linear infinite;
+}

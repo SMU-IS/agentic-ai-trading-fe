@@ -32,7 +32,7 @@ export function ModeToggle() {
       <motion.div
         className="absolute inset-0 rounded-full"
         animate={{
-          backgroundColor: isDark ? "rgb(20, 184, 166)" : "rgb(250, 204, 21)",
+          backgroundColor: isDark ? "rgb(33, 51, 48)" : "rgb(238, 234, 215)",
         }}
         transition={{ duration: 0.3 }}
       />

@@ -136,7 +136,6 @@ export default function NotificationsDropdown() {
         ws.onmessage = (event) => {
           if (!isComponentMounted) return
 
-          console.log("📨 Received message:", event.data)
           try {
             const data: WSNotification = JSON.parse(event.data)
 
@@ -147,8 +146,8 @@ export default function NotificationsDropdown() {
               const tickers = Array.isArray(data.tickers)
                 ? data.tickers
                 : data.tickers
-                  ? [data.tickers] // Convert single object to array
-                  : [] // Default to empty array
+                  ? [data.tickers]
+                  : []
 
               console.log("✅ Parsed tickers:", tickers) // Debug log
 
@@ -184,7 +183,7 @@ export default function NotificationsDropdown() {
               "Notification" in window &&
               Notification.permission === "granted"
             ) {
-              new Notification("New Market Update", {
+              new Notification("Incoming: Market News Update", {
                 body:
                   data.type === "NEWS_RECEIVED"
                     ? data.headline

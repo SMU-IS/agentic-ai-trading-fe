@@ -25,10 +25,6 @@ export default function TradesTab() {
           { credentials: "include" },
         )
         const data = await response.json()
-        console.log("testing", data)
-
-        // Transform your API response into the shape SpeculationAgent expects:
-        // { AAPL: { avg_entry_price: 150.00, quantity: 7 }, TSLA: { ... } }
         const holdingsMap: Record<string, HoldingInfo> = {}
         data.forEach((holding: any) => {
           holdingsMap[holding.symbol] = {

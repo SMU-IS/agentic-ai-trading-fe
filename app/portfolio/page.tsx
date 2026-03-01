@@ -4,13 +4,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
-import {
-  LogOut,
-  Wallet,
-  LineChart,
-  Settings2,
-  DatabaseZapIcon,
-} from "lucide-react"
+import { LogOut, Settings2, DatabaseZapIcon, Sparkles } from "lucide-react"
 import PortfolioTab from "@/components/portfolio/PortfolioTab"
 import PredictionsTab from "@/components/portfolio/predictions/PredictionsTab"
 import { ModeToggle } from "@/components/mode-toggle"
@@ -19,7 +13,7 @@ import NotificationsDropdown from "@/components/notifications/Notifications"
 import AnimatedBackground from "./AnimatedBackground"
 import { motion } from "framer-motion"
 import AgentFlowTab from "@/components/agentflow/AgentFlow"
-import { FaRobot } from "react-icons/fa"
+import AskAI from "@/components/portfolio/chat/AskAI"
 
 // Loading component
 function LoadingScreen() {
@@ -50,6 +44,9 @@ function PortfolioContent() {
   const { user, isLoading, signOut } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [askAISymbol, setAskAISymbol] = useState<string | null>(null)
+  const [showAskAI, setShowAskAI] = useState(false)
+  const [askAIData, setAskAIData] = useState<any>(null)
 
   const [activeTab, setActiveTab] = useState<
     "portfolio" | "trades" | "agentflow"
@@ -101,7 +98,31 @@ function PortfolioContent() {
             />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <Button
+              className="h-8 bg-background text-foreground relative group transition-all duration-300 rounded-full hover:bg-muted"
+              onClick={() => {
+                setAskAISymbol(null)
+                setShowAskAI(true)
+              }}
+            >
+              {/* Always-on animated border ring outside the button */}
+              <span
+                className="pointer-events-none absolute -inset-[2px] rounded-full animate-rotate-border"
+                style={{
+                  padding: "2px",
+                  background:
+                    "conic-gradient(from var(--angle, 0deg), #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
+                  WebkitMask:
+                    "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                  WebkitMaskComposite: "xor",
+                  maskComposite: "exclude",
+                  zIndex: -1,
+                }}
+              />
+              <Sparkles className="h-4 w-4" />
+              Ask AI
+            </Button>{" "}
             <ModeToggle />
             <NotificationsDropdown />
             <Button
@@ -128,6 +149,15 @@ function PortfolioContent() {
         {activeTab === "trades" && <TradesTab />}
         {activeTab === "agentflow" && <AgentFlowTab />}
       </main>
+      {/* Ask AI bottom sheet */}
+      <AskAI
+        open={showAskAI}
+        onOpenChange={(open) => {
+          setShowAskAI(open)
+          if (!open) setAskAIData(null) // Clear data when closing
+        }}
+        contextData={askAIData}
+      />
     </div>
   )
 }

@@ -469,17 +469,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
             <History className="mr-2 h-4 w-4" />
             Transactions
           </Button>
-          <Button
-            className="relative rounded-full border bg-gradient-to-r from-primary to-cyan-200/20 px-5 py-3 font-semibold text-white shadow-[0_8px_32px_0_rgba(20,184,166,0.4)] backdrop-blur-lg transition-all duration-300 before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-r before:from-teal-500/0 before:via-white/20 before:to-teal-500/0 before:opacity-0 before:transition-opacity before:duration-500 hover:from-teal-500/30 hover:to-cyan-900/10 hover:shadow-[0_8px_32px_0_rgba(20,184,166,0.6)] hover:text-background hover:before:opacity-100 dark:from-primary/20 dark:to-cyan-200/20 from-teal-600/60 to-cyan-700/50"
-            // className="bg-teal-600 text-white hover:bg-teal-600 rounded-full shadow-lg hover:shadow-teal-500/30 transition-all"
-            onClick={() => {
-              setAskAISymbol(null)
-              setShowAskAI(true)
-            }}
-          >
-            <Sparkles className="h-4 w-4" />
-            Ask AI
-          </Button>
         </div>
       </div>
       {/* Long positions table */}
