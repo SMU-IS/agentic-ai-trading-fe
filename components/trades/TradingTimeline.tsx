@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import StockLogo from "@/components/StockLogo"
+import { motion, LayoutGroup, AnimatePresence } from "framer-motion"
 import {
   TrendingUp,
   TrendingDown,
@@ -11,9 +12,7 @@ import {
   Info,
   Bot,
   User,
-  AlertTriangle,
-  Target,
-  Shield,
+  X,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -40,6 +39,8 @@ export default function TradingTimeline({
   )
   const [showFilters, setShowFilters] = useState(false)
   const [showStats, setShowStats] = useState(false)
+  const [filterSymbols, setFilterSymbols] = useState<string[]>([])
+  const [filterPeriod, setFilterPeriod] = useState("all")
 
   useEffect(() => {
     fetchTradeHistory()
@@ -179,7 +180,6 @@ export default function TradingTimeline({
   const filteredTrades = trades.filter((trade) => {
     if (filterType !== "all" && trade.trade_type !== filterType) return false
 
-    // ✅ Updated filter logic
     if (filterStatus === "filled" && trade.status !== "filled") return false
     if (filterStatus === "pending" && trade.status !== "pending") return false
     if (filterStatus === "cancelled" && trade.status !== "cancelled")
@@ -187,6 +187,35 @@ export default function TradingTimeline({
 
     if (filterSource === "agent" && !trade.is_agent_trade) return false
     if (filterSource === "manual" && trade.is_agent_trade) return false
+
+    // Symbol filter
+    if (filterSymbols.length > 0 && !filterSymbols.includes(trade.symbol))
+      return false
+
+    // Period filter
+    if (filterPeriod !== "all") {
+      const tradeDate = new Date(trade.timestamp)
+      const now = new Date()
+      if (filterPeriod === "today") {
+        if (tradeDate.toDateString() !== now.toDateString()) return false
+      } else if (filterPeriod === "week") {
+        const weekAgo = new Date(now)
+        weekAgo.setDate(now.getDate() - 7)
+        if (tradeDate < weekAgo) return false
+      } else if (filterPeriod === "month") {
+        if (
+          tradeDate.getMonth() !== now.getMonth() ||
+          tradeDate.getFullYear() !== now.getFullYear()
+        )
+          return false
+      } else if (filterPeriod === "3months") {
+        const threeMonthsAgo = new Date(now)
+        threeMonthsAgo.setMonth(now.getMonth() - 3)
+        if (tradeDate < threeMonthsAgo) return false
+      } else if (filterPeriod === "year") {
+        if (tradeDate.getFullYear() !== now.getFullYear()) return false
+      }
+    }
 
     return true
   })
@@ -234,264 +263,538 @@ export default function TradingTimeline({
 
   return (
     <div className="flex h-full flex-col">
-      <Card className="border-border bg-card">
+      <Card className="border-border bg-card h-full">
         <CardHeader className="flex-shrink-0">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <ArrowRightLeft className="h-5 w-5 text-primary" />
-            View Trades ({filteredTrades.length} trades)
-          </CardTitle>
-          <p className="mt-1 pb-2 text-sm text-muted-foreground">
-            Complete history of all trades made manually & by AI Agent
-          </p>
-          <div className="mt-2 flex items-center gap-2">
-            {/* Filter Dropdown */}
-            <div className="relative">
-              <Button
-                size="sm"
-                className="h-8 text-xs rounded-lg border border-foreground/30 bg-muted text-foreground hover:bg-muted/20"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="mr-2 h-3 w-3" />
-                Filters
-                {(filterType !== "all" ||
-                  filterStatus !== "all" ||
-                  filterSource !== "all") && (
-                  <span className="ml-2 rounded-full bg-primary px-1.5 py-0.5 text-[10px] text-primary-foreground">
-                    Active
-                  </span>
-                )}
-              </Button>
-
-              {showFilters && (
-                <div className="absolute left-0 top-full z-50 mt-2 w-80 rounded-lg border border-border bg-card p-4 shadow-lg">
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="mb-2 text-sm font-medium">Trade Source</h4>
-                      <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
-                        <button
-                          onClick={() => setFilterSource("all")}
-                          className={`h-8 flex-1 rounded text-xs transition-colors ${
-                            filterSource === "all"
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted-foreground/10"
-                          }`}
-                        >
-                          All
-                        </button>
-                        <button
-                          onClick={() => setFilterSource("agent")}
-                          className={`flex h-8 flex-1 items-center justify-center gap-1 rounded text-xs transition-colors ${
-                            filterSource === "agent"
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted-foreground/10"
-                          }`}
-                        >
-                          <Bot className="h-3 w-3" />
-                          Agent
-                        </button>
-                        <button
-                          onClick={() => setFilterSource("manual")}
-                          className={`flex h-8 flex-1 items-center justify-center gap-1 rounded text-xs transition-colors ${
-                            filterSource === "manual"
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted-foreground/10"
-                          }`}
-                        >
-                          <User className="h-3 w-3" />
-                          Manual
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="mb-2 text-sm font-medium">Trade Type</h4>
-                      <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
-                        <button
-                          onClick={() => setFilterType("all")}
-                          className={`h-8 flex-1 rounded text-xs transition-colors ${
-                            filterType === "all"
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted-foreground/10"
-                          }`}
-                        >
-                          All
-                        </button>
-                        <button
-                          onClick={() => setFilterType("buy")}
-                          className={`flex h-8 flex-1 items-center justify-center gap-1 rounded text-xs transition-colors ${
-                            filterType === "buy"
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted-foreground/10"
-                          }`}
-                        >
-                          <TrendingUp className="h-3 w-3" />
-                          Buys
-                        </button>
-                        <button
-                          onClick={() => setFilterType("sell")}
-                          className={`flex h-8 flex-1 items-center justify-center gap-1 rounded text-xs transition-colors ${
-                            filterType === "sell"
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted-foreground/10"
-                          }`}
-                        >
-                          <TrendingDown className="h-3 w-3" />
-                          Sells
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* ✅ Updated Status Filter with 4 options */}
-                    <div>
-                      <h4 className="mb-2 text-sm font-medium">Status</h4>
-                      <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
-                        <button
-                          onClick={() => setFilterStatus("all")}
-                          className={`h-8 rounded text-xs transition-colors ${
-                            filterStatus === "all"
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted-foreground/10"
-                          }`}
-                        >
-                          All
-                        </button>
-                        <button
-                          onClick={() => setFilterStatus("filled")}
-                          className={`h-8 rounded text-xs transition-colors ${
-                            filterStatus === "filled"
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted-foreground/10"
-                          }`}
-                        >
-                          Filled
-                        </button>
-                        <button
-                          onClick={() => setFilterStatus("pending")}
-                          className={`h-8 rounded text-xs transition-colors ${
-                            filterStatus === "pending"
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted-foreground/10"
-                          }`}
-                        >
-                          Pending
-                        </button>
-                        <button
-                          onClick={() => setFilterStatus("cancelled")}
-                          className={`h-8 rounded text-xs transition-colors ${
-                            filterStatus === "cancelled"
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted-foreground/10"
-                          }`}
-                        >
-                          Cancelled
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+          <div className="flex items-start justify-between">
+            {/* Left - Title & Description */}
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <ArrowRightLeft className="h-5 w-5 text-primary" />
+                View Trades ({filteredTrades.length} trades)
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Overview of all trades
+              </p>
             </div>
 
-            {/* Stats Dropdown */}
-            {!loading && filteredTrades.length > 0 && (
+            {/* Right - Buttons */}
+            <div className="flex items-center gap-2">
+              {/* Stats Dropdown */}
+              {!loading && filteredTrades.length > 0 && (
+                <div className="relative">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs rounded-lg border border-foreground/30 bg-muted text-foreground hover:bg-muted/20"
+                    onClick={() => setShowStats(!showStats)}
+                  >
+                    <Info className="mr-2 h-3 w-3" />
+                    Statistics
+                  </Button>
+
+                  <AnimatePresence>
+                    {showStats && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 30,
+                        }}
+                        className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border border-border bg-card p-4 shadow-lg"
+                      >
+                        <h4 className="mb-3 text-sm font-medium">
+                          Trading Statistics
+                        </h4>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="rounded-lg bg-muted/50 p-3">
+                            <div className="mb-1 flex items-center gap-2 text-muted-foreground">
+                              <ArrowRightLeft className="h-3 w-3" />
+                              <span className="text-xs">Total Trades</span>
+                            </div>
+                            <div className="text-xl font-bold">
+                              {filteredTrades.length}
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-muted/50 p-3">
+                            <div className="mb-1 flex items-center gap-2 text-muted-foreground">
+                              <DollarSign className="h-3 w-3" />
+                              <span className="text-xs">Total Volume</span>
+                            </div>
+                            <div className="text-xl font-bold">
+                              $
+                              {filteredTrades
+                                .reduce((sum, t) => sum + t.total_value, 0)
+                                .toFixed(0)}
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-muted/50 p-3">
+                            <div className="mb-1 flex items-center gap-2 text-muted-foreground">
+                              <Bot className="h-3 w-3" />
+                              <span className="text-xs">Agent Trades</span>
+                            </div>
+                            <div className="text-xl font-bold text-primary">
+                              {
+                                filteredTrades.filter((t) => t.is_agent_trade)
+                                  .length
+                              }
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-muted/50 p-3">
+                            <div className="mb-1 flex items-center gap-2 text-muted-foreground">
+                              <User className="h-3 w-3" />
+                              <span className="text-xs">Manual Trades</span>
+                            </div>
+                            <div className="text-xl font-bold">
+                              {
+                                filteredTrades.filter((t) => !t.is_agent_trade)
+                                  .length
+                              }
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-muted/50 p-3">
+                            <div className="mb-1 flex items-center gap-2 text-muted-foreground">
+                              <TrendingUp className="h-3 w-3" />
+                              <span className="text-xs">Buy Orders</span>
+                            </div>
+                            <div className="text-xl font-bold text-green-600">
+                              {
+                                filteredTrades.filter(
+                                  (t) => t.trade_type === "buy",
+                                ).length
+                              }
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-muted/50 p-3">
+                            <div className="mb-1 flex items-center gap-2 text-muted-foreground">
+                              <TrendingDown className="h-3 w-3" />
+                              <span className="text-xs">Sell Orders</span>
+                            </div>
+                            <div className="text-xl font-bold text-red-500">
+                              {
+                                filteredTrades.filter(
+                                  (t) => t.trade_type === "sell",
+                                ).length
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              {/* Filter Dropdown */}
               <div className="relative">
                 <Button
-                  variant="outline"
                   size="sm"
                   className="h-8 text-xs rounded-lg border border-foreground/30 bg-muted text-foreground hover:bg-muted/20"
-                  onClick={() => setShowStats(!showStats)}
+                  onClick={() => setShowFilters(!showFilters)}
                 >
-                  <Info className="mr-2 h-3 w-3" />
-                  Statistics
+                  <Filter className="mr-2 h-3 w-3" />
+                  Filters
+                  <AnimatePresence>
+                    {(filterType !== "all" ||
+                      filterStatus !== "all" ||
+                      filterSource !== "all" ||
+                      filterSymbols.length > 0 ||
+                      filterPeriod !== "all") && (
+                      <motion.span
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 25,
+                        }}
+                        className="ml-2 rounded-full bg-primary px-1.5 py-0.5 text-[10px] text-primary-foreground"
+                      >
+                        {[
+                          filterType !== "all" ? 1 : 0,
+                          filterStatus !== "all" ? 1 : 0,
+                          filterSource !== "all" ? 1 : 0,
+                          filterSymbols.length > 0 ? 1 : 0,
+                          filterPeriod !== "all" ? 1 : 0,
+                        ].reduce((a, b) => a + b, 0)}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </Button>
 
-                {showStats && (
-                  <div className="absolute left-0 top-full z-50 mt-2 w-80 rounded-lg border border-border bg-card p-4 shadow-lg">
-                    <h4 className="mb-3 text-sm font-medium">
-                      Trading Statistics
-                    </h4>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-lg bg-muted/50 p-3">
-                        <div className="mb-1 flex items-center gap-2 text-muted-foreground">
-                          <ArrowRightLeft className="h-3 w-3" />
-                          <span className="text-xs">Total Trades</span>
-                        </div>
-                        <div className="text-xl font-bold">
-                          {filteredTrades.length}
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg bg-muted/50 p-3">
-                        <div className="mb-1 flex items-center gap-2 text-muted-foreground">
-                          <DollarSign className="h-3 w-3" />
-                          <span className="text-xs">Total Volume</span>
-                        </div>
-                        <div className="text-xl font-bold">
-                          $
-                          {filteredTrades
-                            .reduce((sum, t) => sum + t.total_value, 0)
-                            .toFixed(0)}
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg bg-muted/50 p-3">
-                        <div className="mb-1 flex items-center gap-2 text-muted-foreground">
-                          <Bot className="h-3 w-3" />
-                          <span className="text-xs">Agent Trades</span>
-                        </div>
-                        <div className="text-xl font-bold text-primary">
-                          {
-                            filteredTrades.filter((t) => t.is_agent_trade)
-                              .length
-                          }
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg bg-muted/50 p-3">
-                        <div className="mb-1 flex items-center gap-2 text-muted-foreground">
-                          <User className="h-3 w-3" />
-                          <span className="text-xs">Manual Trades</span>
-                        </div>
-                        <div className="text-xl font-bold text-foreground">
-                          {
-                            filteredTrades.filter((t) => !t.is_agent_trade)
-                              .length
-                          }
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg bg-muted/50 p-3">
-                        <div className="mb-1 flex items-center gap-2 text-muted-foreground">
-                          <TrendingUp className="h-3 w-3" />
-                          <span className="text-xs">Buy Orders</span>
-                        </div>
-                        <div className="text-xl font-bold text-green-600">
-                          {
-                            filteredTrades.filter((t) => t.trade_type === "buy")
-                              .length
-                          }
+                <AnimatePresence>
+                  {showFilters && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 30,
+                      }}
+                      className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border border-border bg-card shadow-lg overflow-hidden"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                        <h4 className="text-sm font-bold">
+                          Filters
+                          {[
+                            filterType !== "all" ? 1 : 0,
+                            filterStatus !== "all" ? 1 : 0,
+                            filterSource !== "all" ? 1 : 0,
+                            filterSymbols.length > 0 ? 1 : 0,
+                            filterPeriod !== "all" ? 1 : 0,
+                          ].reduce((a, b) => a + b, 0) > 0 && (
+                            <span className="ml-2 text-xs font-bold text-muted-foreground">
+                              (
+                              {[
+                                filterType !== "all" ? 1 : 0,
+                                filterStatus !== "all" ? 1 : 0,
+                                filterSource !== "all" ? 1 : 0,
+                                filterSymbols.length > 0 ? 1 : 0,
+                                filterPeriod !== "all" ? 1 : 0,
+                              ].reduce((a, b) => a + b, 0)}
+                              )
+                            </span>
+                          )}
+                        </h4>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => {
+                              setFilterType("all")
+                              setFilterStatus("all")
+                              setFilterSource("all")
+                              setFilterSymbols([])
+                              setFilterPeriod("all")
+                            }}
+                            className="text-xs font-semibold text-red-500 hover:text-red-400 transition-colors"
+                          >
+                            Clear All
+                          </button>
+                          <button
+                            onClick={() => setShowFilters(false)}
+                            className="text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
                         </div>
                       </div>
 
-                      <div className="rounded-lg bg-muted/50 p-3">
-                        <div className="mb-1 flex items-center gap-2 text-muted-foreground">
-                          <TrendingDown className="h-3 w-3" />
-                          <span className="text-xs">Sell Orders</span>
+                      <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
+                        {/* Symbol Filter */}
+                        <div>
+                          <h4 className="mb-2 text-xs  text-muted-foreground ">
+                            Symbol
+                          </h4>
+                          <AnimatePresence>
+                            {filterSymbols.length > 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 400,
+                                  damping: 30,
+                                }}
+                                className="flex flex-wrap gap-1.5 mb-2 overflow-hidden"
+                              >
+                                <AnimatePresence>
+                                  {filterSymbols.map((sym) => (
+                                    <motion.div
+                                      key={sym}
+                                      initial={{ opacity: 0, scale: 0.8 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      exit={{ opacity: 0, scale: 0.8 }}
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 400,
+                                        damping: 25,
+                                      }}
+                                      className="flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground"
+                                    >
+                                      {sym}
+                                      <button
+                                        onClick={() =>
+                                          setFilterSymbols(
+                                            filterSymbols.filter(
+                                              (s) => s !== sym,
+                                            ),
+                                          )
+                                        }
+                                        className="ml-0.5 rounded-full hover:bg-primary-foreground/20 p-0.5"
+                                      >
+                                        <X className="h-2.5 w-2.5" />
+                                      </button>
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          <input
+                            type="text"
+                            placeholder="Type a symbol and press Enter..."
+                            className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                const val = (e.target as HTMLInputElement).value
+                                  .trim()
+                                  .toUpperCase()
+                                if (val && !filterSymbols.includes(val)) {
+                                  setFilterSymbols([...filterSymbols, val])
+                                }
+                                ;(e.target as HTMLInputElement).value = ""
+                              }
+                            }}
+                          />
+
+                          {(() => {
+                            const uniqueSymbols = [
+                              ...new Set(trades.map((t) => t.symbol)),
+                            ]
+                              .filter((s) => !filterSymbols.includes(s))
+                              .slice(0, 6)
+                            return uniqueSymbols.length > 0 ? (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {uniqueSymbols.map((sym) => (
+                                  <motion.button
+                                    key={sym}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() =>
+                                      setFilterSymbols([...filterSymbols, sym])
+                                    }
+                                    className="rounded-full border border-border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                                  >
+                                    {sym}
+                                  </motion.button>
+                                ))}
+                              </div>
+                            ) : null
+                          })()}
                         </div>
-                        <div className="text-xl font-bold text-red-500">
-                          {
-                            filteredTrades.filter(
-                              (t) => t.trade_type === "sell",
-                            ).length
-                          }
+
+                        {/* Date Period */}
+                        <div>
+                          <h4 className="mb-2 text-xs text-muted-foreground">
+                            Date Period
+                          </h4>
+                          <LayoutGroup id="period">
+                            <div className="grid grid-cols-3 gap-1">
+                              {[
+                                { label: "All Time", value: "all" },
+                                { label: "Today", value: "today" },
+                                { label: "This Week", value: "week" },
+                                { label: "This Month", value: "month" },
+                                { label: "3 Months", value: "3months" },
+                                { label: "This Year", value: "year" },
+                              ].map(({ label, value }) => (
+                                <button
+                                  key={value}
+                                  onClick={() => setFilterPeriod(value)}
+                                  className="relative h-8 rounded-lg text-xs font-medium border border-border overflow-hidden"
+                                >
+                                  {filterPeriod === value && (
+                                    <motion.div
+                                      layoutId="period-active"
+                                      className="absolute inset-0 bg-primary"
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 400,
+                                        damping: 30,
+                                      }}
+                                    />
+                                  )}
+                                  <span
+                                    className={`relative z-10 transition-colors duration-150 ${
+                                      filterPeriod === value
+                                        ? "text-primary-foreground"
+                                        : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {label}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </LayoutGroup>
+                        </div>
+
+                        {/* Trade Source */}
+                        <div>
+                          <h4 className="mb-2 text-xs text-muted-foreground ">
+                            Trade Source
+                          </h4>
+                          <LayoutGroup id="source">
+                            <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+                              {[
+                                { label: "All", value: "all", icon: null },
+                                {
+                                  label: "Agent",
+                                  value: "agent",
+                                  icon: <Bot className="h-3 w-3" />,
+                                },
+                                {
+                                  label: "Manual",
+                                  value: "manual",
+                                  icon: <User className="h-3 w-3" />,
+                                },
+                              ].map(({ label, value, icon }) => (
+                                <button
+                                  key={value}
+                                  onClick={() =>
+                                    setFilterSource(
+                                      value as "all" | "agent" | "manual",
+                                    )
+                                  }
+                                  className="relative h-8 flex-1 flex items-center justify-center gap-1 rounded text-xs z-10"
+                                >
+                                  {filterSource === value && (
+                                    <motion.div
+                                      layoutId="source-active"
+                                      className="absolute inset-0 bg-primary rounded"
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 400,
+                                        damping: 30,
+                                      }}
+                                    />
+                                  )}
+                                  <span
+                                    className={`relative z-10 flex items-center gap-1 font-medium transition-colors duration-150 ${
+                                      filterSource === value
+                                        ? "text-primary-foreground"
+                                        : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {icon}
+                                    {label}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </LayoutGroup>
+                        </div>
+
+                        {/* Trade Type */}
+                        <div>
+                          <h4 className="mb-2 text-xs  text-muted-foreground ">
+                            Trade Type
+                          </h4>
+                          <LayoutGroup id="type">
+                            <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+                              {[
+                                { label: "All", value: "all", icon: null },
+                                {
+                                  label: "Buys",
+                                  value: "buy",
+                                  icon: <TrendingUp className="h-3 w-3" />,
+                                },
+                                {
+                                  label: "Sells",
+                                  value: "sell",
+                                  icon: <TrendingDown className="h-3 w-3" />,
+                                },
+                              ].map(({ label, value, icon }) => (
+                                <button
+                                  key={value}
+                                  onClick={() =>
+                                    setFilterType(
+                                      value as "all" | "buy" | "sell",
+                                    )
+                                  }
+                                  className="relative h-8 flex-1 flex items-center justify-center gap-1 rounded text-xs z-10"
+                                >
+                                  {filterType === value && (
+                                    <motion.div
+                                      layoutId="type-active"
+                                      className="absolute inset-0 bg-primary rounded"
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 400,
+                                        damping: 30,
+                                      }}
+                                    />
+                                  )}
+                                  <span
+                                    className={`relative z-10 flex items-center gap-1 font-medium transition-colors duration-150 ${
+                                      filterType === value
+                                        ? "text-primary-foreground"
+                                        : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {icon}
+                                    {label}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </LayoutGroup>
+                        </div>
+
+                        {/* Status */}
+                        <div>
+                          <h4 className="mb-2 text-xs text-muted-foreground">
+                            Status
+                          </h4>
+                          <LayoutGroup id="status">
+                            <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+                              {[
+                                { label: "All", value: "all" },
+                                { label: "Filled", value: "filled" },
+                                { label: "Pending", value: "pending" },
+                                { label: "Cancelled", value: "cancelled" },
+                              ].map(({ label, value }) => (
+                                <button
+                                  key={value}
+                                  onClick={() =>
+                                    setFilterStatus(
+                                      value as
+                                        | "all"
+                                        | "filled"
+                                        | "pending"
+                                        | "cancelled",
+                                    )
+                                  }
+                                  className="relative h-8 rounded text-xs z-10 overflow-hidden"
+                                >
+                                  {filterStatus === value && (
+                                    <motion.div
+                                      layoutId="status-active"
+                                      className="absolute inset-0 bg-primary rounded"
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 400,
+                                        damping: 30,
+                                      }}
+                                    />
+                                  )}
+                                  <span
+                                    className={`relative z-10 font-medium transition-colors duration-150 ${
+                                      filterStatus === value
+                                        ? "text-primary-foreground"
+                                        : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {label}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </LayoutGroup>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            )}
+            </div>
           </div>
         </CardHeader>
 
@@ -595,14 +898,18 @@ export default function TradingTimeline({
                           </div>
 
                           <div className="flex items-center justify-between">
-                            {/* Left side — Trigger reason */}
-                            {trade.trigger_reason && (
-                              <div className="text-xs text-muted-foreground">
-                                <span className="font-medium">Trigger:</span>{" "}
-                                {trade.trigger_reason}
-                              </div>
-                            )}
-
+                            {/* Left side — Orders reason */}
+                            <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                              <span>Order type: {trade.order_type}</span>
+                              {trade.order_class !== "simple" && (
+                                <>
+                                  <span>•</span>
+                                  <span>Class: {trade.order_class}</span>
+                                </>
+                              )}
+                              <span>•</span>
+                              <span>ID: {trade.id.slice(0, 8)}...</span>
+                            </div>
                             {/* Right side — Agent/Manual Badge */}
                             {trade.is_agent_trade ? (
                               <div className="flex items-center gap-1 rounded border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -634,18 +941,6 @@ export default function TradingTimeline({
                                 </div>
                               </div>
                             )}
-
-                          <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>Order type: {trade.order_type}</span>
-                            {trade.order_class !== "simple" && (
-                              <>
-                                <span>•</span>
-                                <span>Class: {trade.order_class}</span>
-                              </>
-                            )}
-                            <span>•</span>
-                            <span>ID: {trade.id.slice(0, 8)}...</span>
-                          </div>
                         </div>
                       </div>
                     ))}

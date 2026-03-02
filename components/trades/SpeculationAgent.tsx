@@ -557,76 +557,96 @@ export default function SpeculationAgent({
                           )
                         })()}
 
-                      <div className="space-y-2">
-                        {selectedTrade.legs.map((leg: any, idx: number) => {
-                          const legQty = parseFloat(
-                            leg.filled_qty || leg.quantity || "0",
+                      {/* TP / SL side by side */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {(() => {
+                          const tpLeg = selectedTrade.legs.find(
+                            (leg: any) =>
+                              leg.order_type === "limit" ||
+                              leg.type === "limit",
                           )
-                          const legPrice = parseFloat(
-                            leg.filled_avg_price ||
-                              leg.limit_price ||
-                              leg.stop_price ||
-                              "0",
+                          const slLeg = selectedTrade.legs.find(
+                            (leg: any) =>
+                              leg.order_type === "stop" || leg.type === "stop",
                           )
-                          const isFilled = leg.status === "filled"
-                          const isTakeProfit =
-                            leg.order_type === "limit" || leg.type === "limit"
-                          const legPL = isFilled ? getLegPL(leg) : 0
-                          const isProfit = isTakeProfit
 
-                          return (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between rounded-lg p-3 border transition-all bg-background border-border"
-                            >
-                              <div>
-                                <div className="text-xs text-muted-foreground">
-                                  {isTakeProfit ? "Take Profit" : "Stop Loss"}
+                          const renderLeg = (
+                            leg: any,
+                            isTakeProfit: boolean,
+                          ) => {
+                            if (!leg) return null
+                            const legQty = parseFloat(
+                              leg.filled_qty || leg.quantity || "0",
+                            )
+                            const legPrice = parseFloat(
+                              leg.filled_avg_price ||
+                                leg.limit_price ||
+                                leg.stop_price ||
+                                "0",
+                            )
+                            const isFilled = leg.status === "filled"
+                            const legPL = isFilled
+                              ? (legPrice - selectedTrade.price) * legQty
+                              : 0
+
+                            const statusColor = isFilled
+                              ? "bg-green-500/10 text-green-500"
+                              : leg.status === "cancelled"
+                                ? "bg-red-500/10 text-red-500"
+                                : leg.status === "expired"
+                                  ? "bg-orange-500/10 text-orange-500"
+                                  : "bg-blue-500/10 text-blue-500"
+
+                            return (
+                              <div className="flex flex-col gap-1 rounded-lg p-3 border bg-background border-border">
+                                {/* Header row */}
+                                <div className="flex items-center justify-between">
+                                  <div className="text-xs text-muted-foreground font-medium">
+                                    {isTakeProfit ? "Take Profit" : "Stop Loss"}
+                                  </div>
+                                  <div
+                                    className={`rounded px-2 py-0.5 text-xs font-medium ${statusColor}`}
+                                  >
+                                    {leg.status}
+                                  </div>
                                 </div>
+
+                                {/* Price */}
                                 <div className="text-sm font-bold">
                                   {isTakeProfit
                                     ? `Limit: $${legPrice.toFixed(2)}`
                                     : `Stop: $${legPrice.toFixed(2)}`}
                                 </div>
+
+                                {/* P&L + qty if filled */}
                                 {isFilled && (
-                                  <div className="text-xs mt-1">
+                                  <div className="flex items-center justify-between mt-1">
                                     <span
-                                      className={`font-bold px-2 py-0.5 rounded-full ${
-                                        isProfit
+                                      className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                                        isTakeProfit
                                           ? "bg-green-500/20 text-green-500"
                                           : "bg-red-500/20 text-red-500"
                                       }`}
                                     >
-                                      {isProfit ? "+" : ""}${legPL.toFixed(2)}
+                                      {isTakeProfit ? "+" : ""}$
+                                      {legPL.toFixed(2)}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {legQty} shares
                                     </span>
                                   </div>
                                 )}
                               </div>
-                              <div className="text-center">
-                                <div
-                                  className={`rounded px-2 py-1 text-xs font-medium ${
-                                    isFilled
-                                      ? isFilled
-                                        ? "bg-green-500/10 text-green-500"
-                                        : "bg-red-500/10 text-red-500"
-                                      : leg.status === "cancelled"
-                                        ? "bg-red-500/10 text-red-500"
-                                        : leg.status === "expired"
-                                          ? "bg-orange-500/10 text-orange-500"
-                                          : "bg-blue-500/10 text-blue-500"
-                                  }`}
-                                >
-                                  {leg.status}
-                                </div>
-                                {isFilled && (
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {legQty} shares
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                            )
+                          }
+
+                          return (
+                            <>
+                              <div>{renderLeg(slLeg, false)}</div>
+                              <div>{renderLeg(tpLeg, true)}</div>
+                            </>
                           )
-                        })}
+                        })()}
                       </div>
                     </>
                   )
@@ -634,7 +654,151 @@ export default function SpeculationAgent({
               </div>
             )}
 
-          {/* ── Agent Reasoning Section ───────────────────────────────────── */}
+          {/* ── Signal News Data — only shown if present ──────────────────────── */}
+          {selectedTrade.signal_data && (
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem
+                value="signal-data"
+                className="rounded-lg border border-border bg-muted px-4 overflow-hidden w-full min-w-0"
+              >
+                <AccordionTrigger className="hover:no-underline w-full">
+                  <div className="flex items-center justify-between pr-2 w-full min-w-0 ">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Newspaper className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm font-bold">
+                        Agent Trade Reason (news)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3.5 w-3.5 text-yellow-500" />
+                        <span className="text-xs text-muted-foreground">
+                          {selectedTrade.signal_data.confidence}/10
+                        </span>
+                      </div>
+                      <span
+                        className={`rounded border px-2 py-0.5 text-xs font-bold ${
+                          selectedTrade.signal_data.trade_signal === "BUY"
+                            ? "border-green-500/20 bg-green-500/10 text-green-500"
+                            : "border-red-500/20 bg-red-500/10 text-red-500"
+                        }`}
+                      >
+                        {selectedTrade.signal_data.trade_signal}
+                      </span>
+                      <span
+                        className={`rounded border px-2 py-0.5 text-xs font-medium ${getCredibilityColor(selectedTrade.signal_data.credibility)}`}
+                      >
+                        {selectedTrade.signal_data.credibility}
+                      </span>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+
+                <AccordionContent className="space-y-4 pt-2 overflow-hidden w-full min-w-0 max-w-full">
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">
+                      Rumor Summary
+                    </p>
+                    {/* ✅ Fix 2: break-words prevents long text from stretching */}
+                    <p className="text-sm text-foreground leading-relaxed break-words">
+                      {selectedTrade.signal_data.rumor_summary}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-background p-3">
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">
+                      Credibility Reason
+                    </p>
+                    <p className="text-xs text-foreground leading-relaxed break-words">
+                      {selectedTrade.signal_data.credibility_reason}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-background p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Zap className="h-3.5 w-3.5 text-primary" />
+                      <p className="text-xs font-semibold text-muted-foreground">
+                        Trade Rationale
+                      </p>
+                    </div>
+                    <p className="text-xs text-foreground leading-relaxed break-words">
+                      {selectedTrade.signal_data.trade_rationale}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="rounded-lg bg-background p-3">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        Target
+                      </div>
+                      <div className="text-sm font-bold text-green-500">
+                        +{selectedTrade.signal_data.target_pct}%
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-background p-3">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        Stop Loss
+                      </div>
+                      <div className="text-sm font-bold text-red-500">
+                        -{selectedTrade.signal_data.stop_loss_pct}%
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-background p-3">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        Position Size
+                      </div>
+                      <div className="text-sm font-bold">
+                        {selectedTrade.signal_data.position_size_pct}%
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedTrade.signal_data.references &&
+                    selectedTrade.signal_data.references.length > 0 && (
+                      <div className="w-full overflow-hidden">
+                        <p className="text-xs font-semibold text-muted-foreground mb-2">
+                          References
+                        </p>
+                        <div className="space-y-1 w-full overflow-hidden max-w-full">
+                          {selectedTrade.signal_data.references.map(
+                            (ref: string, i: number) => {
+                              let displayHost = ref
+                              try {
+                                displayHost = new URL(ref).hostname.replace(
+                                  "www.",
+                                  "",
+                                )
+                              } catch {}
+
+                              return (
+                                <a
+                                  key={i}
+                                  href={ref}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title={ref}
+                                  className="flex min-w-0 max-w-full items-center gap-2 rounded-lg bg-background px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-card/60 transition-colors"
+                                >
+                                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                                  <span className="font-medium flex-shrink-0">
+                                    {displayHost}
+                                  </span>
+                                  <span className="block min-w-0 w-0 flex-1 truncate opacity-60">
+                                    {new URL(ref).pathname}
+                                  </span>
+                                </a>
+                              )
+                            },
+                          )}
+                        </div>
+                      </div>
+                    )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          )}
+
+          {/* ── Agent Technical Analysis ───────────────────────────────────── */}
           {selectedTrade.is_agent_trade &&
             selectedTrade.trading_agent_reasonings &&
             !selectedTrade.trading_agent_reasonings.startsWith(
@@ -650,7 +814,7 @@ export default function SpeculationAgent({
                       <div className="flex items-center gap-2">
                         <Bot className="h-5 w-5 text-primary" />
                         <span className="text-sm font-bold text-primary">
-                          AI Agent Reasoning
+                          Agent Technical Reasoning
                         </span>
                       </div>
                     </AccordionTrigger>
@@ -814,150 +978,6 @@ export default function SpeculationAgent({
               </div>
             )}
 
-          {/* ── Signal News Data — only shown if present ──────────────────────── */}
-          {selectedTrade.signal_data && (
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem
-                value="signal-data"
-                className="rounded-lg border border-border bg-muted px-4"
-              >
-                <AccordionTrigger className="hover:no-underline">
-                  <div className="flex items-center justify-between w-full pr-2 min-w-0 ">
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Newspaper className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-sm font-bold">
-                        Signal News Data
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-3.5 w-3.5 text-yellow-500" />
-                        <span className="text-xs text-muted-foreground">
-                          {selectedTrade.signal_data.confidence}/10
-                        </span>
-                      </div>
-                      <span
-                        className={`rounded border px-2 py-0.5 text-xs font-bold ${
-                          selectedTrade.signal_data.trade_signal === "BUY"
-                            ? "border-green-500/20 bg-green-500/10 text-green-500"
-                            : "border-red-500/20 bg-red-500/10 text-red-500"
-                        }`}
-                      >
-                        {selectedTrade.signal_data.trade_signal}
-                      </span>
-                      <span
-                        className={`rounded border px-2 py-0.5 text-xs font-medium ${getCredibilityColor(selectedTrade.signal_data.credibility)}`}
-                      >
-                        {selectedTrade.signal_data.credibility}
-                      </span>
-                    </div>
-                  </div>
-                </AccordionTrigger>
-
-                <AccordionContent className="space-y-4 pt-2">
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">
-                      Rumor Summary
-                    </p>
-                    {/* ✅ Fix 2: break-words prevents long text from stretching */}
-                    <p className="text-sm text-foreground leading-relaxed break-words">
-                      {selectedTrade.signal_data.rumor_summary}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-background p-3">
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">
-                      Credibility Reason
-                    </p>
-                    <p className="text-xs text-foreground leading-relaxed break-words">
-                      {selectedTrade.signal_data.credibility_reason}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-background p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Zap className="h-3.5 w-3.5 text-primary" />
-                      <p className="text-xs font-semibold text-muted-foreground">
-                        Trade Rationale
-                      </p>
-                    </div>
-                    <p className="text-xs text-foreground leading-relaxed break-words">
-                      {selectedTrade.signal_data.trade_rationale}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="rounded-lg bg-background p-3">
-                      <div className="text-xs text-muted-foreground mb-1">
-                        Target
-                      </div>
-                      <div className="text-sm font-bold text-green-500">
-                        +{selectedTrade.signal_data.target_pct}%
-                      </div>
-                    </div>
-                    <div className="rounded-lg bg-background p-3">
-                      <div className="text-xs text-muted-foreground mb-1">
-                        Stop Loss
-                      </div>
-                      <div className="text-sm font-bold text-red-500">
-                        -{selectedTrade.signal_data.stop_loss_pct}%
-                      </div>
-                    </div>
-                    <div className="rounded-lg bg-background p-3">
-                      <div className="text-xs text-muted-foreground mb-1">
-                        Position Size
-                      </div>
-                      <div className="text-sm font-bold">
-                        {selectedTrade.signal_data.position_size_pct}%
-                      </div>
-                    </div>
-                  </div>
-
-                  {selectedTrade.signal_data.references &&
-                    selectedTrade.signal_data.references.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground mb-2">
-                          References
-                        </p>
-                        <div className="space-y-1">
-                          {selectedTrade.signal_data.references.map(
-                            (ref: string, i: number) => {
-                              // Extract just the hostname for display
-                              let displayHost = ref
-                              try {
-                                const url = new URL(ref)
-                                displayHost = url.hostname.replace("www.", "")
-                              } catch {}
-
-                              return (
-                                <a
-                                  key={i}
-                                  href={ref}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  title={ref} // ← full URL on hover
-                                  className="flex items-center gap-2 rounded-lg bg-background px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                                >
-                                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                                  {/* Hostname in bold, path truncated */}
-                                  <span className="font-medium shrink-0">
-                                    {displayHost}
-                                  </span>
-                                  <span className="truncate opacity-60">
-                                    {new URL(ref).pathname}
-                                  </span>
-                                </a>
-                              )
-                            },
-                          )}
-                        </div>
-                      </div>
-                    )}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          )}
-
           {/* ── Conflict Resolution Badge ─────────────────────────────────── */}
           {selectedTrade.is_agent_trade &&
             selectedTrade.trading_agent_reasonings?.startsWith(
@@ -978,14 +998,28 @@ export default function SpeculationAgent({
 
           {/* ── Ask AI Button — agent trades only ─────────────────────────── */}
           {selectedTrade.is_agent_trade && (
-            <div className="flex justify-center">
+            <div className="sticky bottom-0 left-0 right-0 bg-card py-4  border-t border-border -mx-6 px-6">
               <Button
                 variant="outline"
                 size="lg"
                 onClick={handleAskAIClick}
-                className="w-full"
+                className="w-full h-10 bg-foreground/80 text-background relative group transition-all duration-300 rounded-xl hover:bg-muted border-none"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                {/* Always-on animated border ring outside the button */}
+                <span
+                  className="pointer-events-none absolute -inset-[2px] rounded-xl animate-rotate-border"
+                  style={{
+                    padding: "2px",
+                    background:
+                      "conic-gradient(from var(--angle, 0deg), #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
+                    WebkitMask:
+                      "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                    WebkitMaskComposite: "xor",
+                    maskComposite: "exclude",
+                    zIndex: -1,
+                  }}
+                />
+                <Sparkles className="h-4 w-4 mr-2" />
                 Ask AI about this trade
               </Button>
               <AskAI
