@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowUp, Square, X, PanelLeft, ChevronUp } from "lucide-react"
+import { ArrowUp, Square, X, PanelLeft, CloudCog } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import ChatLibrary from "@/components/portfolio/chat/ChatLibrary"
@@ -205,8 +205,12 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const abortControllerRef = useRef<AbortController | null>(null)
   const scrollAnimationFrameRef = useRef<number>()
   const sessionIdRef = useRef<string>(crypto.randomUUID()) // ← stable session per mount
+  const [conversationHistory, setConversationHistory] = useState<any[]>([]) // ← for chat library
 
   const CHAT_URL = `${process.env.NEXT_PUBLIC_CHAT_API_URL}`
+  const threadId = crypto.randomUUID()
+  const HARDCODED_USER_ID = "019cad4c-cafb-7969-b0d2-18f9088de5b6" // TDOO: Replace with actual user ID from auth context
+  const THREAD_HISTORY_URL = `${process.env.NEXT_PUBLIC_THREAD_API_URL}`
 
   const scrollToBottom = () => {
     const scroll = () => {
@@ -235,7 +239,8 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     if (!open) {
       hasAutoSentRef.current = false
       if (abortControllerRef.current) abortControllerRef.current.abort()
-      setShowLibrary(false) // ← reset library on close
+      setShowLibrary(false)
+      setMessages([])
     }
   }, [open])
 
@@ -252,6 +257,30 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }, [open])
 
+  const getHistory = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    setShowLibrary((v) => !v)
+  }
+
+  useEffect(() => {
+    if (showLibrary) {
+      const fetchData = async () => {
+        try {
+          const response = await fetch(
+            `${THREAD_HISTORY_URL}?user_id=${HARDCODED_USER_ID}`,
+            { credentials: "include" },
+          )
+          if (!response.ok) throw new Error("Failed to fetch")
+          const data = await response.json()
+          setConversationHistory(data)
+        } catch (error) {
+          console.error("Error fetching thread history:", error)
+        }
+      }
+      fetchData()
+    }
+  }, [showLibrary])
+
   const streamBackendResponse = async (
     userMessage: string,
     order_id: string | undefined,
@@ -265,6 +294,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         query: userMessage,
+        user_id: "019cad4c-cafb-7969-b0d2-18f9088de5b6", // TODO: remove hardcoding and get from auth context
         session_id: sessionIdRef.current,
         ...(shouldIncludeOrderId && { order_id }),
       }),
@@ -440,19 +470,17 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     }
   }, [open, contextData])
 
-  // Load a historical session into the chat
-  const handleSelectSession = (sessionId: string, sessionMessages: any[]) => {
+  const handleSelectSession = (threadId: string, sessionMessages: any[]) => {
     const mapped: ChatMessage[] = sessionMessages.map((m, i) => ({
       id: `history-${i}`,
       role: m.role,
       content: m.content,
       isStreaming: false,
     }))
-    sessionIdRef.current = sessionId
+    sessionIdRef.current = threadId
     setMessages(mapped)
     setShowLibrary(false)
   }
-
   const handleSend = () => handleSendMessage(undefined, false)
 
   const handleStop = () => {
@@ -511,7 +539,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       <button
                         type="button"
                         aria-label="Chat Library"
-                        onClick={() => setShowLibrary((v) => !v)}
+                        onClick={getHistory}
                         className={`inline-flex items-center gap-1.5 text-xs justify-center rounded-full px-3 py-1.5 transition-all duration-200 border font-medium ${
                           showLibrary
                             ? "border-teal-500/50 bg-teal-500/10 text-teal-400"
@@ -558,6 +586,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       className="overflow-hidden border-b border-border flex-shrink-0"
                     >
                       <ChatLibrary
+                        conversationHistory={conversationHistory}
                         currentSessionId={sessionIdRef.current}
                         onSelectSession={handleSelectSession}
                       />
