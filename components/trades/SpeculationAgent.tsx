@@ -295,15 +295,38 @@ export default function SpeculationAgent({
                   Manual
                 </div>
               )}
-              <div
-                className={`px-3 py-1 rounded text-sm font-medium ${
+              {(() => {
+                const isCovering =
+                  selectedTrade.trade_type === "buy" &&
+                  selectedTrade.closed_position != null
+                const isClosingLong =
+                  selectedTrade.trade_type === "sell" &&
+                  selectedTrade.closed_position != null
+
+                let label = selectedTrade.trade_type.toUpperCase()
+                let colorClass =
                   selectedTrade.trade_type === "buy"
                     ? "bg-green-500/10 text-green-500 border border-green-500/20"
                     : "bg-red-500/10 text-red-500 border border-red-500/20"
-                }`}
-              >
-                {selectedTrade.trade_type.toUpperCase()}
-              </div>
+
+                if (isCovering) {
+                  label = "BUY TO COVER"
+                  colorClass =
+                    "bg-blue-500/10 text-blue-500 border border-blue-500/20"
+                } else if (isClosingLong) {
+                  label = "SELL TO CLOSE"
+                  colorClass =
+                    "bg-orange-500/10 text-orange-500 border border-orange-500/20"
+                }
+
+                return (
+                  <div
+                    className={`px-3 py-1 rounded text-sm font-medium ${colorClass}`}
+                  >
+                    {label}
+                  </div>
+                )
+              })()}
             </div>
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Status</p>
@@ -336,7 +359,20 @@ export default function SpeculationAgent({
                 <h3 className="text-sm font-semibold">Position Closed</h3>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {selectedTrade.trade_type === "buy" ? "Bought" : "Sold"}{" "}
+                {(() => {
+                  const isCover =
+                    selectedTrade.trade_type === "buy" &&
+                    selectedTrade.closed_position != null
+                  const isClose =
+                    selectedTrade.trade_type === "sell" &&
+                    selectedTrade.closed_position != null
+
+                  if (isCover) return "Covered short position · "
+                  if (isClose) return "Closed long position · "
+                  return selectedTrade.trade_type === "buy"
+                    ? "Bought "
+                    : "Sold "
+                })()}
                 {pnlData.quantitySold} share(s) @ $
                 {pnlData.sellPrice.toFixed(2)}. Entry price unavailable —
                 position fully closed and no longer in holdings.
@@ -987,7 +1023,7 @@ export default function SpeculationAgent({
                 <div className="mb-2 flex items-center gap-2">
                   <Bot className="w-6 h-6 text-orange-500 mr-2" />
                   <span className="text-sm font-bold text-orange-500">
-                    AI Agent Reasoning
+                    Agent Reasoning
                   </span>
                 </div>
                 <p className="text-sm text-foreground">

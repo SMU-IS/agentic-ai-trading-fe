@@ -17,16 +17,35 @@ interface NewsArticle {
   url: string
 }
 
-interface AgentNews {
-  type: string
-  news_id: string
-  headline: string
-  tickers: {
-    symbol: string
-    event_type: string
-    sentiment_label: string
-  }[]
-  event_description: string
+interface TickerMetadata {
+  ticker: string
+  event_type: string
+  sentiment_score: number
+  sentiment_label: string
+}
+
+interface AgentNewsItem {
+  topic_id: string
+  text_content: string
+  metadata: {
+    topic_id: string
+    tickers: string[]
+    tickers_metadata: TickerMetadata[]
+    timestamp: string
+    source_domain: string
+    credibility_score: number
+    headline: string
+    text_content: string
+    url: string
+    author: string
+  }
+}
+
+interface AgentNewsResponse {
+  status: string
+  count: number
+  next_offset: string
+  data: AgentNewsItem[]
 }
 
 interface MarketNewsProps {
@@ -39,9 +58,16 @@ const SENTIMENT_COLORS: Record<string, string> = {
   neutral: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
 }
 
+const CREDIBILITY_COLORS = (score: number) => {
+  if (score >= 0.8) return "text-green-500 bg-green-500/10 border-green-500/20"
+  if (score >= 0.5)
+    return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20"
+  return "text-red-500 bg-red-500/10 border-red-500/20"
+}
+
 export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const [news, setNews] = useState<NewsArticle[]>([])
-  const [agentNews, setAgentNews] = useState<AgentNews[]>([])
+  const [agentNews, setAgentNews] = useState<AgentNewsItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState(category)
@@ -69,41 +95,67 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     }
   }
 
-  // Helper to normalize tickers to always be an array
-  const normalizeTickers = (
-    tickers: AgentNews["tickers"] | string | object,
-  ) => {
-    if (!tickers) return []
-    if (Array.isArray(tickers)) return tickers
-    if (typeof tickers === "string")
-      return tickers.split(",").map((s) => ({
-        symbol: s.trim(),
-        event_type: "",
-        sentiment_label: "neutral",
-      }))
-    return [tickers] as AgentNews["tickers"]
+  const fetchAgentNews = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/qdrant/news")
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`)
+      const data: AgentNewsResponse = await response.json()
+      if (data.status === "success") {
+        setAgentNews(data.data)
+      } else {
+        throw new Error("Failed to fetch agent news")
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to fetch agent news")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Connect WebSocket when Agent tab is selected
+  // WebSocket for live agent notifications (kept for real-time updates)
   useEffect(() => {
     if (selectedCategory === "agent") {
-      setLoading(true)
+      fetchAgentNews()
+
+      // Also connect WebSocket for live incoming news
       const ws = new WebSocket(wsUrl)
       wsRef.current = ws
-
-      ws.onopen = () => setLoading(false)
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data)
-          if (data.type !== "NEWS_RECEIVED") return // ← explicitly ignore everything else
+          if (data.type !== "NEWS_RECEIVED") return
 
-          const normalized = {
-            ...data,
-            tickers: normalizeTickers(data.tickers),
+          // Normalize incoming WS message to AgentNewsItem shape
+          const normalized: AgentNewsItem = {
+            topic_id: data.news_id,
+            text_content: data.event_description ?? "",
+            metadata: {
+              topic_id: data.news_id,
+              tickers: data.tickers?.map((t: any) => t.symbol) ?? [],
+              tickers_metadata:
+                data.tickers?.map((t: any) => ({
+                  ticker: t.symbol,
+                  event_type: t.event_type ?? "",
+                  sentiment_score: 0,
+                  sentiment_label: t.sentiment_label ?? "neutral",
+                })) ?? [],
+              timestamp: new Date().toISOString(),
+              source_domain: "",
+              credibility_score: 0,
+              headline: data.headline,
+              text_content: data.event_description ?? "",
+              url: "",
+              author: "",
+            },
           }
+
           setAgentNews((prev) => {
-            if (prev.some((n) => n.news_id === normalized.news_id)) return prev
+            if (prev.some((n) => n.topic_id === normalized.topic_id))
+              return prev
             return [normalized, ...prev]
           })
         } catch {
@@ -111,19 +163,13 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
         }
       }
 
-      ws.onerror = () => {
-        setError("WebSocket connection failed")
-        setLoading(false)
-      }
-
-      ws.onclose = () => setLoading(false)
+      ws.onerror = () => setError("WebSocket connection failed")
 
       return () => {
         ws.close()
         wsRef.current = null
       }
     } else {
-      // Close WS when switching away from Agent tab
       wsRef.current?.close()
       wsRef.current = null
       fetchMarketNews(selectedCategory)
@@ -132,6 +178,18 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp * 1000)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffDays = Math.floor(diffHours / 24)
+    if (diffHours < 1) return `${Math.floor(diffMs / (1000 * 60))}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  }
+
+  const formatAgentDate = (isoString: string) => {
+    const date = new Date(isoString)
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
@@ -178,10 +236,10 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
           variant="ghost"
           onClick={() =>
             selectedCategory === "agent"
-              ? null // WS is live, no manual refresh needed
+              ? fetchAgentNews()
               : fetchMarketNews(selectedCategory)
           }
-          disabled={loading || selectedCategory === "agent"}
+          disabled={loading}
           className="h-8 w-8"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
@@ -222,41 +280,77 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
           {agentNews.length === 0 ? (
             <div className="rounded-lg border border-border p-8 text-center">
               <p className="text-sm text-muted-foreground">
-                Waiting for agent news...
+                No agent news available
               </p>
             </div>
           ) : (
             agentNews.map((article) => (
               <div
-                key={article.news_id}
-                className="rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
+                key={article.topic_id}
+                className="group cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
+                onClick={() =>
+                  article.metadata.url
+                    ? window.open(article.metadata.url, "_blank")
+                    : null
+                }
               >
-                <h3 className="text-sm font-semibold text-foreground">
-                  {article.headline}
-                </h3>
+                {/* Headline + external link */}
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
+                    {article.metadata.headline}
+                  </h3>
+                  {article.metadata.url && (
+                    <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                  )}
+                </div>
+
+                {/* Summary */}
                 <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                  {article.event_description}
+                  {article.metadata.text_content}
                 </p>
 
                 {/* Ticker badges */}
-                <div className="mt-2 flex flex-col gap-1.5">
-                  {normalizeTickers(article.tickers).map((ticker) => (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {article.metadata.tickers_metadata.map((ticker) => (
                     <span
-                      key={ticker.symbol}
-                      className={`inline-flex items-center gap-2 rounded border px-2 py-1 text-xs font-medium w-fit ${
+                      key={ticker.ticker}
+                      className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium ${
                         SENTIMENT_COLORS[ticker.sentiment_label] ??
                         SENTIMENT_COLORS.neutral
                       }`}
                     >
-                      <span className="font-bold">{ticker.symbol}</span>
-                      <span className="opacity-70">{ticker.event_type}</span>
+                      <span className="font-bold">{ticker.ticker}</span>
+                      {ticker.event_type && (
+                        <span className="opacity-70">{ticker.event_type}</span>
+                      )}
                       <span>
-                        Sentiment:{" "}
                         {ticker.sentiment_label.charAt(0).toUpperCase() +
                           ticker.sentiment_label.slice(1)}
                       </span>
                     </span>
                   ))}
+                </div>
+
+                {/* Footer — source, date, credibility */}
+                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="font-medium">
+                    {article.metadata.source_domain}
+                  </span>
+                  {article.metadata.author && (
+                    <>
+                      <span>•</span>
+                      <span>{article.metadata.author}</span>
+                    </>
+                  )}
+                  <span>•</span>
+                  <span>{formatAgentDate(article.metadata.timestamp)}</span>
+                  <span>•</span>
+                  <span
+                    className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold ${CREDIBILITY_COLORS(article.metadata.credibility_score)}`}
+                  >
+                    {Math.round(article.metadata.credibility_score * 100)}%
+                    credible
+                  </span>
                 </div>
               </div>
             ))

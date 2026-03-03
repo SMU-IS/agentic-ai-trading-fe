@@ -9,7 +9,7 @@ const HEALTH_ENDPOINTS: Record<string, string> = {
   "14": `${BASE_URL}/rag/healthcheck`,
   "15": `${BASE_URL}/trading/healthcheck`,
   "16": `${BASE_URL}/trading/healthcheck`,
-  "18": `${BASE_URL}/user/healthcheck`,
+  "18": `${BASE_URL}/auth/healthcheck`,
   "17": `${BASE_URL}/notification/healthcheck`,
 }
 

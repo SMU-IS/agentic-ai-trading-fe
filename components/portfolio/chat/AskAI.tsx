@@ -204,13 +204,15 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const scrollAnimationFrameRef = useRef<number>()
-  const sessionIdRef = useRef<string>(crypto.randomUUID()) // ← stable session per mount
   const [conversationHistory, setConversationHistory] = useState<any[]>([]) // ← for chat library
 
   const CHAT_URL = `${process.env.NEXT_PUBLIC_CHAT_API_URL}`
   const threadId = crypto.randomUUID()
   const userId = sessionStorage.getItem("userId")
   const THREAD_HISTORY_URL = `${process.env.NEXT_PUBLIC_THREAD_API_URL}`
+
+  // New session ID every time the panel opens
+  const sessionIdRef = useRef<string>(crypto.randomUUID())
 
   const scrollToBottom = () => {
     const scroll = () => {
@@ -241,6 +243,8 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       if (abortControllerRef.current) abortControllerRef.current.abort()
       setShowLibrary(false)
       setMessages([])
+    } else {
+      sessionIdRef.current = crypto.randomUUID()
     }
   }, [open])
 
@@ -480,9 +484,11 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     sessionIdRef.current = threadId
     setMessages(mapped)
     setShowLibrary(false)
-  }
-  const handleSend = () => handleSendMessage(undefined, false)
 
+    sessionIdRef.current = threadId
+  }
+
+  const handleSend = () => handleSendMessage(undefined, false)
   const handleStop = () => {
     if (abortControllerRef.current) abortControllerRef.current.abort()
   }
@@ -547,7 +553,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                         }`}
                       >
                         <PanelLeft className="h-3.5 w-3.5" />
-                        Library
+                        Recent Chats
                       </button>
 
                       {/* Tooltip */}
