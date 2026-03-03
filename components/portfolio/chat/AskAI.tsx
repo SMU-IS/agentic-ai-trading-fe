@@ -205,6 +205,8 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const abortControllerRef = useRef<AbortController | null>(null)
   const scrollAnimationFrameRef = useRef<number>()
   const [conversationHistory, setConversationHistory] = useState<any[]>([])
+  const [isResetting, setIsResetting] = useState(false)
+  const [newChatKey, setNewChatKey] = useState(0)
 
   const CHAT_URL = `${process.env.NEXT_PUBLIC_CHAT_API_URL}`
   const threadId = crypto.randomUUID()
@@ -290,13 +292,20 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     controller?.abort()
 
     sessionIdRef.current = crypto.randomUUID()
-    setMessages([])
-    setInput("")
-    setError(null)
-    setLoading(false)
-    setStreamingMessageId(null)
-    setShowLibrary(false)
-    hasAutoSentRef.current = false
+    setNewChatKey((k) => k + 1)
+    setIsResetting(true) // keep button visible while animation plays
+
+    // delay the clear until shimmer finishes (600ms matches transition duration)
+    setTimeout(() => {
+      setMessages([])
+      setInput("")
+      setError(null)
+      setLoading(false)
+      setStreamingMessageId(null)
+      setShowLibrary(false)
+      hasAutoSentRef.current = false
+      setIsResetting(false)
+    }, 3000)
   }
 
   const streamBackendResponse = async (
@@ -384,7 +393,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     includeOrderId: boolean = false,
   ) => {
     const textToSend = messageText || input.trim()
-    if (!textToSend || loading) return
+    if (!textToSend || loading || isResetting) return
 
     const userMessageId = `user-${Date.now()}`
     const assistantMessageId = `assistant-${Date.now()}`
@@ -554,18 +563,77 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
                   {/* Right side buttons */}
                   <div className="flex items-center gap-2">
-                    {/* ── New Chat Button — only shown when messages exist ── */}
-                    {messages.length > 0 && (
+                    {(messages.length > 0 || isResetting) && (
                       <div className="relative group/newchat">
-                        <button
+                        <motion.button
                           type="button"
                           aria-label="New Chat"
                           onClick={handleNewChat}
-                          className="inline-flex items-center gap-1.5 text-xs justify-center rounded-full px-3 py-1.5 transition-all duration-200 border font-medium border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-muted-foreground/30"
+                          className="relative overflow-hidden inline-flex items-center justify-center rounded-full border border-border px-3 py-1.5"
+                          whileTap={{ scale: 0.95 }}
+                          animate={{
+                            opacity: isResetting ? 0.5 : 1,
+                            borderColor: isResetting
+                              ? "hsl(var(--primary))"
+                              : "hsl(var(--border))",
+                          }}
+                          transition={{ duration: 0.3 }}
                         >
-                          <SquarePen className="h-3.5 w-3.5" />
-                          New Chat
-                        </button>
+                          {/* Shimmer sweep — bright and visible */}
+                          {isResetting && (
+                            <motion.div
+                              key={newChatKey}
+                              className="absolute inset-0 rounded-full"
+                              style={{
+                                background:
+                                  "linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.5) 50%, transparent 100%)",
+                                backgroundSize: "200% 100%",
+                              }}
+                              animate={{
+                                backgroundPosition: ["200% 0", "-200% 0"],
+                              }}
+                              transition={{
+                                duration: 1.2,
+                                repeat: Infinity,
+                                ease: "linear",
+                              }}
+                            />
+                          )}
+
+                          {/* Content */}
+                          <motion.div
+                            className="relative flex items-center gap-1.5 text-xs font-medium"
+                            animate={{
+                              color: isResetting
+                                ? "hsl(var(--primary))"
+                                : "hsl(var(--muted-foreground))",
+                            }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <motion.div
+                              animate={{ rotate: isResetting ? 360 : 0 }}
+                              transition={
+                                isResetting
+                                  ? {
+                                      duration: 1.5,
+                                      repeat: Infinity,
+                                      ease: "linear",
+                                    }
+                                  : {
+                                      type: "spring",
+                                      stiffness: 300,
+                                      damping: 15,
+                                    }
+                              }
+                              whileHover={
+                                !isResetting ? { rotate: 15, scale: 1.15 } : {}
+                              }
+                            >
+                              <SquarePen className="h-3.5 w-3.5" />
+                            </motion.div>
+                            {isResetting ? "Creating..." : "New Chat"}
+                          </motion.div>
+                        </motion.button>
 
                         {/* Tooltip */}
                         <div className="pointer-events-none absolute right-0 top-full mt-2 z-[999] opacity-0 group-hover/newchat:opacity-100 translate-y-1 group-hover/newchat:translate-y-0 transition-all duration-200">
@@ -717,7 +785,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                           handleSend()
                         }
                       }}
-                      disabled={loading}
+                      disabled={loading || isResetting}
                     />
                     {loading ? (
                       <Button
@@ -734,7 +802,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                         size="icon"
                         className="rounded-xl transition-transform hover:scale-110 active:scale-95"
                         onClick={handleSend}
-                        disabled={!input.trim()}
+                        disabled={!input.trim() || isResetting}
                         aria-label="Send message"
                       >
                         <ArrowUp className="h-4 w-4" />
