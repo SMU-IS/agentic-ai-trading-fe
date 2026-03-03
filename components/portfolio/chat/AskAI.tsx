@@ -611,7 +611,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                             transition={{ duration: 0.3 }}
                           >
                             <motion.div
-                              animate={{ rotate: isResetting ? 360 : 0 }}
+                              // animate={{ rotate: isResetting ? 360 : 0 }}
                               transition={
                                 isResetting
                                   ? {

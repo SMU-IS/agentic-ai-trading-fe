@@ -41,7 +41,7 @@ export default function ChatLibrary({
   }
 
   return (
-    <div className="flex flex-col gap-1 px-3 py-2 overflow-y-auto max-h-[220px] bg-muted">
+    <div className="flex flex-col gap-1 px-3 py-2 overflow-y-auto max-h-[235px] bg-muted">
       <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1 mb-1">
         Recent Chats
       </p>
