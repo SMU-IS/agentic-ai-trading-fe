@@ -4,7 +4,7 @@ import ChatLibrary from "@/components/portfolio/chat/ChatLibrary"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
-import { ArrowUp, PanelLeft, Square, X } from "lucide-react"
+import { ArrowUp, PanelLeft, Square, SquarePen, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 function MarkdownStreamingContent({
@@ -152,7 +152,7 @@ function MarkdownStreamingContent({
           buffer += text.slice(i, j)
           i = j
         }
-      } else if (text[i] === "\n") {
+      } else if (text[i] === "\\\\n") {
         if (buffer) {
           parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
           buffer = ""
@@ -198,20 +198,19 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     null,
   )
   const [error, setError] = useState<string | null>(null)
-  const [showLibrary, setShowLibrary] = useState(false) // ← new
+  const [showLibrary, setShowLibrary] = useState(false)
   const hasAutoSentRef = useRef(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const scrollAnimationFrameRef = useRef<number>()
-  const [conversationHistory, setConversationHistory] = useState<any[]>([]) // ← for chat library
+  const [conversationHistory, setConversationHistory] = useState<any[]>([])
 
   const CHAT_URL = `${process.env.NEXT_PUBLIC_CHAT_API_URL}`
   const threadId = crypto.randomUUID()
   const userId = sessionStorage.getItem("userId")
   const THREAD_HISTORY_URL = `${process.env.NEXT_PUBLIC_THREAD_API_URL}`
 
-  // New session ID every time the panel opens
   const sessionIdRef = useRef<string>(crypto.randomUUID())
 
   const scrollToBottom = () => {
@@ -283,6 +282,21 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     } catch (error) {
       console.error("Error fetching thread history:", error)
     }
+  }
+
+  const handleNewChat = () => {
+    const controller = abortControllerRef.current
+    abortControllerRef.current = null
+    controller?.abort()
+
+    sessionIdRef.current = crypto.randomUUID()
+    setMessages([])
+    setInput("")
+    setError(null)
+    setLoading(false)
+    setStreamingMessageId(null)
+    setShowLibrary(false)
+    hasAutoSentRef.current = false
   }
 
   const streamBackendResponse = async (
@@ -384,7 +398,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     setLoading(true)
     setError(null)
     setStreamingMessageId(assistantMessageId)
-    setShowLibrary(false) // ← collapse library when sending a message
+    setShowLibrary(false)
     abortControllerRef.current = new AbortController()
 
     try {
@@ -540,6 +554,31 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
                   {/* Right side buttons */}
                   <div className="flex items-center gap-2">
+                    {/* ── New Chat Button — only shown when messages exist ── */}
+                    {messages.length > 0 && (
+                      <div className="relative group/newchat">
+                        <button
+                          type="button"
+                          aria-label="New Chat"
+                          onClick={handleNewChat}
+                          className="inline-flex items-center gap-1.5 text-xs justify-center rounded-full px-3 py-1.5 transition-all duration-200 border font-medium border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-muted-foreground/30"
+                        >
+                          <SquarePen className="h-3.5 w-3.5" />
+                          New Chat
+                        </button>
+
+                        {/* Tooltip */}
+                        <div className="pointer-events-none absolute right-0 top-full mt-2 z-[999] opacity-0 group-hover/newchat:opacity-100 translate-y-1 group-hover/newchat:translate-y-0 transition-all duration-200">
+                          <div className="relative rounded-lg border border-border bg-card px-2.5 py-1.5 shadow-lg">
+                            <p className="whitespace-nowrap text-[11px] text-muted-foreground">
+                              Start a fresh conversation
+                            </p>
+                            <div className="absolute -top-1 right-4 h-2 w-2 rotate-45 border-l border-t border-border bg-card" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Library Toggle Button */}
                     <div className="relative group/library">
                       <button
