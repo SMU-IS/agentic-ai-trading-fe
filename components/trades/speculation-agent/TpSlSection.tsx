@@ -229,30 +229,35 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                     </div>
 
                     {/* Value */}
-                    <div className="relative h-4  flex items-center">
-                      <motion.span
-                        className={`text-xs font-bold absolute whitespace-nowrap ${isPositive ? "text-green-500" : "text-red-500"}`}
-                        variants={{
-                          hovered: { opacity: 0, y: -8, filter: "blur(4px)" },
-                          rest: { opacity: 1, y: 0, filter: "blur(0px)" },
-                        }}
-                        transition={{ duration: 0.2 }}
+                    <div className="relative h-4 overflow-hidden flex items-center">
+                      {/* Grid container — sizes to the wider of the two values */}
+                      <div
+                        className="relative grid items-center"
+                        style={{ gridTemplateAreas: '"stack"' }}
                       >
-                        {isPositive ? "+" : ""}${unrealizedPnl.toFixed(2)}
-                      </motion.span>
-                      <motion.span
-                        className="text-xs font-bold absolute whitespace-nowrap text-foreground"
-                        variants={{
-                          hovered: { opacity: 1, y: 0, filter: "blur(0px)" },
-                          rest: { opacity: 0, y: 8, filter: "blur(4px)" },
-                        }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        ${currentPrice.toFixed(2)}
-                      </motion.span>
-                      <span className="text-xs font-bold opacity-0 pointer-events-none whitespace-nowrap">
-                        ${currentPrice.toFixed(2)}
-                      </span>
+                        <motion.span
+                          className={`text-xs font-bold whitespace-nowrap ${isPositive ? "text-green-500" : "text-red-500"}`}
+                          style={{ gridArea: "stack" }}
+                          variants={{
+                            hovered: { opacity: 0, y: -8, filter: "blur(4px)" },
+                            rest: { opacity: 1, y: 0, filter: "blur(0px)" },
+                          }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {isPositive ? "+" : ""}${unrealizedPnl.toFixed(2)}
+                        </motion.span>
+                        <motion.span
+                          className="text-xs font-bold whitespace-nowrap text-foreground"
+                          style={{ gridArea: "stack" }}
+                          variants={{
+                            hovered: { opacity: 1, y: 0, filter: "blur(0px)" },
+                            rest: { opacity: 0, y: 8, filter: "blur(4px)" },
+                          }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          ${currentPrice.toFixed(2)}
+                        </motion.span>
+                      </div>
                     </div>
                   </motion.div>
                 )
