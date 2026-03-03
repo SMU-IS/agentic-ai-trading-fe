@@ -156,90 +156,110 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
           <span className="text-sm font-bold">Take Profit / Stop Loss</span>
         </div>
 
-        {!anyLegFilled &&
-          selectedTrade.status ===
-            "filled" && (
-              <>
-                {loadingPrice ? (
-                  <div className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1">
-                    <div className="h-2 w-2 rounded-full bg-muted animate-pulse" />
-                    <div className="h-3 w-3.5 rounded bg-muted animate-pulse" />
-                    <div className="h-3 w-16 rounded bg-muted animate-pulse" />
-                    <div className="h-3 w-12 rounded bg-muted animate-pulse" />
-                  </div>
-                ) : currentPrice !== null ? (
+        {!anyLegFilled && selectedTrade.status === "filled" && (
+          <>
+            {loadingPrice ? (
+              <div className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1">
+                <div className="h-2 w-2 rounded-full bg-muted animate-pulse" />
+                <div className="h-3 w-3.5 rounded bg-muted animate-pulse" />
+                <div className="h-3 w-16 rounded bg-muted animate-pulse" />
+                <div className="h-3 w-12 rounded bg-muted animate-pulse" />
+              </div>
+            ) : currentPrice !== null ? (
+              (() => {
+                const unrealizedPnl =
+                  (currentPrice - selectedTrade.price) * selectedTrade.quantity
+                const isPositive = unrealizedPnl >= 0
+                const tpPrice = parseFloat(
+                  tpLeg?.limit_price || tpLeg?.filled_avg_price || "0",
+                )
+                const slPrice = parseFloat(
+                  slLeg?.stop_price || slLeg?.filled_avg_price || "0",
+                )
+                const distToTP =
+                  tpPrice > 0 ? Math.abs(currentPrice - tpPrice) : Infinity
+                const distToSL =
+                  slPrice > 0 ? Math.abs(currentPrice - slPrice) : Infinity
+                const isBullish = distToTP < distToSL
+
+                return (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1"
+                    initial="rest"
+                    animate="rest"
+                    whileHover="hovered"
+                    className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 cursor-default"
                   >
-                    {(() => {
-                      const tpPrice = parseFloat(
-                        tpLeg?.limit_price || tpLeg?.filled_avg_price || "0",
-                      )
-                      const slPrice = parseFloat(
-                        slLeg?.stop_price || slLeg?.filled_avg_price || "0",
-                      )
-                      const distToTP =
-                        tpPrice > 0
-                          ? Math.abs(currentPrice - tpPrice)
-                          : Infinity
-                      const distToSL =
-                        slPrice > 0
-                          ? Math.abs(currentPrice - slPrice)
-                          : Infinity
-                      const isBullish = distToTP < distToSL
-                      const pingColor = isBullish
-                        ? "bg-green-400"
-                        : "bg-red-400"
-                      const dotColor = isBullish ? "bg-green-500" : "bg-red-500"
-
-                      return (
-                        <span className="relative flex h-2 w-2">
-                          <span
-                            className={`absolute inline-flex h-full w-full animate-ping rounded-full ${pingColor} opacity-75`}
-                          />
-                          <span
-                            className={`relative inline-flex h-2 w-2 rounded-full ${dotColor}`}
-                          />
-                        </span>
-                      )
-                    })()}
-
-                    <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
-                      Unrealized P&L:
+                    {/* Ping dot */}
+                    <span className="relative flex h-2 w-2 flex-shrink-0">
+                      <span
+                        className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isBullish ? "bg-green-400" : "bg-red-400"} opacity-75`}
+                      />
+                      <span
+                        className={`relative inline-flex h-2 w-2 rounded-full ${isBullish ? "bg-green-500" : "bg-red-500"}`}
+                      />
                     </span>
 
-                    {(() => {
-                      const unrealizedPnl =
-                        (currentPrice - selectedTrade.price) *
-                        selectedTrade.quantity
-                      const isPositive = unrealizedPnl >= 0
+                    <Activity className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
 
-                      return (
-                        <motion.span
-                          key={unrealizedPnl.toFixed(2)}
-                          initial={{ opacity: 0, y: -4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 400,
-                            damping: 25,
-                          }}
-                          className={`text-xs font-bold ${
-                            isPositive ? "text-green-500" : "text-red-500"
-                          }`}
-                        >
-                          {isPositive ? "+" : ""}${unrealizedPnl.toFixed(2)}
-                        </motion.span>
-                      )
-                    })()}
+                    {/* Label */}
+                    <div className="relative h-4 overflow-hidden flex items-center">
+                      <motion.span
+                        className="text-xs text-muted-foreground absolute whitespace-nowrap"
+                        variants={{
+                          hovered: { opacity: 0, y: -8, filter: "blur(4px)" },
+                          rest: { opacity: 1, y: 0, filter: "blur(0px)" },
+                        }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        Unrealized P&L:
+                      </motion.span>
+                      <motion.span
+                        className="text-xs text-muted-foreground absolute whitespace-nowrap"
+                        variants={{
+                          hovered: { opacity: 1, y: 0, filter: "blur(0px)" },
+                          rest: { opacity: 0, y: 8, filter: "blur(4px)" },
+                        }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        Current Price:
+                      </motion.span>
+                      <span className="text-xs opacity-0 pointer-events-none whitespace-nowrap">
+                        Unrealized P&L:
+                      </span>
+                    </div>
+
+                    {/* Value */}
+                    <div className="relative h-4 overflow-hidden flex items-center">
+                      <motion.span
+                        className={`text-xs font-bold absolute whitespace-nowrap ${isPositive ? "text-green-500" : "text-red-500"}`}
+                        variants={{
+                          hovered: { opacity: 0, y: -8, filter: "blur(4px)" },
+                          rest: { opacity: 1, y: 0, filter: "blur(0px)" },
+                        }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {isPositive ? "+" : ""}${unrealizedPnl.toFixed(2)}
+                      </motion.span>
+                      <motion.span
+                        className="text-xs font-bold absolute whitespace-nowrap text-foreground"
+                        variants={{
+                          hovered: { opacity: 1, y: 0, filter: "blur(0px)" },
+                          rest: { opacity: 0, y: 8, filter: "blur(4px)" },
+                        }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        ${currentPrice.toFixed(2)}
+                      </motion.span>
+                      <span className="text-xs font-bold opacity-0 pointer-events-none whitespace-nowrap">
+                        ${currentPrice.toFixed(2)}
+                      </span>
+                    </div>
                   </motion.div>
-                ) : null}
-              </>,
-            )}
+                )
+              })()
+            ) : null}
+          </>
+        )}
       </div>
 
       {filledLegs.length > 0 &&
