@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import TradingTimeline from "./TradingTimeline"
-import SpeculationAgent from "./SpeculationAgent"
+import SpeculationAgent from "./speculation-agent/SpeculationAgent"
 import AgentSummary from "./AgentSummary"
 import { TradeEvent } from "@/lib/types"
 import { accessToken } from "@/app/util/getAccessToken"

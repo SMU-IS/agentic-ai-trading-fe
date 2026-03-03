@@ -9,8 +9,6 @@ import PerformanceChart from "./PerformanceChart"
 import StockHistoryModal from "./StockHistoryModal"
 import SummaryCards from "./SummaryCards"
 import { Card, CardHeader, CardContent } from "../ui/card"
-import SpeculationAgent from "../trades/SpeculationAgent"
-import TradingTimeline from "../trades/TradingTimeline"
 
 // Add TradeEvent type
 export interface TradeEvent {
