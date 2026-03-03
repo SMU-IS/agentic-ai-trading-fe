@@ -42,6 +42,15 @@ export default function LoginPage() {
   }, [])
   // ↑↑↑ END OF BLOCK ↑↑↑
 
+  const getUserProfile = async (token: string) => {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL
+    const data = await fetch(`${baseUrl}/user/profile`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    return data.json()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -89,6 +98,17 @@ export default function LoginPage() {
           }),
           credentials: "include",
         })
+
+        const { token } = await loginRes.json()
+        const {
+          user_id: userId,
+          full_name: fullName,
+          email: userEmail,
+        } = await getUserProfile(token)
+
+        sessionStorage.setItem("userId", userId)
+        sessionStorage.setItem("email", email)
+        sessionStorage.setItem("fullName", fullName)
 
         if (!loginRes.ok) {
           const errorBody = await loginRes.text()

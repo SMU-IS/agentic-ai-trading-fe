@@ -1,11 +1,11 @@
 "use client"
 
+import ChatLibrary from "@/components/portfolio/chat/ChatLibrary"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowUp, Square, X, PanelLeft, CloudCog } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { ArrowUp, PanelLeft, Square, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import ChatLibrary from "@/components/portfolio/chat/ChatLibrary"
 
 function MarkdownStreamingContent({
   content,
@@ -209,7 +209,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
   const CHAT_URL = `${process.env.NEXT_PUBLIC_CHAT_API_URL}`
   const threadId = crypto.randomUUID()
-  const HARDCODED_USER_ID = "019cad4c-cafb-7969-b0d2-18f9088de5b6" // TDOO: Replace with actual user ID from auth context
+  const userId = sessionStorage.getItem("userId")
   const THREAD_HISTORY_URL = `${process.env.NEXT_PUBLIC_THREAD_API_URL}`
 
   const scrollToBottom = () => {
@@ -264,22 +264,22 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
   useEffect(() => {
     if (showLibrary) {
-      const fetchData = async () => {
-        try {
-          const response = await fetch(
-            `${THREAD_HISTORY_URL}?user_id=${HARDCODED_USER_ID}`,
-            { credentials: "include" },
-          )
-          if (!response.ok) throw new Error("Failed to fetch")
-          const data = await response.json()
-          setConversationHistory(data)
-        } catch (error) {
-          console.error("Error fetching thread history:", error)
-        }
-      }
       fetchData()
     }
   }, [showLibrary])
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${THREAD_HISTORY_URL}?user_id=${userId}`, {
+        credentials: "include",
+      })
+      if (!response.ok) throw new Error("Failed to fetch")
+      const data = await response.json()
+      setConversationHistory(data)
+    } catch (error) {
+      console.error("Error fetching thread history:", error)
+    }
+  }
 
   const streamBackendResponse = async (
     userMessage: string,
@@ -294,7 +294,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         query: userMessage,
-        user_id: "019cad4c-cafb-7969-b0d2-18f9088de5b6", // TODO: remove hardcoding and get from auth context
+        user_id: userId,
         session_id: sessionIdRef.current,
         ...(shouldIncludeOrderId && { order_id }),
       }),
