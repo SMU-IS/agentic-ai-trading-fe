@@ -229,7 +229,7 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                     </div>
 
                     {/* Value */}
-                    <div className="relative h-4 overflow-hidden flex items-center">
+                    <div className="relative h-4  flex items-center">
                       <motion.span
                         className={`text-xs font-bold absolute whitespace-nowrap ${isPositive ? "text-green-500" : "text-red-500"}`}
                         variants={{
