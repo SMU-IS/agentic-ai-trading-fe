@@ -535,7 +535,14 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           >
             <div className="relative rounded-2xl p-[2px]">
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
-                <div className="bg-gradient-conic-smooth animate-spin-border absolute inset-[-100%]" />
+                <div
+                  className="bg-gradient-conic-smooth animate-spin-border absolute inset-[-100%]"
+                  style={{
+                    willChange: "transform",
+                    backfaceVisibility: "hidden",
+                    transform: "translateZ(0)",
+                  }}
+                />
               </div>
 
               <Card
@@ -815,42 +822,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes spin-border {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        .animate-spin-border {
-          animation: spin-border 4s linear infinite;
-        }
-        .bg-gradient-conic-smooth {
-          background: conic-gradient(
-            from 0deg,
-            #14b8a6,
-            #0d9488,
-            #0f766e,
-            #115e59,
-            #134e4a,
-            #00faea,
-            hsl(var(--background)),
-            hsl(var(--muted)),
-            hsl(var(--card)),
-            hsl(var(--muted)),
-            hsl(var(--background)),
-            #00ffee,
-            #134e4a,
-            #115e59,
-            #0f766e,
-            #0d9488,
-            #14b8a6
-          );
-        }
-      `}</style>
     </>
   )
 }

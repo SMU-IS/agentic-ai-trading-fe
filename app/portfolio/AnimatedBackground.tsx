@@ -4,12 +4,17 @@ import { motion } from "framer-motion"
 
 export default function AnimatedBackground() {
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden bg-background">
-      {/* Animated illumination orbs */}
+    <div
+      className="fixed inset-0 -z-10 overflow-hidden bg-background"
+      style={{ contain: "strict", isolation: "isolate" }}
+    >
       <motion.div
         className="absolute h-[500px] w-[100vw] rounded-full bg-primary/20"
         style={{
           filter: "blur(100px)",
+          willChange: "transform, opacity",
+          transform: "translateZ(0)",
+          backfaceVisibility: "hidden",
         }}
         animate={{
           x: ["-20%", "80%", "30%", "90%", "-20%"],
@@ -27,6 +32,9 @@ export default function AnimatedBackground() {
         className="absolute h-[400px] w-[400px] rounded-full bg-primary/25"
         style={{
           filter: "blur(90px)",
+          willChange: "transform, opacity",
+          transform: "translateZ(0)",
+          backfaceVisibility: "hidden",
         }}
         animate={{
           x: ["100%", "10%", "70%", "-10%", "100%"],
@@ -45,6 +53,9 @@ export default function AnimatedBackground() {
         className="absolute h-[450px] w-[450px] rounded-full bg-primary/15"
         style={{
           filter: "blur(120px)",
+          willChange: "transform, opacity",
+          transform: "translateZ(0)",
+          backfaceVisibility: "hidden",
         }}
         animate={{
           x: ["50%", "-15%", "85%", "20%", "50%"],

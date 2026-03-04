@@ -23,48 +23,6 @@ export function DashboardPreview() {
           />
         </div>
       </div>
-
-      {/* CSS for the gradient animation */}
-      <style jsx global>{`
-        @keyframes spin-border {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .animate-spin-border {
-          animation: spin-border 4s linear infinite;
-        }
-
-        /* Teal to background gradient - smooth transitions */
-        .bg-gradient-conic-teal-background {
-          background: conic-gradient(
-            from 0deg,
-            #14b8a6,
-            #0d9488,
-            #0a7a6e,
-            #075e59,
-            #044e49,
-            #023d3a,
-            #012b29,
-            #001a19,
-            #000000,
-            #000000,
-            #000000,
-            #001a19,
-            #012b29,
-            #023d3a,
-            #044e49,
-            #075e59,
-            #0a7a6e,
-            #0d9488,
-            #14b8a6
-          );
-        }
-      `}</style>
     </div>
   )
 }

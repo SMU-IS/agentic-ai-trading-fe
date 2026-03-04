@@ -138,3 +138,51 @@
 .animate-rotate-border {
   animation: rotate-angle 2s linear infinite;
 }
+
+@keyframes spin-border {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-border {
+  animation: spin-border 4s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+.bg-gradient-conic-smooth {
+  background: conic-gradient(
+    from 0deg,
+    #14b8a6,
+    #0d9488,
+    #0f766e,
+    #115e59,
+    #134e4a,
+    #00faea,
+    hsl(var(--background)),
+    hsl(var(--muted)),
+    hsl(var(--card)),
+    hsl(var(--muted)),
+    hsl(var(--background)),
+    #00ffee,
+    #134e4a,
+    #115e59,
+    #0f766e,
+    #0d9488,
+    #14b8a6
+  );
+}
+
+.animate-rotate-border {
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* hide nextjs circle icon */
+#__next-build-watcher,
+nextjs-portal {
+  display: none !important;
+}
