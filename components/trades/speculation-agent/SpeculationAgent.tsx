@@ -242,12 +242,12 @@ export default function SpeculationAgent({
                 variant="outline"
                 size="lg"
                 onClick={handleAskAIClick}
-                className="w-full h-10 bg-foreground/80 text-background relative group transition-all duration-300 rounded-xl hover:bg-muted border-none"
+                className="w-full h-10 bg-foreground/80 text-background relative group transition-all duration-300 rounded-xl hover:bg-foreground/70 hover:text-background border-none"
               >
                 <span
                   className="pointer-events-none absolute -inset-[2px] rounded-xl animate-rotate-border"
                   style={{
-                    padding: "2px",
+                    padding: "3px",
                     background:
                       "conic-gradient(from var(--angle, 0deg), #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
                     WebkitMask:
@@ -260,6 +260,7 @@ export default function SpeculationAgent({
                 <Sparkles className="h-4 w-4 mr-2" />
                 Ask AI about this trade
               </Button>
+
               <AskAI
                 open={showAskAI}
                 onOpenChange={(open) => {

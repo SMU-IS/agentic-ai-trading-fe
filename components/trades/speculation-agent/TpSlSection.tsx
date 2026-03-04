@@ -31,9 +31,10 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
 
     const fetchPrice = async () => {
       setLoadingPrice(true)
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL
       try {
         const res = await fetch(
-          `http://localhost:8000/api/v1/trading/yahoo/latest/${selectedTrade.symbol}`,
+          `${baseUrl}/trading/yahoo/latest/${selectedTrade.symbol}`,
         )
         if (!res.ok) return
         const data = await res.json()

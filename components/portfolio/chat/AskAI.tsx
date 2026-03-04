@@ -15,42 +15,63 @@ function MarkdownStreamingContent({
   isStreaming: boolean
 }) {
   const [displayedText, setDisplayedText] = useState("")
-  const [currentIndex, setCurrentIndex] = useState(0)
   const animationFrameRef = useRef<number>()
   const lastUpdateRef = useRef<number>(0)
+  const currentIndexRef = useRef(0)
+
+  const contentRef = useRef(content)
 
   useEffect(() => {
+    contentRef.current = content // update ref synchronously before any logic
+
     if (!isStreaming) {
+      if (animationFrameRef.current)
+        cancelAnimationFrame(animationFrameRef.current)
+      animationFrameRef.current = undefined
+      lastUpdateRef.current = 0
       setDisplayedText(content)
-      setCurrentIndex(content.length)
+      currentIndexRef.current = content.length
       return
     }
-    if (currentIndex > content.length) {
-      setCurrentIndex(0)
+
+    if (currentIndexRef.current > contentRef.current.length) {
+      if (animationFrameRef.current)
+        cancelAnimationFrame(animationFrameRef.current)
+      animationFrameRef.current = undefined
+      currentIndexRef.current = 0
+      lastUpdateRef.current = 0
       setDisplayedText("")
     }
-    const speed = 30
+
+    if (animationFrameRef.current) return
+
+    let speed = 10 + Math.random() * 40 // one roll to start
 
     const animate = (timestamp: number) => {
       if (lastUpdateRef.current === 0) lastUpdateRef.current = timestamp
       const elapsed = timestamp - lastUpdateRef.current
-      if (elapsed >= speed && currentIndex < content.length) {
-        const nextIndex = Math.min(currentIndex + 1, content.length)
-        setDisplayedText(content.slice(0, nextIndex))
-        setCurrentIndex(nextIndex)
+
+      if (
+        elapsed >= speed &&
+        currentIndexRef.current < contentRef.current.length
+      ) {
+        currentIndexRef.current += 1
+        setDisplayedText(contentRef.current.slice(0, currentIndexRef.current))
         lastUpdateRef.current = timestamp
+        speed = 30 + Math.random() * 40 // ← new roll only after rendering a char
       }
-      if (currentIndex < content.length) {
+
+      if (currentIndexRef.current < contentRef.current.length) {
         animationFrameRef.current = requestAnimationFrame(animate)
+      } else {
+        animationFrameRef.current = undefined
       }
     }
 
     animationFrameRef.current = requestAnimationFrame(animate)
-    return () => {
-      if (animationFrameRef.current)
-        cancelAnimationFrame(animationFrameRef.current)
-    }
-  }, [content, currentIndex, isStreaming])
+
+    return () => {}
+  }, [content, isStreaming])
 
   const parseMarkdown = (text: string) => {
     const parts: JSX.Element[] = []
@@ -244,6 +265,8 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       if (abortControllerRef.current) abortControllerRef.current.abort()
       setShowLibrary(false)
       setMessages([])
+      setError(null)
+      setLoading(false)
     } else {
       sessionIdRef.current = crypto.randomUUID()
     }
@@ -754,6 +777,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                           </div>
                         ) : m.role === "assistant" ? (
                           <MarkdownStreamingContent
+                            key={m.id}
                             content={m.content}
                             isStreaming={m.isStreaming || false}
                           />

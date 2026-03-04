@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import TradingTimeline from "./TradingTimeline"
+import TradingTimeline from "./trading-timeline/TradingTimeline"
 import SpeculationAgent from "./speculation-agent/SpeculationAgent"
 import AgentSummary from "./AgentSummary"
 import { TradeEvent } from "@/lib/types"

@@ -472,10 +472,10 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         </div>
       </div>
       {/* Long positions table */}
-      <Card className="mb-8 overflow-hidden border-border bg-card">
-        <div className="overflow-x-auto">
+      <Card className="mb-8 overflow-hidden border-border bg-card ">
+        <div className="overflow-x-auto overflow-y-auto max-h-[400px]">
           <table className="w-full">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-card border-b-2 border-border shadow-[0_1px_0_0_hsl(var(--border))]">
               <tr className="border-b border-border">
                 <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                   Symbol
@@ -516,7 +516,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           <Card className="overflow-hidden border-border bg-card">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead>
+                <thead className="sticky top-0 z-10 bg-card">
                   <tr className="border-b border-border">
                     <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                       Symbol
