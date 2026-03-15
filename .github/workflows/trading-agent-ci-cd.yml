@@ -2,10 +2,10 @@ name: Trading Agent CI
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches: ["main"]
-  # pull_request:
-  #   branches: ["main"]
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   build:
@@ -35,6 +35,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    if: true
     needs: build
     steps:
       - name: Configure AWS Credentials
