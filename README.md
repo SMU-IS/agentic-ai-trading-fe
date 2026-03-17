@@ -40,10 +40,10 @@ Follow these instructions to get a copy of the project up and running on your lo
     cd agentic-ai-trading-fe
     ```
 
-2.  **Install dependencies:**
+2.  **Install Dependencies:**
 
     ```bash
-    pnpm install
+    npm install
     ```
 
 3.  **Set up environment variables:**

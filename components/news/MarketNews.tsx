@@ -1,9 +1,9 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { ExternalLink, RefreshCw } from "lucide-react"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface NewsArticle {
   category: string
@@ -74,8 +74,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const wsRef = useRef<WebSocket | null>(null)
 
   const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY
-  const NOTIF_URL = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}`
-  const wsUrl = `${NOTIF_URL}/ws/notifications`
+  const wsUrl = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}/ws/notifications`
 
   const fetchMarketNews = async (newsCategory: string) => {
     setLoading(true)
