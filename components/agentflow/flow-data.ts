@@ -61,7 +61,7 @@ export const initialNodes: Node[] = [
           icon: FaReddit,
           color: "bg-[#FF5700]/20",
           textColor: "text-orange-500",
-          hasToggle: true,
+          hasToggle: false,
           enabled: true,
         },
         {
@@ -69,7 +69,7 @@ export const initialNodes: Node[] = [
           icon: FaDiscord,
           color: "bg-purple-400/20",
           textColor: "text-purple-500",
-          hasToggle: true,
+          hasToggle: false,
           enabled: false,
         },
       ],

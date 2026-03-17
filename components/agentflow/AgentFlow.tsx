@@ -19,13 +19,7 @@ import { MONITORED_NODE_IDS } from "@/hooks/use-health-check"
 
 import "@xyflow/react/dist/style.css"
 import {
-  Database,
-  Newspaper,
-  Brain,
-  Bot,
-  Bell,
   Play,
-  Square,
   ChevronLeft,
   ChevronRight,
   RotateCcw,
@@ -47,6 +41,7 @@ import { initialNodes, initialEdges } from "./flow-data"
 import { nodeStatistics } from "./node-statistics"
 import { useHealthCheck } from "@/hooks/use-health-check"
 import { HealthDot } from "@/components/agentflow/HealthDot"
+import { DevFilterPanel } from "@/components/agentflow/DevFilterPanel" // ← new import
 
 const edgeTypes = {
   customSmooth: CustomSmoothEdge,
@@ -126,18 +121,15 @@ const CustomNode = ({ data, id }: any) => {
     }))
   }
 
-  // Determine which label and description to show
   const displayLabel = data.isDeveloperMode
     ? data.label
     : data.humanized || data.label
-
   const displayDescription = data.isDeveloperMode
     ? data.description
     : data.humanizedDescription || data.description
 
   return (
     <>
-      {/* Handles */}
       <Handle
         type="target"
         position={Position.Left}
@@ -210,17 +202,14 @@ const CustomNode = ({ data, id }: any) => {
           minHeight: data.customHeight ?? " ",
         }}
       >
-        {/* ← Only show dot if this node is monitored */}
         {MONITORED_NODE_IDS.has(id) && (
           <HealthDot status={data.healthStatus ?? "loading"} />
         )}
-        {/* Main Icon */}
         <div className="flex justify-center">
           <div className="flex h-10 w-10 items-center justify-center">
             {data.icon && <data.icon className="h-6 w-6" />}
           </div>
         </div>
-        {/* Title */}
         <div className="text-center">
           <p className="text-sm font-semibold text-foreground">
             {displayLabel}
@@ -231,7 +220,6 @@ const CustomNode = ({ data, id }: any) => {
             </p>
           )}
         </div>
-        {/* Source Cards - Only show if sources exist */}
         {data.sources && data.sources.length > 0 && (
           <div className="nodrag space-y-2">
             {data.sources.map((source: any, index: number) => (
@@ -243,8 +231,6 @@ const CustomNode = ({ data, id }: any) => {
                 <span className="flex-1 text-xs font-medium">
                   {source.name}
                 </span>
-
-                {/* Toggle - Only show if hasToggle is true */}
                 {source.hasToggle && (
                   <Toggle
                     pressed={sourceStates[index]}
@@ -253,10 +239,8 @@ const CustomNode = ({ data, id }: any) => {
                     size="sm"
                   >
                     <motion.div
-                      className="absolute left-[2px] top-[2px] h-4 w-4 rounded-full border border-foreground/40 bg-card shadow-sm"
-                      animate={{
-                        x: sourceStates[index] ? 16 : 0,
-                      }}
+                      className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full bg-background shadow-md"
+                      animate={{ x: sourceStates[index] ? 16 : 0 }}
                       transition={{
                         type: "spring",
                         stiffness: 500,
@@ -269,20 +253,16 @@ const CustomNode = ({ data, id }: any) => {
             ))}
           </div>
         )}
-        {/* Statistics - Show when node is active */}
         {data.showStats && <NodeStatistics nodeId={id} />}
       </div>
     </>
   )
 }
 
-// Pipeline Node Component
 const PipelineNode = ({ data, id }: any) => {
-  // Determine which label and steps to show
   const displayLabel = data.isDeveloperMode
     ? data.label
     : data.humanized || data.label
-
   const displaySteps = data.isDeveloperMode
     ? data.steps
     : data.humanizedSteps || data.steps
@@ -305,7 +285,6 @@ const PipelineNode = ({ data, id }: any) => {
           data.connectedHandles?.has(`${id}-left-source`) ? "" : "!opacity-0"
         }
       />
-
       <Handle
         type="target"
         position={Position.Right}
@@ -322,7 +301,6 @@ const PipelineNode = ({ data, id }: any) => {
           data.connectedHandles?.has(`${id}-right-source`) ? "" : "!opacity-0"
         }
       />
-
       <Handle
         type="target"
         position={Position.Top}
@@ -339,7 +317,6 @@ const PipelineNode = ({ data, id }: any) => {
           data.connectedHandles?.has(`${id}-top-source`) ? "" : "!opacity-0"
         }
       />
-
       <Handle
         type="target"
         position={Position.Bottom}
@@ -373,7 +350,6 @@ const PipelineNode = ({ data, id }: any) => {
             </div>
           ))}
         </div>
-        {/* Statistics - Show when node is active */}
         {data.showStats && <NodeStatistics nodeId={id} />}
       </div>
     </>
@@ -404,21 +380,11 @@ function AgentFlowContent() {
     useHealthCheck(30000)
 
   const nodeSequence = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+  const tourSequence = nodeSequence.map((nodeId) => ({
+    nodeId,
+    duration: 1500,
+  }))
 
-  const tourSequence = [
-    { nodeId: "1", duration: 1500 },
-    { nodeId: "2", duration: 1500 },
-    { nodeId: "3", duration: 1500 },
-    { nodeId: "4", duration: 1500 },
-    { nodeId: "5", duration: 1500 },
-    { nodeId: "6", duration: 1500 },
-    { nodeId: "7", duration: 1500 },
-    { nodeId: "8", duration: 1500 },
-    { nodeId: "9", duration: 1500 },
-    { nodeId: "10", duration: 1500 },
-  ]
-
-  // Update nodes when developer mode changes
   useEffect(() => {
     setNodes((nds) =>
       nds.map((n) => ({
@@ -430,23 +396,18 @@ function AgentFlowContent() {
         },
       })),
     )
-    // Trigger shimmer effect
     setIsShimmering(true)
-    const timer = setTimeout(() => {
-      setIsShimmering(false)
-    }, 800)
-
+    const timer = setTimeout(() => setIsShimmering(false), 800)
     return () => clearTimeout(timer)
   }, [isDeveloperMode, setNodes, healthStatuses])
 
-  // Update edges when developer mode changes
   useEffect(() => {
     setEdges((eds) =>
       eds.map((edge: any, index: number) => {
         const originalEdge: any = originalEdgesRef.current[index]
         return {
           ...edge,
-          data: originalEdge.data, // ← add this to preserve offset/borderRadius
+          data: originalEdge.data,
           label: isDeveloperMode
             ? originalEdge.label
             : originalEdge.humanizedLabel || originalEdge.label,
@@ -470,30 +431,22 @@ function AgentFlowContent() {
     const node = nodes.find((n) => n.id === nodeId)
     if (node) {
       setActiveNodeId(nodeId)
-
       setNodes((nds) =>
         nds.map((n) => ({
           ...n,
-          data: {
-            ...n.data,
-            showStats: n.id === nodeId,
-          },
+          data: { ...n.data, showStats: n.id === nodeId },
         })),
       )
-
       const zoom = 1
       const x = window.innerWidth / 2 - node.position.x * zoom - 110
       const y = (window.innerHeight * 0.7) / 2 - node.position.y * zoom - 150
-
       setViewport({ x, y, zoom }, { duration: 800 })
     }
   }
 
   const handleNodeClick = (event: React.MouseEvent, node: any) => {
     if (isPlaying) return
-
     const clickedIndex = nodeSequence.findIndex((id) => id === node.id)
-
     if (clickedIndex !== -1) {
       setCurrentStepIndex(clickedIndex)
       focusOnNode(node.id)
@@ -517,13 +470,7 @@ function AgentFlowContent() {
       setCurrentStepIndex(-1)
       setActiveNodeId(null)
       setNodes((nds) =>
-        nds.map((n) => ({
-          ...n,
-          data: {
-            ...n.data,
-            showStats: false,
-          },
-        })),
+        nds.map((n) => ({ ...n, data: { ...n.data, showStats: false } })),
       )
       fitView({ duration: 800, padding: 0.2 })
     }
@@ -534,17 +481,9 @@ function AgentFlowContent() {
     setIsPlaying(false)
     setActiveNodeId(null)
     setCurrentStepIndex(-1)
-
     setNodes((nds) =>
-      nds.map((n) => ({
-        ...n,
-        data: {
-          ...n.data,
-          showStats: false,
-        },
-      })),
+      nds.map((n) => ({ ...n, data: { ...n.data, showStats: false } })),
     )
-
     fitView({ duration: 800, padding: 0.2 })
   }
 
@@ -554,41 +493,26 @@ function AgentFlowContent() {
     tourCancelledRef.current = false
 
     for (const step of tourSequence) {
-      if (tourCancelledRef.current) {
-        break
-      }
-
+      if (tourCancelledRef.current) break
       const node = nodes.find((n) => n.id === step.nodeId)
       if (node) {
         setActiveNodeId(step.nodeId)
-
         setNodes((nds) =>
           nds.map((n) => ({
             ...n,
-            data: {
-              ...n.data,
-              showStats: n.id === step.nodeId,
-            },
+            data: { ...n.data, showStats: n.id === step.nodeId },
           })),
         )
-
         const zoom = 1
         const x = window.innerWidth / 2 - node.position.x * zoom - 110
         const y = (window.innerHeight * 0.7) / 2 - node.position.y * zoom - 150
-
         setViewport({ x, y, zoom }, { duration: 800 })
         await new Promise((resolve) => setTimeout(resolve, step.duration))
       }
     }
 
     setNodes((nds) =>
-      nds.map((n) => ({
-        ...n,
-        data: {
-          ...n.data,
-          showStats: false,
-        },
-      })),
+      nds.map((n) => ({ ...n, data: { ...n.data, showStats: false } })),
     )
 
     if (!tourCancelledRef.current) {
@@ -607,30 +531,20 @@ function AgentFlowContent() {
     setIsPlaying(false)
     setActiveNodeId(null)
     setCurrentStepIndex(-1)
-
     setNodes((nds) =>
-      nds.map((n) => ({
-        ...n,
-        data: {
-          ...n.data,
-          showStats: false,
-        },
-      })),
+      nds.map((n) => ({ ...n, data: { ...n.data, showStats: false } })),
     )
     fitView({ duration: 800, padding: 0.2 })
   }
 
   const highlightedNodes = nodes.map((node) => ({
     ...node,
-    data: {
-      ...node.data,
-      connectedHandles, // ← inject here instead of via setNodes
-    },
+    data: { ...node.data, connectedHandles },
     style: {
       ...node.style,
       opacity: activeNodeId ? (node.id === activeNodeId ? 1 : 0.3) : 1,
       transition: "opacity 0.3s ease",
-      zIndex: node.id === activeNodeId ? 1000 : (node.zIndex ?? 1), // ← use node's own zIndex if set, else default to 1
+      zIndex: node.id === activeNodeId ? 1000 : (node.zIndex ?? 1),
     },
   }))
 
@@ -646,9 +560,7 @@ function AgentFlowContent() {
           </p>
         </div>
 
-        {/* Navigation and Tour Buttons */}
         <div className="flex items-center gap-2">
-          {/* Refresh Button */}
           <Button
             onClick={handleRefresh}
             className="rounded-full border border-foreground/25 bg-card text-foreground hover:bg-primary/5"
@@ -657,8 +569,6 @@ function AgentFlowContent() {
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
-
-          {/* Backward Button */}
           <Button
             onClick={goBackward}
             disabled={currentStepIndex < 0 || isPlaying}
@@ -667,8 +577,6 @@ function AgentFlowContent() {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-
-          {/* Forward Button */}
           <Button
             onClick={goForward}
             disabled={currentStepIndex >= nodeSequence.length - 1 || isPlaying}
@@ -678,7 +586,6 @@ function AgentFlowContent() {
             <ChevronRight className="h-4 w-4" />
           </Button>
 
-          {/* Play Tour Button */}
           <motion.div whileHover={{ scale: 1.0 }}>
             <Button
               onClick={isPlaying ? stopTour : playTour}
@@ -693,21 +600,13 @@ function AgentFlowContent() {
                 }}
                 transition={{ duration: 0.4, ease: "easeInOut" }}
               />
-
               {isPlaying && (
                 <motion.div
                   className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-primary/20 to-transparent"
-                  animate={{
-                    x: ["-100%", "200%"],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
+                  animate={{ x: ["-100%", "200%"] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 />
               )}
-
               <motion.div
                 className="relative flex items-center gap-2 px-4 py-2"
                 animate={{
@@ -770,32 +669,28 @@ function AgentFlowContent() {
           className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden"
           style={{ height: "70vh" }}
         >
-          {/* Shimmer effect on the entire card */}
           {isShimmering && (
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent pointer-events-none z-[999]"
               initial={{ x: "-100%" }}
               animate={{ x: "200%" }}
-              transition={{
-                duration: 0.8,
-                ease: "easeInOut",
-              }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
             />
           )}
-          {/* Developer Mode Toggle */}
+
+          {/* Dev Mode Toggle */}
           <Toggle
             pressed={isDeveloperMode}
             onPressedChange={setIsDeveloperMode}
             className="absolute right-4 top-4 z-[1000] flex items-center gap-2 rounded-full border border-foreground/25 bg-card px-3 py-2 shadow-lg data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
           >
             <Code2 className="h-3 w-3" />
-            <span className="text-xs font-medium">Dev Mode</span>
+            <span className="text-xs font-medium">Agent Settings</span>
           </Toggle>
 
-          {/* Developer Mode Toggle */}
+          {/* Health Legend + Countdown */}
           <Card className="w-28 absolute right-4 top-20 z-[1000] rounded-xl border border-foreground/25 bg-card/80 px-3 py-2 shadow-lg">
             <div className="flex flex-col gap-2">
-              {/* Legend */}
               <div className="flex items-center gap-2">
                 <HealthDot status="healthy" variant="inline" />
                 <span className="text-xs text-muted-foreground">Online</span>
@@ -804,11 +699,7 @@ function AgentFlowContent() {
                 <HealthDot status="unhealthy" variant="inline" />
                 <span className="text-xs text-muted-foreground">Error</span>
               </div>
-
-              {/* Divider */}
               <div className="border-t border-border" />
-
-              {/* Countdown */}
               <span className="inline-block w-26 text-xs text-muted-foreground text-center">
                 Refresh in{" "}
                 <span className="font-semibold text-foreground">
@@ -817,6 +708,11 @@ function AgentFlowContent() {
               </span>
             </div>
           </Card>
+
+          {/* ← DevFilterPanel: separate component, shown only in dev mode */}
+          <AnimatePresence>
+            {isDeveloperMode && <DevFilterPanel />}
+          </AnimatePresence>
 
           <ReactFlow
             nodes={highlightedNodes}
@@ -829,11 +725,7 @@ function AgentFlowContent() {
             fitView
             edgeTypes={edgeTypes}
             attributionPosition="bottom-left"
-            defaultViewport={{
-              x: 200,
-              y: -100,
-              zoom: 0.75,
-            }}
+            defaultViewport={{ x: 200, y: -100, zoom: 0.75 }}
             minZoom={0.3}
             maxZoom={2}
           >
@@ -846,7 +738,6 @@ function AgentFlowContent() {
               }}
               className="[&>button]:border-border [&>button]:bg-card [&>button]:text-foreground [&>button:hover]:bg-muted"
             />
-
             <MiniMap
               nodeStrokeWidth={3}
               zoomable
@@ -859,7 +750,6 @@ function AgentFlowContent() {
               }}
               maskColor="hsl(var(--muted) / 0.2)"
             />
-
             <Background gap={16} size={1} />
           </ReactFlow>
         </Card>
