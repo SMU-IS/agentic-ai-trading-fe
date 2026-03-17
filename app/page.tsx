@@ -1,71 +1,23 @@
-import { AnimatedSection } from "@/components/animated-section"
-import { BentoSection } from "@/components/bento-section"
-import { CTASection } from "@/components/cta-section"
-import { DashboardPreview } from "@/components/dashboard-preview"
-import { FAQSection } from "@/components/faq-section"
-import { FooterSection } from "@/components/footer-section"
+import { Navbar } from "@/components/navbar"
 import { HeroSection } from "@/components/hero-section"
+import { FeatureGrid } from "@/components/feature-grid"
+import { AboutSection } from "@/components/about-section"
+import { GlitchMarquee } from "@/components/glitch-marquee"
+import { Footer } from "@/components/footer"
+import { FAQSection } from "@/components/faq-section"
 
-export default function LandingPage() {
+export default function Page() {
   return (
-    <div className="relative min-h-screen overflow-hidden pb-0">
-      <div className="relative z-10">
-        <main className="relative mx-auto max-w-[1320px]">
-          <HeroSection />
-          {/* Dashboard Preview Wrapper */}
-          <div className="absolute bottom-[-150px] left-1/2 z-30 -translate-x-1/2 transform md:bottom-[-400px]">
-            <AnimatedSection>
-              <DashboardPreview />
-            </AnimatedSection>
-          </div>
-        </main>
-        <AnimatedSection
-          id="features-section"
-          className="relative z-10 mx-auto mt-16 max-w-[1320px]"
-          delay={0.2}
-        >
-          <BentoSection />
-        </AnimatedSection>
-        {/* <AnimatedSection
-          className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16"
-          delay={0.2}
-        >
-          <LargeTestimonial />
-        </AnimatedSection> */}
-        {/* <AnimatedSection
-          id="pricing-section"
-          className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16"
-          delay={0.2}
-        >
-          <PricingSection />
-        </AnimatedSection> */}
-        {/* <AnimatedSection
-          id="testimonials-section"
-          className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16"
-          delay={0.2}
-        >
-          <TestimonialGridSection />
-        </AnimatedSection> */}
-        <AnimatedSection
-          id="faq-section"
-          className="relative z-10 mx-auto max-w-[1320px]"
-          delay={0.2}
-        >
-          <FAQSection />
-        </AnimatedSection>
-        <AnimatedSection
-          className="relative z-10 mx-auto mt-8 max-w-[1320px] md:mt-16"
-          delay={0.2}
-        >
-          <CTASection />
-        </AnimatedSection>
-        <AnimatedSection
-          className="relative z-10 mx-auto mt-8 max-w-[1320px] md:mt-16"
-          delay={0.2}
-        >
-          <FooterSection />
-        </AnimatedSection>
-      </div>
+    <div className="min-h-screen dot-grid-bg">
+      <Navbar />
+      <main>
+        <HeroSection />
+        <GlitchMarquee />
+        <FeatureGrid />
+        <AboutSection />
+        <FAQSection />
+      </main>
+      <Footer />
     </div>
   )
 }

@@ -131,10 +131,10 @@ function PortfolioContent() {
               onClick={async () => {
                 try {
                   await signOut()
-                  router.push("/login")
+                  router.push("/")
                 } catch (error) {
                   console.error("Sign out error:", error)
-                  router.push("/login")
+                  router.push("/")
                 }
               }}
             >
