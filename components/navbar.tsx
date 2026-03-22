@@ -81,13 +81,13 @@ export function Navbar() {
             >
               Log In
             </a>
-            <motion.button
+            {/* <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="bg-foreground text-background px-4 py-2 text-xs font-mono tracking-widest uppercase"
             >
               Request Demo
-            </motion.button>
+            </motion.button> */}
           </motion.div>
         </div>
       </nav>
