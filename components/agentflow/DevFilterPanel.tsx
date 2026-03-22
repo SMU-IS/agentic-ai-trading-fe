@@ -165,7 +165,7 @@ export function DevFilterPanel() {
         </AnimatePresence>
 
         {/* Sub-filter: TradingView tickers */}
-        <AnimatePresence>
+        {/* <AnimatePresence>
           {sources.tradingview.enabled && (
             <motion.div
               key="tradingview-filter"
@@ -177,7 +177,7 @@ export function DevFilterPanel() {
             >
               <p className="text-xs text-muted-foreground">
                 TradingView — only trade specific tickers{" "}
-                {/* <span className="text-foreground/40">(press Enter)</span> */}
+                <span className="text-foreground/40">(press Enter)</span>
               </p>
               <Input
                 value={sources.tradingview.tickerInput}
@@ -215,7 +215,7 @@ export function DevFilterPanel() {
               )}
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence> */}
 
         {/* Empty state */}
         {!isHydrating &&
