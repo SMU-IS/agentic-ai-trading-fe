@@ -158,7 +158,7 @@ export default function PortfolioTab() {
         <div className="flex-[40]">
           <PerformanceChart />
         </div>
-        <div className="flex-[60]">
+        <div className="flex-[60] min-w-0 overflow-hidden">
           <MarketNews category="general" />
         </div>
       </div>
