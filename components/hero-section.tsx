@@ -10,7 +10,7 @@ export function HeroSection() {
   return (
     <section
       id="hero-section"
-      className="relative w-full px-12 pt-6 pb-12 lg:px-24 lg:pt-24 lg:pb-16"
+      className="relative w-full px-12 pt-8 pb-12 lg:px-24 lg:pt-24 lg:pb-16"
     >
       <div className="flex flex-col items-center text-center">
         {/* Top headline: DEPLOY. SCALE. -- Geist Pixel Grid */}

@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { useEffect, useState } from "react"
 import { SplineScene } from "@/components/ui/spline-scene"
 
-const LEFT_LABELS = ["REDDIT", "DISCORD", "YAHOO"]
+const LEFT_LABELS = ["REDDIT", "TRADINGVIEW", "YAHOO"]
 const RIGHT_LABELS = ["TRADE", "TRADE", "TRADE"]
 
 function PillLabel({
@@ -27,7 +27,7 @@ function PillLabel({
       <rect
         x={x}
         y={y}
-        width={80}
+        width={100}
         height={26}
         rx={13}
         fill="none"
@@ -35,7 +35,7 @@ function PillLabel({
         strokeWidth={1.5}
       />
       <text
-        x={x + 40}
+        x={x + 50}
         y={y + 17}
         textAnchor="middle"
         fill="hsl(var(--foreground))"
@@ -166,7 +166,7 @@ export function WorkflowDiagram() {
           <PillLabel
             key={`left-${label}`}
             label={label}
-            x={60}
+            x={40}
             y={30 + i * 60}
             delay={0.1 + i * 0.1}
           />
