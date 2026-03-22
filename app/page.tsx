@@ -8,7 +8,7 @@ import { FAQSection } from "@/components/faq-section"
 
 export default function Page() {
   return (
-    <div className="min-h-screen dot-grid-bg">
+    <div className="min-h-screen dot-grid-bg w-[100vw] overflow-x-hidden">
       <Navbar />
       <main>
         <HeroSection />
