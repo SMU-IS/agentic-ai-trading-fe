@@ -173,8 +173,8 @@ export default function SpeculationAgent({
   }
 
   return (
-    <div className="h-full flex flex-col overflow-y-auto pr-2">
-      <Card className="bg-card border-border flex-shrink-0 h-[calc(100vh-150px)] overflow-y-auto">
+    <div className="h-full flex flex-col pr-2">
+      <Card className="bg-card border-border flex-shrink-0 h-[calc(100vh-150px)]">
         <CardHeader>
           <TradeHeader selectedTrade={selectedTrade} />
         </CardHeader>
