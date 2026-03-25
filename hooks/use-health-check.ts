@@ -9,11 +9,11 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_API_URL ?? "http://localhost:8000/api/v1"
 
 const HEALTH_ENDPOINTS: Record<string, string> = {
-  "14": `${BASE_URL}/rag/healthcheck`,
-  "15": `${BASE_URL}/trading/healthcheck`,
-  "16": `${BASE_URL}/trading/healthcheck`,
-  "18": `${BASE_URL}/auth/healthcheck`,
-  "17": `${BASE_URL}/notification/healthcheck`,
+  "14": `${BASE_URL}/rag`,
+  "15": `${BASE_URL}/trading`,
+  "16": `${BASE_URL}/trading`,
+  "18": `${BASE_URL}/auth`,
+  "17": `${BASE_URL}/notification`,
 }
 
 export function useHealthCheck(intervalMs = 30000) {
