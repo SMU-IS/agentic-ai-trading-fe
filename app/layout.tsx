@@ -2,6 +2,7 @@ import { AuthProvider } from "@/lib/auth-context"
 import { Analytics } from "@vercel/analytics/next"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
+import { GeistPixelGrid } from "geist/font/pixel"
 import type React from "react"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -34,7 +35,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${GeistPixelGrid.variable}`}
+      suppressHydrationWarning
+    >
       <body className={`font-sans antialiased`}>
         <ThemeProvider
           attribute="class"

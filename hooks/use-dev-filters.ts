@@ -1,19 +1,35 @@
 import { useEffect, useState, KeyboardEvent } from "react"
 
 export type Source = "reddit" | "tradingview"
+export type RiskMode = "aggressive" | "conservative"
+
+export const REDDIT_SUBREDDITS = [
+  "r/wallstreetbets",
+  "r/investing",
+  "r/stocks",
+  "r/options",
+  "r/stockmarket",
+] as const
+
+export type Subreddit = (typeof REDDIT_SUBREDDITS)[number]
 
 export interface SourceState {
   enabled: boolean
-  redditAccount: string
+  selectedSubreddits: Subreddit[]
   tickerInput: string
   tickers: string[]
 }
 
 const DEFAULT_STATE: Record<Source, SourceState> = {
-  reddit: { enabled: true, redditAccount: "", tickerInput: "", tickers: [] },
+  reddit: {
+    enabled: true,
+    selectedSubreddits: [...REDDIT_SUBREDDITS],
+    tickerInput: "",
+    tickers: [],
+  },
   tradingview: {
     enabled: false,
-    redditAccount: "",
+    selectedSubreddits: [],
     tickerInput: "",
     tickers: [],
   },
@@ -35,11 +51,11 @@ async function postToggleNews(source: Source, enabled: boolean) {
   })
 }
 
-async function postFilterReddit(account: string) {
+async function postFilterReddit(subreddits: Subreddit[]) {
   await fetch("/api/filters/reddit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ account }),
+    body: JSON.stringify({ subreddits }),
   })
 }
 
@@ -51,11 +67,20 @@ async function postFilterTradingView(tickers: string[]) {
   })
 }
 
+async function postRiskMode(mode: RiskMode) {
+  await fetch("/api/filters/risk", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode }),
+  })
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 
 export function useDevFilters() {
   const [sources, setSources] =
     useState<Record<Source, SourceState>>(DEFAULT_STATE)
+  const [riskMode, setRiskMode] = useState<RiskMode>("conservative")
   const [isHydrating, setIsHydrating] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [savedPulse, setSavedPulse] = useState(false)
@@ -82,11 +107,14 @@ export function useDevFilters() {
     }))
   }
 
-  const handleRedditChange = (value: string) => {
-    setSources((prev) => ({
-      ...prev,
-      reddit: { ...prev.reddit, redditAccount: value },
-    }))
+  const toggleSubreddit = (subreddit: Subreddit) => {
+    setSources((prev) => {
+      const current = prev.reddit.selectedSubreddits
+      const next = current.includes(subreddit)
+        ? current.filter((s) => s !== subreddit)
+        : [...current, subreddit]
+      return { ...prev, reddit: { ...prev.reddit, selectedSubreddits: next } }
+    })
   }
 
   const handleTickerInput = (value: string) => {
@@ -127,17 +155,24 @@ export function useDevFilters() {
     }))
   }
 
+  const toggleRiskMode = () => {
+    setRiskMode((prev) =>
+      prev === "aggressive" ? "conservative" : "aggressive",
+    )
+  }
+
   const handleSave = async () => {
     setIsSaving(true)
     await Promise.all([
       postToggleNews("reddit", sources.reddit.enabled),
       postToggleNews("tradingview", sources.tradingview.enabled),
       sources.reddit.enabled
-        ? postFilterReddit(sources.reddit.redditAccount)
+        ? postFilterReddit(sources.reddit.selectedSubreddits)
         : Promise.resolve(),
       sources.tradingview.enabled
         ? postFilterTradingView(sources.tradingview.tickers)
         : Promise.resolve(),
+      postRiskMode(riskMode),
     ])
     setIsSaving(false)
     setSavedPulse(true)
@@ -146,14 +181,16 @@ export function useDevFilters() {
 
   return {
     sources,
+    riskMode,
     isHydrating,
     isSaving,
     savedPulse,
     toggleSource,
-    handleRedditChange,
+    toggleSubreddit,
     handleTickerInput,
     handleTickerKeyDown,
     removeTicker,
+    toggleRiskMode,
     handleSave,
   }
 }

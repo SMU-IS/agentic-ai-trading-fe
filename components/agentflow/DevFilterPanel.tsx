@@ -7,7 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { FaReddit } from "react-icons/fa"
 import { SiTradingview } from "react-icons/si"
-import { useDevFilters, Source } from "@/hooks/use-dev-filters"
+import {
+  useDevFilters,
+  REDDIT_SUBREDDITS,
+  Subreddit,
+} from "@/hooks/use-dev-filters"
 
 // ─── Motion Toggle ─────────────────────────────────────────────────────────────
 const MotionToggle = ({
@@ -52,14 +56,16 @@ const MotionToggle = ({
 export function DevFilterPanel() {
   const {
     sources,
+    riskMode,
     isHydrating,
     isSaving,
     savedPulse,
     toggleSource,
-    handleRedditChange,
+    toggleSubreddit,
     handleTickerInput,
     handleTickerKeyDown,
     removeTicker,
+    toggleRiskMode,
     handleSave,
   } = useDevFilters()
 
@@ -69,7 +75,7 @@ export function DevFilterPanel() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 40 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="absolute right-4 top-16 z-[1000] w-64 pointer-events-auto"
+      className="absolute right-4 top-16 z-[1000] w-72 pointer-events-auto"
     >
       <Card className="border border-primary/20 bg-card/95 backdrop-blur-sm shadow-xl p-4 space-y-4">
         {/* Header */}
@@ -77,7 +83,7 @@ export function DevFilterPanel() {
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
             <p className="text-xs font-semibold text-primary uppercase tracking-widest">
-              Modify Sources
+              Modify Agent
             </p>
           </div>
           <AnimatePresence>
@@ -110,7 +116,7 @@ export function DevFilterPanel() {
           />
         </div>
 
-        {/* Sub-filters — appear below both toggles */}
+        {/* Sub-filter: Reddit subreddits */}
         <AnimatePresence>
           {sources.reddit.enabled && (
             <motion.div
@@ -119,27 +125,47 @@ export function DevFilterPanel() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="space-y-1"
+              className="space-y-2"
             >
               <p className="text-xs text-muted-foreground">
-                Reddit — filter by account
+                Reddit — select subreddits
               </p>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                  u/
-                </span>
-                <Input
-                  value={sources.reddit.redditAccount}
-                  onChange={(e) => handleRedditChange(e.target.value)}
-                  placeholder="username"
-                  className="pl-7 h-8 text-xs bg-muted/30 border-border focus:border-orange-500/50"
-                />
+              <div className="flex flex-wrap gap-1.5">
+                {REDDIT_SUBREDDITS.map((sub) => {
+                  const selected =
+                    sources.reddit.selectedSubreddits.includes(sub)
+                  return (
+                    <button
+                      key={sub}
+                      onClick={() => toggleSubreddit(sub as Subreddit)}
+                      className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium transition-all duration-200 ${
+                        selected
+                          ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
+                          : "border-border bg-muted/20 text-muted-foreground hover:bg-muted/50"
+                      }`}
+                    >
+                      <FaReddit
+                        className={`h-3 w-3 ${selected ? "text-orange-400" : "text-muted-foreground"}`}
+                      />
+                      <span>{sub.replace("r/", "")}</span>
+                      <motion.div
+                        animate={{
+                          scale: selected ? 1 : 0,
+                          opacity: selected ? 1 : 0,
+                        }}
+                        transition={{ duration: 0.15 }}
+                        className="h-1.5 w-1.5 rounded-full bg-orange-400"
+                      />
+                    </button>
+                  )
+                })}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <AnimatePresence>
+        {/* Sub-filter: TradingView tickers */}
+        {/* <AnimatePresence>
           {sources.tradingview.enabled && (
             <motion.div
               key="tradingview-filter"
@@ -150,7 +176,7 @@ export function DevFilterPanel() {
               className="space-y-2"
             >
               <p className="text-xs text-muted-foreground">
-                TradingView — filter by tickers{" "}
+                TradingView — only trade specific tickers{" "}
                 <span className="text-foreground/40">(press Enter)</span>
               </p>
               <Input
@@ -189,7 +215,7 @@ export function DevFilterPanel() {
               )}
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence> */}
 
         {/* Empty state */}
         {!isHydrating &&
@@ -199,6 +225,57 @@ export function DevFilterPanel() {
               Toggle a source to configure filters
             </p>
           )}
+
+        {/* Divider */}
+        <div className="border-t border-border" />
+
+        {/* Risk Adjustment */}
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
+            Risk Adjustment
+          </p>
+          <button
+            onClick={toggleRiskMode}
+            className="relative w-full flex items-center rounded-lg border border-border bg-muted/30 p-1 text-xs transition-colors duration-200 hover:bg-muted/60 overflow-hidden"
+          >
+            {/* Sliding background highlight */}
+            <motion.div
+              className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-md"
+              initial={false}
+              animate={{
+                x: riskMode === "aggressive" ? "calc(100%)" : "0%",
+                backgroundColor:
+                  riskMode === "aggressive"
+                    ? "rgb(239, 68, 68)"
+                    : "hsl(var(--primary) / 0.5)",
+              }}
+              style={{ left: 4 }}
+              transition={{ type: "spring", stiffness: 500, damping: 35 }}
+            />
+
+            {/* Conservative label */}
+            <span
+              className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 ${
+                riskMode === "conservative"
+                  ? "text-white"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Conservative
+            </span>
+
+            {/* Aggressive label */}
+            <span
+              className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 ${
+                riskMode === "aggressive"
+                  ? "text-white"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Aggressive
+            </span>
+          </button>
+        </div>
 
         {/* Save Button */}
         <Button

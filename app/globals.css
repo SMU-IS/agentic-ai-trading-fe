@@ -186,3 +186,69 @@
 nextjs-portal {
   display: none !important;
 }
+
+/* Dot Grid Background */
+.dot-grid-bg {
+  background-image: radial-gradient(circle, #c4c2b8 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.dark .dot-grid-bg {
+  background-image: radial-gradient(circle, hsl(0 0% 20%) 1px, transparent 1px);
+}
+
+/* Glitch Keyframes */
+@keyframes glitch {
+  0%,
+  90%,
+  100% {
+    transform: translate(0);
+    filter: none;
+  }
+  92% {
+    transform: translate(-2px, 1px);
+    filter: hue-rotate(90deg);
+  }
+  94% {
+    transform: translate(2px, -1px);
+    filter: hue-rotate(-90deg);
+  }
+  96% {
+    transform: translate(-1px, -1px);
+    filter: none;
+  }
+  98% {
+    transform: translate(1px, 2px);
+    filter: hue-rotate(45deg);
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-glitch {
+  animation: glitch 5s infinite;
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}

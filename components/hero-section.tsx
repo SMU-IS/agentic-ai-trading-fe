@@ -1,35 +1,87 @@
-import React from "react"
-import { Header } from "./header"
+"use client"
+
+import { WorkflowDiagram } from "@/components/workflow-diagram"
+import { ArrowRight } from "lucide-react"
+import { motion } from "framer-motion"
+
+const ease = [0.22, 1, 0.36, 1] as const
 
 export function HeroSection() {
   return (
-    <section className="relative mx-auto my-6 flex h-[400px] w-full flex-col items-center overflow-hidden rounded-2xl bg-gradient-to-br from-foreground/5 via-primary/10 to-primary/20 px-4 py-0 text-left md:h-[550px] md:w-[1220px] md:px-0 lg:h-[750px]">
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 z-0 opacity-5">
-        <div className="h-full w-full bg-[linear-gradient(to_right,hsl(var(--foreground))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground))_1px,transparent_1px)] bg-[size:36px_36px] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_100%)]" />
-      </div>
+    <section
+      id="hero-section"
+      className="relative w-full px-12 pt-8 pb-12 lg:px-24 lg:pt-24 lg:pb-16"
+    >
+      <div className="flex flex-col items-center text-center">
+        {/* Top headline: DEPLOY. SCALE. -- Geist Pixel Grid */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.7, ease }}
+          className="font-['GeistPixelGrid'] text-2xl sm:text-4xl lg:text-5xl xl:text-6xl tracking-tight text-foreground mb-2 select-none"
+        >
+          TRADE. ON. <span className="italic">AUTOPILOT</span>
+        </motion.h1>
 
-      {/* Gradient orbs */}
-      <div className="absolute right-0 top-0 h-[600px] w-[600px] rounded-full bg-primary/30 blur-[150px]" />
-      <div className="absolute bottom-0 left-0 h-[500px] w-[500px] rounded-full bg-foreground/20 blur-[120px]" />
+        {/* Central Workflow Diagram */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.15, ease }}
+          className="w-full max-w-2xl my-4 lg:my-6"
+        >
+          <WorkflowDiagram />
+        </motion.div>
 
-      {/* Border */}
-      <div className="absolute inset-0 rounded-2xl border border-foreground/10" />
+        {/* Bottom headline: ROUTE. -- Geist Pixel Grid */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.7, delay: 0.25, ease }}
+          className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-tight text-foreground mb-4 select-none"
+          aria-hidden="true"
+        >
+          Agent M.
+        </motion.h1>
 
-      {/* Header positioned at top of hero container */}
-      <div className="absolute left-0 right-0 top-0 z-20">
-        <Header />
-      </div>
+        {/* Sub-headline */}
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.45, ease }}
+          className="text-xs lg:text-sm text-muted-foreground max-w-md mb-6 leading-relaxed font-mono"
+        >
+          Agent M transforms real-time market sentiment from social media news
+          sources into actionable trade decisions, gaining portfolio success
+          through autonomous AI-powered trades.
+        </motion.p>
 
-      <div className="relative z-10 mb-6 mt-16 max-w-md space-y-4 px-4 text-center md:mb-7 md:mt-[120px] md:max-w-[500px] md:space-y-5 lg:mb-9 lg:mt-[160px] lg:max-w-[588px] lg:space-y-6">
-        <h1 className="text-3xl  leading-tight text-foreground md:text-4xl lg:text-5xl">
-          Meet <span className="font-geist font-thin">Agent M.</span>
-        </h1>
-        <p className="mx-auto max-w-lg text-base font-medium leading-relaxed text-muted-foreground md:text-base lg:text-lg">
-          <b className="font-geist font-thin">Agent M</b> crawls through insider
-          news, uses AI to detect real signals from noise, and executes
-          high‑conviction trades so your portfolio is always working for you.
-        </p>
+        {/* CTA Button */}
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6, ease }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          className="group flex items-center gap-0 bg-foreground text-background text-sm font-mono tracking-wider uppercase"
+        >
+          <span className="flex items-center justify-center w-10 h-10 bg-primary">
+            <motion.span
+              className="inline-flex"
+              whileHover={{ x: 3 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            >
+              <ArrowRight
+                size={16}
+                strokeWidth={2}
+                className="text-background"
+              />
+            </motion.span>
+          </span>
+          <a href="/login" className="px-5 py-2.5">
+            Login
+          </a>
+        </motion.button>
       </div>
     </section>
   )

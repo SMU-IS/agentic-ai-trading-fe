@@ -114,12 +114,10 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     }
   }
 
-  // WebSocket for live agent notifications (kept for real-time updates)
   useEffect(() => {
     if (selectedCategory === "agent") {
       fetchAgentNews()
 
-      // Also connect WebSocket for live incoming news
       const ws = new WebSocket(wsUrl)
       wsRef.current = ws
 
@@ -128,7 +126,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
           const data = JSON.parse(event.data)
           if (data.type !== "NEWS_RECEIVED") return
 
-          // Normalize incoming WS message to AgentNewsItem shape
           const normalized: AgentNewsItem = {
             topic_id: data.news_id,
             text_content: data.event_description ?? "",
@@ -206,11 +203,11 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   ]
 
   return (
-    <Card className="border-border bg-card/60 p-6 h-[450px] overflow-hidden">
+    // ↓ added w-full overflow-hidden
+    <Card className="border-border bg-card/60 p-6 h-[450px] w-full overflow-hidden">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">Market News</h2>
-
         <div className="flex items-center overflow-hidden rounded-lg border border-border">
           {categories.map((cat) => (
             <Button
@@ -229,7 +226,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
             </Button>
           ))}
         </div>
-
         <Button
           size="icon"
           variant="ghost"
@@ -284,9 +280,10 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
             </div>
           ) : (
             agentNews.map((article) => (
+              // ↓ added w-full overflow-hidden min-w-0
               <div
                 key={article.topic_id}
-                className="group cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
+                className="group w-full min-w-0 overflow-hidden cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
                 onClick={() =>
                   article.metadata.url
                     ? window.open(article.metadata.url, "_blank")
@@ -294,8 +291,8 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                 }
               >
                 {/* Headline + external link */}
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
+                <div className="flex min-w-0 items-start justify-between gap-2">
+                  <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
                     {article.metadata.headline}
                   </h3>
                   {article.metadata.url && (
@@ -304,7 +301,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                 </div>
 
                 {/* Summary */}
-                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                <p className="mt-1 min-w-0 line-clamp-2 text-xs text-muted-foreground">
                   {article.metadata.text_content}
                 </p>
 
@@ -330,22 +327,26 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                   ))}
                 </div>
 
-                {/* Footer — source, date, credibility */}
-                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="font-medium">
+                {/* Footer */}
+                <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
+                  <span className="min-w-0 truncate font-medium">
                     {article.metadata.source_domain}
                   </span>
                   {article.metadata.author && (
                     <>
-                      <span>•</span>
-                      <span>{article.metadata.author}</span>
+                      <span className="flex-shrink-0">•</span>
+                      <span className="min-w-0 truncate">
+                        {article.metadata.author}
+                      </span>
                     </>
                   )}
-                  <span>•</span>
-                  <span>{formatAgentDate(article.metadata.timestamp)}</span>
-                  <span>•</span>
+                  <span className="flex-shrink-0">•</span>
+                  <span className="flex-shrink-0">
+                    {formatAgentDate(article.metadata.timestamp)}
+                  </span>
+                  <span className="flex-shrink-0">•</span>
                   <span
-                    className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold ${CREDIBILITY_COLORS(article.metadata.credibility_score)}`}
+                    className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${CREDIBILITY_COLORS(article.metadata.credibility_score)}`}
                   >
                     {Math.round(article.metadata.credibility_score * 100)}%
                     credible
@@ -370,33 +371,35 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
             news.map((article) => (
               <div
                 key={article.id}
-                className="group cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
+                className="group w-full min-w-0 overflow-hidden cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
                 onClick={() => window.open(article.url, "_blank")}
               >
-                <div className="flex gap-3">
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
-                        {article.headline}
-                      </h3>
-                      <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                      {article.summary}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-medium">{article.source}</span>
-                      <span>•</span>
-                      <span>{formatDate(article.datetime)}</span>
-                      {article.related && (
-                        <>
-                          <span>•</span>
-                          <span className="font-mono text-xs">
-                            {article.related.split(",")[0]}
-                          </span>
-                        </>
-                      )}
-                    </div>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex min-w-0 items-start justify-between gap-2">
+                    <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
+                      {article.headline}
+                    </h3>
+                    <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                  </div>
+                  <p className="mt-1 min-w-0 line-clamp-2 text-xs text-muted-foreground">
+                    {article.summary}
+                  </p>
+                  <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
+                    <span className="min-w-0 truncate font-medium">
+                      {article.source}
+                    </span>
+                    <span className="flex-shrink-0">•</span>
+                    <span className="flex-shrink-0">
+                      {formatDate(article.datetime)}
+                    </span>
+                    {article.related && (
+                      <>
+                        <span className="flex-shrink-0">•</span>
+                        <span className="flex-shrink-0 font-mono text-xs">
+                          {article.related.split(",")[0]}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
