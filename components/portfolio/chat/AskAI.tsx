@@ -299,6 +299,10 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const fetchData = async () => {
     try {
       const response = await fetch(`${THREAD_HISTORY_URL}?user_id=${userId}`, {
+        headers: {
+          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzQ0MTY2NDksImlzcyI6ImFnZW50aWMtYWktdXNlci1zZXJ2aWNlIiwic3ViIjoiYjM2ZjllYzEtMmFiYS00NjMwLTg5YzgtZWM5YTI3MjlhODQ0In0.Zj7A8KeAMLWXS3uTkGsPHS96ielD2yOhbcf023qj9J0
+            `,
+        },
         credentials: "include",
       })
       if (!response.ok) throw new Error("Failed to fetch")
