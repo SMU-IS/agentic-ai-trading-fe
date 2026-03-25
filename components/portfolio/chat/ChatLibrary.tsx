@@ -4,6 +4,9 @@ import { useState } from "react"
 import { Clock, ChevronRight, Loader2 } from "lucide-react"
 import { iApiMessage, iChatLibraryProps, iChatMessage } from "./DTO"
 import { formatDate } from "@/components/utils/utils"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 export default function ChatLibrary({
   conversationHistory,
@@ -21,6 +24,9 @@ export default function ChatLibrary({
         `${process.env.NEXT_PUBLIC_CHAT_API_URL}/history/${threadId}`,
         {
           credentials: "include",
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
         },
       )
 

@@ -9,6 +9,9 @@ import PerformanceChart from "./PerformanceChart"
 import StockHistoryModal from "./StockHistoryModal"
 import SummaryCards from "./SummaryCards"
 import { Card, CardHeader, CardContent } from "../ui/card"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 // Add TradeEvent type
 export interface TradeEvent {
@@ -71,7 +74,12 @@ export default function PortfolioTab() {
       try {
         const accountRes = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/account`,
-          { credentials: "include" },
+          {
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+            },
+          },
         )
         if (!accountRes.ok) throw new Error("Failed to fetch account")
         const account: AccountResponse = await accountRes.json()
@@ -81,7 +89,12 @@ export default function PortfolioTab() {
 
         const posRes = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
-          { credentials: "include" },
+          {
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+            },
+          },
         )
         if (!posRes.ok) throw new Error("Failed to fetch positions")
         const posData: Position[] = await posRes.json()

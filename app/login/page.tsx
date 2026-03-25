@@ -13,6 +13,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import LoadingTransition from "./LoadingTransition"
+import Cookies from "js-cookie"
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -100,6 +101,12 @@ export default function LoginPage() {
         })
 
         const { token } = await loginRes.json()
+
+        Cookies.set("jwt", token, {
+          expires: 1,
+          path: "/",
+          sameSite: "lax",
+        })
         const {
           user_id: userId,
           full_name: fullName,

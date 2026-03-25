@@ -1,9 +1,10 @@
 "use client"
 
+import Cookies from "js-cookie" 
 import StockLogo from "@/components/StockLogo"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { getCompanyName } from "@/lib/tickerMap" // Import the utility
+import { getCompanyName } from "@/lib/tickerMap"
 import { StockWithHistory, Transaction } from "@/lib/types"
 import {
   DollarSign,
@@ -18,6 +19,8 @@ import LiquidateModal from "./chat/menuChatModal"
 import TransactionsModal from "./transactions/TransactionHistory"
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 interface HoldingsTableProps {
   onSelectStock: (stock: StockWithHistory | null) => void
@@ -38,18 +41,13 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const [askAISymbol, setAskAISymbol] = useState<string | null>(null)
   const [askAIData, setAskAIData] = useState<any>(null)
 
-  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(
-    null,
-  )
-  const [liquidateStock, setLiquidateStock] = useState<StockWithHistory | null>(
-    null,
-  )
+  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null)
+  const [liquidateStock, setLiquidateStock] = useState<StockWithHistory | null>(null)
 
   const [positions, setPositions] = useState<StockWithHistory[]>([])
   const [positionsLoading, setPositionsLoading] = useState(false)
   const [positionsError, setPositionsError] = useState("")
 
-  // Close context menu when clicking outside
   useEffect(() => {
     const handleClick = () => setContextMenu(null)
     const handleScroll = () => setContextMenu(null)
@@ -64,15 +62,15 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
     }
   }, [contextMenu])
 
-  // Fetch positions for holdings
   const fetchPositions = async () => {
+    const token = getToken()
     try {
       setPositionsLoading(true)
       setPositionsError("")
 
       const res = await fetch(`${BASE_URL}/trading/positions`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         credentials: "include",
       })
 
@@ -88,10 +86,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         const currentPrice = Number(p.current_price ?? 0)
         const avgPrice = Number(p.avg_entry_price ?? 0)
         const changePercent = Number(
-          p.unrealized_intraday_plpc ??
-            p.change_today ??
-            p.unrealized_plpc ??
-            0,
+          p.unrealized_intraday_plpc ?? p.change_today ?? p.unrealized_plpc ?? 0,
         )
         const change = Number(p.unrealized_intraday_pl ?? p.unrealized_pl ?? 0)
         const totalPL = Number(p.unrealized_pl ?? 0)
@@ -118,7 +113,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   }
 
   useEffect(() => {
-    fetchPositions()
+    fetchPositions()  
   }, [])
 
   const longPositions = positions.filter((p) => p.shares >= 0)
@@ -127,15 +122,15 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   useEffect(() => {
     if (!showTransactionsModal) return
 
-    // Fetch Transactions from API
     const fetchTransactions = async () => {
+      const token = getToken()
       try {
         setTxLoading(true)
         setTxError("")
 
         const res = await fetch(`${BASE_URL}/trading/orders/all`, {
           method: "GET",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           credentials: "include",
         })
 
@@ -186,13 +181,8 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
           if (Array.isArray(o.legs)) {
             for (const leg of o.legs) {
-              if (
-                leg &&
-                leg.status === "filled" &&
-                Number(leg.filled_qty) !== 0
-              ) {
-                const legDatetime =
-                  leg.filled_at || leg.submitted_at || leg.created_at
+              if (leg && leg.status === "filled" && Number(leg.filled_qty) !== 0) {
+                const legDatetime = leg.filled_at || leg.submitted_at || leg.created_at
                 const price = Number(leg.filled_avg_price ?? 0)
                 const qty = Number(leg.qty ?? 0)
                 const filledQty = Number(leg.filled_qty ?? 0)
@@ -223,14 +213,15 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
       }
     }
 
-    fetchTransactions()
+    fetchTransactions()  
   }, [showTransactionsModal])
 
   const handleRowClick = async (position: StockWithHistory) => {
+    const token = getToken()
     try {
       const res = await fetch(`${BASE_URL}/trading/orders/all`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         credentials: "include",
       })
 
@@ -323,11 +314,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
   const handleContextMenu = (e: React.MouseEvent, stock: StockWithHistory) => {
     e.preventDefault()
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      stock,
-    })
+    setContextMenu({ x: e.clientX, y: e.clientY, stock })
   }
 
   const handleLiquidateClick = (stock: StockWithHistory) => {
@@ -336,14 +323,12 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   }
 
   const handleLiquidateSuccess = () => {
-    // Refresh positions after successful order
     fetchPositions()
   }
 
   const handleAskAIAboutStock = (stock: StockWithHistory) => {
     setContextMenu(null)
 
-    // Holding(stock) data to pass to AskAI
     const stockData = {
       dataType: "holding",
       symbol: stock.symbol,
@@ -363,7 +348,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const handleAskAIFromTransactions = (transactionData: any) => {
     setAskAIData(transactionData)
     setShowAskAI(true)
-    // Don't close the transaction modal
   }
 
   const renderTableBody = (rows: StockWithHistory[], isShort: boolean) => (
@@ -381,7 +365,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         return (
           <tr
             key={stock.symbol}
-            onClick={() => handleRowClick(stock)}
+            onClick={() => handleRowClick(stock)}  
             onContextMenu={(e) => handleContextMenu(e, stock)}
             className="cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted/30"
           >
@@ -398,16 +382,10 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
               {sharesAbs}
             </td>
             <td className="w-1/8 px-6 py-4 text-right text-foreground">
-              $
-              {stock.avgPrice.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-              })}
+              ${stock.avgPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </td>
             <td className="w-1/8 px-6 py-4 text-right text-foreground">
-              $
-              {stock.currentPrice.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-              })}
+              ${stock.currentPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </td>
             <td className="w-1/8 px-6 py-4 text-right">
               <div
@@ -426,24 +404,16 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
               </div>
             </td>
             <td className="hidden w-1/8 px-6 py-4 text-right text-foreground md:table-cell">
-              $
-              {value.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-              })}
+              ${value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </td>
             <td className="hidden w-1/8 px-6 py-4 text-right lg:table-cell">
               <div className={gain >= 0 ? "text-primary" : "text-red-500"}>
                 <p>
                   {gain >= 0 ? "+" : ""}$
-                  {gain.toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                  })}
+                  {gain.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </p>
-                <p
-                  className={`text-sm ${gain >= 0 ? "text-teal-500" : "text-red-300"}`}
-                >
-                  {gain >= 0 ? "+" : ""}
-                  {gainPercent.toFixed(2)}%
+                <p className={`text-sm ${gain >= 0 ? "text-teal-500" : "text-red-300"}`}>
+                  {gain >= 0 ? "+" : ""}{gainPercent.toFixed(2)}%
                 </p>
               </div>
             </td>
@@ -455,11 +425,8 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
   return (
     <>
-      {/* Long holdings header */}
       <div className="mb-2 flex items-end justify-between">
-        <h2 className="mb-0 text-lg  font-semibold text-foreground">
-          Holdings
-        </h2>
+        <h2 className="mb-0 text-lg font-semibold text-foreground">Holdings</h2>
         <div className="flex items-center gap-2 pb-2">
           <Button
             variant="outline"
@@ -471,77 +438,41 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           </Button>
         </div>
       </div>
-      {/* Long positions table */}
-      <Card className="mb-8 overflow-hidden border-border bg-card ">
+      <Card className="mb-8 overflow-hidden border-border bg-card">
         <div className="overflow-x-auto overflow-y-auto max-h-[400px]">
           <table className="w-full">
             <thead className="sticky top-0 z-10 bg-card border-b-2 border-border shadow-[0_1px_0_0_hsl(var(--border))]">
               <tr className="border-b border-border">
-                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">
-                  Symbol
-                </th>
-                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
-                  Stock
-                </th>
-                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
-                  Qty
-                </th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
-                  Avg. Sold Price
-                </th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
-                  Current Price
-                </th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
-                  Total P/L
-                </th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">
-                  Current Value
-                </th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">
-                  Total Gain/Loss
-                </th>
+                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">Symbol</th>
+                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">Stock</th>
+                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">Qty</th>
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Avg. Price</th>
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Current Price</th>
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Total P/L</th>
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">Current Value</th>
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">Total Gain/Loss</th>
               </tr>
             </thead>
             {renderTableBody(longPositions, false)}
           </table>
         </div>
       </Card>
-      {/* Short positions table */}
       {shortPositions.length > 0 && (
         <>
-          <h2 className="mb-2 text-lg font-semibold text-foreground">
-            Short Positions
-          </h2>
+          <h2 className="mb-2 text-lg font-semibold text-foreground">Short Positions</h2>
           <Card className="overflow-hidden border-border bg-card">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="sticky top-0 z-10 bg-card">
                   <tr className="border-b border-border">
-                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">
-                      Symbol
-                    </th>
-                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
-                      Stock
-                    </th>
-                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
-                      Qty
-                    </th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
-                      Avg. Sold Price
-                    </th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
-                      Current Price
-                    </th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
-                      Total P/L
-                    </th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">
-                      Current Value
-                    </th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">
-                      Total Gain/Loss
-                    </th>
+                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">Symbol</th>
+                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">Stock</th>
+                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">Qty</th>
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Avg. Sold Price</th>
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Current Price</th>
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Total P/L</th>
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">Current Value</th>
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">Total Gain/Loss</th>
                   </tr>
                 </thead>
                 {renderTableBody(shortPositions, true)}
@@ -550,14 +481,10 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           </Card>
         </>
       )}
-      {/* Context Menu */}
       {contextMenu && (
         <div
           className="fixed z-50 min-w-[200px] rounded-lg border border-border bg-background/85 py-1 shadow-xl"
-          style={{
-            left: `${contextMenu.x}px`,
-            top: `${contextMenu.y - 100}px`,
-          }}
+          style={{ left: `${contextMenu.x}px`, top: `${contextMenu.y - 100}px` }}
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -577,7 +504,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           </button>
         </div>
       )}
-      {/* Liquidate Modal */}
       {liquidateStock && (
         <LiquidateModal
           open={!!liquidateStock}
@@ -588,7 +514,6 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           onSuccess={handleLiquidateSuccess}
         />
       )}
-      {/* Transactions Modal */}
       <TransactionsModal
         open={showTransactionsModal}
         onOpenChange={setShowTransactionsModal}
@@ -598,12 +523,11 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         onRefresh={fetchPositions}
         onAskAI={handleAskAIFromTransactions}
       />
-      {/* Ask AI bottom sheet */}
       <AskAI
         open={showAskAI}
         onOpenChange={(open) => {
           setShowAskAI(open)
-          if (!open) setAskAIData(null) // Clear data when closing
+          if (!open) setAskAIData(null)
         }}
         contextData={askAIData}
       />

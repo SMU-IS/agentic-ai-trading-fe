@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ExternalLink, RefreshCw } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 interface NewsArticle {
   category: string
@@ -94,25 +97,37 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     }
   }
 
-  const fetchAgentNews = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch("http://localhost:8000/api/v1/qdrant/news")
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`)
-      const data: AgentNewsResponse = await response.json()
-      if (data.status === "success") {
-        setAgentNews(data.data)
-      } else {
-        throw new Error("Failed to fetch agent news")
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to fetch agent news")
-    } finally {
-      setLoading(false)
+const fetchAgentNews = async () => {
+  const token = getToken()
+  setLoading(true)
+  setError(null)
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_API_URL}/qdrant/news`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, 
+        },
+        credentials: "include",
+      },
+    )
+    if (!response.ok)
+      throw new Error(`HTTP error! status: ${response.status}`)
+    const data: AgentNewsResponse = await response.json()
+    if (data.status === "success") {
+      setAgentNews(data.data)
+    } else {
+      throw new Error("Failed to fetch agent news")
     }
+  } catch (e) {
+    setError(e instanceof Error ? e.message : "Failed to fetch agent news")
+  } finally {
+    setLoading(false)
   }
+}
+
 
   useEffect(() => {
     if (selectedCategory === "agent") {

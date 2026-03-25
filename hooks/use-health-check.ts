@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef } from "react"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 export type HealthStatus = "healthy" | "unhealthy" | "loading"
 
@@ -39,6 +42,9 @@ export function useHealthCheck(intervalMs = 30000) {
         const res = await fetch(url, {
           signal: AbortSignal.timeout(5000),
           credentials: "include",
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
         })
         return { nodeId, ok: res.ok }
       }),

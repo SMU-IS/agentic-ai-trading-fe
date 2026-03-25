@@ -4,7 +4,6 @@ import StockLogo from "@/components/StockLogo"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -16,6 +15,7 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react"
+import Cookies from "js-cookie"
 import { useEffect, useRef, useState } from "react"
 import { getCompanyName } from "@/lib/tickerMap"
 
@@ -47,9 +47,9 @@ interface FinnhubSearchResult {
 }
 
 interface FinnhubQuote {
-  c: number // current
-  d: number // change
-  dp: number // change %
+  c: number
+  d: number
+  dp: number
 }
 
 interface PositionResponse {
@@ -73,6 +73,8 @@ interface PositionResponse {
   qty_available: string
 }
 
+const getToken = () => Cookies.get("jwt") ?? ""
+
 export default function AutoTradeCard() {
   const [autoTradeSearch, setAutoTradeSearch] = useState("")
   const [searchResults, setSearchResults] = useState<StockSearchResult[]>([])
@@ -86,9 +88,9 @@ export default function AutoTradeCard() {
   const [autoTradeStocks, setAutoTradeStocks] = useState<AutoTradeStock[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load positions from your API
   useEffect(() => {
     const fetchPositions = async () => {
+      const token = getToken()
       try {
         setIsLoading(true)
 
@@ -96,7 +98,10 @@ export default function AutoTradeCard() {
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
           {
             method: "GET",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
             credentials: "include",
           },
         )
@@ -108,7 +113,6 @@ export default function AutoTradeCard() {
 
         const data: PositionResponse[] = await res.json()
 
-        // Map API response to AutoTradeStock format
         const mapped: AutoTradeStock[] = data.map((position) => {
           const qty = parseFloat(position.qty)
           const currentPrice = parseFloat(position.current_price)
@@ -119,30 +123,28 @@ export default function AutoTradeCard() {
           return {
             symbol: position.symbol,
             name: `${position.symbol} ${position.asset_class === "crypto" ? "Crypto" : "Equity"}`,
-            currentPrice: currentPrice,
+            currentPrice,
             change: currentPrice - lastDayPrice,
-            changePercent: changeToday * 100, // Convert to percentage
-            enabled: true, // Default to enabled, you can persist this separately
-            qty: Math.abs(qty), // Show absolute quantity
+            changePercent: changeToday * 100,
+            enabled: true,
+            qty: Math.abs(qty),
             side: position.side,
-            unrealizedPL: unrealizedPL,
+            unrealizedPL,
           }
         })
 
         setAutoTradeStocks(mapped)
       } catch (error) {
         console.error("Error loading positions:", error)
-        // Fallback to empty array on error
         setAutoTradeStocks([])
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchPositions()
+    fetchPositions() 
   }, [])
 
-  // Debounced search function with Finnhub API
   const searchStocks = async (query: string) => {
     if (query.length < 1) {
       setSearchResults([])
@@ -184,7 +186,7 @@ export default function AutoTradeCard() {
               change: quoteData.d || null,
               changePercent: quoteData.dp || null,
             }
-          } catch (error) {
+          } catch {
             return {
               symbol: stock.symbol,
               name: stock.description,
@@ -199,7 +201,7 @@ export default function AutoTradeCard() {
 
       setSearchResults(resultsWithPrices)
       setShowDropdown(true)
-    } catch (error) {
+    } catch {
       setSearchResults([])
     } finally {
       setIsSearching(false)
@@ -210,9 +212,7 @@ export default function AutoTradeCard() {
     const value = e.target.value
     setAutoTradeSearch(value)
 
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
 
     searchTimeoutRef.current = setTimeout(() => {
       searchStocks(value)
@@ -271,7 +271,6 @@ export default function AutoTradeCard() {
       return
     }
 
-    // Add new stock with placeholder data
     setAutoTradeStocks([
       ...autoTradeStocks,
       {
@@ -346,19 +345,18 @@ export default function AutoTradeCard() {
           </span>
         </div>
 
-        {/* Deep research prompt */}
         <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/30 p-3">
           <Zap className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
           <p className="text-xs text-muted-foreground">
             <span className="font-medium text-primary">
-              Add a stock into your watchlist
+              Add a stock into your watchlist{" "}
             </span>
             for automatic trading based on predictions
           </p>
         </div>
       </CardHeader>
+
       <CardContent className="flex flex-1 flex-col overflow-hidden p-3 pt-0">
-        {/* Search to add stocks */}
         <div className="relative mb-3 flex-shrink-0" ref={dropdownRef}>
           <Search className="absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -392,7 +390,7 @@ export default function AutoTradeCard() {
           )}
 
           {showDropdown && searchResults.length > 0 && (
-            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto rounded-lg border border-border bg-background text-background shadow-lg">
+            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto rounded-lg border border-border bg-background shadow-lg">
               {searchResults.map((stock, index) => (
                 <button
                   key={`${stock.symbol}-${index}`}
@@ -401,16 +399,8 @@ export default function AutoTradeCard() {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-foreground">
-                        <StockLogo
-                          symbol={stock.symbol}
-                          name={stock.name}
-                          size="md"
-                        />
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        {stock.symbol}
-                      </span>
+                      <StockLogo symbol={stock.symbol} name={stock.name} size="md" />
+                      <span className="font-semibold text-foreground">{stock.symbol}</span>
                       <span className="rounded bg-muted/50 px-1.5 py-0.5 text-xs text-muted-foreground">
                         {stock.type}
                       </span>
@@ -428,9 +418,7 @@ export default function AutoTradeCard() {
                       {stock.changePercent !== null && (
                         <div
                           className={`flex items-center justify-end gap-0.5 text-xs ${
-                            stock.changePercent >= 0
-                              ? "text-primary"
-                              : "text-red-400"
+                            stock.changePercent >= 0 ? "text-primary" : "text-red-400"
                           }`}
                         >
                           {stock.changePercent >= 0 ? (
@@ -461,25 +449,10 @@ export default function AutoTradeCard() {
               }`}
             >
               <div className="flex items-center gap-3">
-                {/* <button
-                  onClick={() => toggleAutoTradeEnabled(stock.symbol)}
-                  className={`w-10 h-6 rounded-full relative transition-colors ${
-                    stock.enabled ? 'bg-primary' : 'bg-muted'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                      stock.enabled ? 'left-5' : 'left-1'
-                    }`}
-                  />
-                </button> */}
-
                 <StockLogo symbol={stock.symbol} name={stock.name} size="md" />
                 <div>
                   <div className="flex flex-col items-start gap-1 text-left">
-                    <p className="text-xs font-medium text-foreground">
-                      {stock.symbol}
-                    </p>
+                    <p className="text-xs font-medium text-foreground">{stock.symbol}</p>
                     <p className="text-xs font-medium text-foreground/50">
                       {getCompanyName(stock.symbol)}
                     </p>
@@ -490,18 +463,11 @@ export default function AutoTradeCard() {
               <div className="flex items-center gap-3">
                 <div className="text-right">
                   <p className="text-xs font-medium text-foreground">
-                    $
-                    {stock.currentPrice.toLocaleString("en-US", {
-                      minimumFractionDigits: 2,
-                    })}
+                    ${stock.currentPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </p>
                   <p className="flex items-center justify-end gap-0.5 text-xs">
                     <span
-                      className={
-                        stock.changePercent >= 0
-                          ? "text-primary"
-                          : "text-red-400"
-                      }
+                      className={stock.changePercent >= 0 ? "text-primary" : "text-red-400"}
                     >
                       {stock.changePercent >= 0 ? (
                         <TrendingUp className="mr-0.5 inline h-3 w-3" />
@@ -539,7 +505,7 @@ export default function AutoTradeCard() {
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Active trades</span>
               <span className="font-medium text-foreground">
-                {autoTradeStocks.filter((s) => s.enabled).length} of
+                {autoTradeStocks.filter((s) => s.enabled).length} of{" "}
                 {autoTradeStocks.length}
               </span>
             </div>

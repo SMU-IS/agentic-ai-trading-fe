@@ -20,11 +20,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { v4 as uuidv4 } from "uuid"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
+
 
 // WebSocket notification types from backend
 type WSNotificationType = "NEWS_RECEIVED" | "SIGNAL_GENERATED"
 
 const NOTIF_URL = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}`
+
 
 interface WSNewsNotification {
   type: "NEWS_RECEIVED"

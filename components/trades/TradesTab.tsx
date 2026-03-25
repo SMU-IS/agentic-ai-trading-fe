@@ -6,6 +6,9 @@ import SpeculationAgent from "./speculation-agent/SpeculationAgent"
 import AgentSummary from "./AgentSummary"
 import { TradeEvent } from "@/lib/types"
 import { accessToken } from "@/app/util/getAccessToken"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 interface HoldingInfo {
   avg_entry_price: number
@@ -22,7 +25,12 @@ export default function TradesTab() {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
-          { credentials: "include" },
+          {
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+            },
+          }
         )
         const data = await response.json()
         const holdingsMap: Record<string, HoldingInfo> = {}

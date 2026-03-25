@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
 import { useState, useEffect } from "react"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`
 
@@ -85,7 +88,10 @@ export default function LiquidateModal({
 
       const res = await fetch(`${BASE_URL}/trading/orders/limit`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
         body: JSON.stringify(formData),
         credentials: "include",
       })

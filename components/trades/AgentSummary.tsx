@@ -6,6 +6,9 @@ import { ArrowRight, Sparkles, TrendingUp, TrendingDown } from "lucide-react"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { accessToken } from "@/app/util/getAccessToken"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 type SavedQuery = {
   id: string
@@ -312,6 +315,7 @@ export default function AgentSummary() {
           {
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${getToken()}`,
             },
             credentials: "include",
           },
@@ -347,6 +351,7 @@ export default function AgentSummary() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${getToken()}`,
             },
             body: JSON.stringify({
               query: query,
@@ -390,7 +395,10 @@ export default function AgentSummary() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_CHAT_API_URL}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
         body: JSON.stringify({
           query: userMessage,
           user_id: sessionStorage.getItem("userId"),

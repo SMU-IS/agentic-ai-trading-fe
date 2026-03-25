@@ -18,6 +18,10 @@ import {
   Tooltip,
 } from "recharts"
 import { ChartContainer } from "@/components/ui/chart"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
+
 
 type TimePeriod = "Daily" | "Weekly" | "Monthly"
 
@@ -39,9 +43,15 @@ export default function PerformanceChart() {
       setLoading(true)
       setError(false)
       try {
+        const token = getToken()
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/portfolio_history`,
-          { credentials: "include" },
+          {
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         )
 
         if (!response.ok) {

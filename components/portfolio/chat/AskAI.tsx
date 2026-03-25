@@ -6,6 +6,9 @@ import { Card } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
 import { ArrowUp, PanelLeft, Square, SquarePen, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 function MarkdownStreamingContent({
   content,
@@ -297,9 +300,14 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   }, [showLibrary])
 
   const fetchData = async () => {
+    const token = getToken() 
+
     try {
       const response = await fetch(`${THREAD_HISTORY_URL}?user_id=${userId}`, {
         credentials: "include",
+        headers: {
+              Authorization: `Bearer ${token}`,
+            },
       })
       if (!response.ok) throw new Error("Failed to fetch")
       const data = await response.json()
@@ -341,7 +349,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
     const response = await fetch(`${CHAT_URL}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
       body: JSON.stringify({
         query: userMessage,
         user_id: userId,

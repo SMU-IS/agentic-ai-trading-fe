@@ -10,6 +10,9 @@ import { transformAlpacaOrderToTrade } from "./utils"
 import StatsDropdown from "./StatsDropdown"
 import FiltersDropdown from "./FiltersDropdown"
 import TradeCard from "./TradeCard"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 interface TradingTimelineProps {
   selectedTrade: TradeEvent | null
@@ -43,7 +46,12 @@ export default function TradingTimeline({
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/orders/all`,
-        { credentials: "include" },
+        {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        },
       )
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const orders = await res.json()
@@ -140,6 +148,9 @@ export default function TradingTimeline({
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/yahoo/latest/${sym}`,
           {
             credentials: "include",
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+            },
           },
         )
           .then((r) => r.json())

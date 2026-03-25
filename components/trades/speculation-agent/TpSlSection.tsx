@@ -4,6 +4,9 @@ import { useState, useEffect } from "react"
 import { TrendingUp, TrendingDown, Activity, Target } from "lucide-react"
 import { motion } from "framer-motion"
 import { TradeEvent } from "@/lib/types"
+import Cookies from "js-cookie"
+
+const getToken = () => Cookies.get("jwt") ?? ""
 
 interface TpSlSectionProps {
   selectedTrade: TradeEvent
@@ -35,6 +38,11 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
       try {
         const res = await fetch(
           `${baseUrl}/trading/yahoo/latest/${selectedTrade.symbol}`,
+          {
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+            },
+          }
         )
         if (!res.ok) return
         const data = await res.json()
