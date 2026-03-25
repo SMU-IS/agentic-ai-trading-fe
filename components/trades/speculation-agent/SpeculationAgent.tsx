@@ -173,8 +173,17 @@ export default function SpeculationAgent({
   }
 
   return (
-    <div className="h-full flex flex-col pr-2">
-      <Card className="bg-card border-border flex-shrink-0 h-[calc(100vh-150px)]">
+<>
+    <AskAI
+      open={showAskAI}
+      onOpenChange={(open) => {
+        setShowAskAI(open)
+        if (!open) setAskAIData(null)
+      }}
+      contextData={askAIData}
+    />
+    <div className="h-full flex flex-col pr-2 overflow-y-auto">
+      <Card className="bg-card border-border flex-shrink-0 h-[calc(100vh-150px)] overflow-y-auto">
         <CardHeader>
           <TradeHeader selectedTrade={selectedTrade} />
         </CardHeader>
@@ -260,15 +269,6 @@ export default function SpeculationAgent({
                 <Sparkles className="h-4 w-4 mr-2" />
                 Ask AI about this trade
               </Button>
-
-              <AskAI
-                open={showAskAI}
-                onOpenChange={(open) => {
-                  setShowAskAI(open)
-                  if (!open) setAskAIData(null)
-                }}
-                contextData={askAIData}
-              />
             </div>
           )}
 
@@ -276,5 +276,6 @@ export default function SpeculationAgent({
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }
