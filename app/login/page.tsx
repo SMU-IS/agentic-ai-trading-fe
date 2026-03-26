@@ -225,20 +225,20 @@ export default function LoginPage() {
               <h1 className="mb-2 text-2xl font-semibold text-foreground">
                 {isSignUp ? "Create your account" : "Welcome back"}
               </h1>
-              {/*<p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {isSignUp
                   ? "Start managing your portfolio with AI-powered insights"
                   : "Sign in to access your portfolio"}
-              </p>*/}
+              </p>
             </div>
 
-            {/* Twitter Sign In */}
-            {/*<Button
+            {/* X Sign In */}
+            <Button
               type="button"
               variant="outline"
               className="mb-6 w-full rounded-xl border-border bg-background py-5 hover:bg-muted"
               onClick={handleTwitterSignIn}
-              disabled={isLoading}
+              disabled={true}
             >
               <svg
                 className="mr-2 h-5 w-5"
@@ -248,16 +248,16 @@ export default function LoginPage() {
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
               Continue with X
-            </Button>*/}
+            </Button>
 
-            {/*<div className="relative mb-6">
+            <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">or</span>
               </div>
-            </div>*/}
+            </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -354,19 +354,23 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            {/*<p className="mt-6 text-center text-sm text-muted-foreground">
-              {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(!isSignUp)
-                  setError("")
-                }}
-                className="font-medium text-primary hover:underline"
-              >
-                {isSignUp ? "Sign in" : "Sign up"}
-              </button>
-            </p>*/}
+            {process.env.NEXT_PUBLIC_ENABLE_SIGN_UP === "true" && (
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                {isSignUp
+                  ? "Already have an account?"
+                  : "Don't have an account?"}{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp)
+                    setError("")
+                  }}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {isSignUp ? "Sign in" : "Sign up"}
+                </button>
+              </p>
+            )}
           </div>
         </div>
       </div>
