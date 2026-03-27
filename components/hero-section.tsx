@@ -1,8 +1,8 @@
 "use client"
 
 import { WorkflowDiagram } from "@/components/workflow-diagram"
-import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
+import { ArrowRight } from "lucide-react"
 
 const ease = [0.22, 1, 0.36, 1] as const
 

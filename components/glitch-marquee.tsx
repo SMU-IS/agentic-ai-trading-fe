@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-const PARTNERS = ["UBS"]
+const PARTNERS = ["UBS", "Alpacca", "SMU"]
 
 function LogoBlock({ name, glitch }: { name: string; glitch: boolean }) {
   return (
@@ -54,19 +54,13 @@ export function GlitchMarquee() {
           className="flex justify-center m-auto"
           style={{ width: "max-content" }}
         >
-          {/* {[...PARTNERS, ...PARTNERS].map((name, i) => (
+          {[...PARTNERS].map((name, i) => (
             <LogoBlock
               key={`${name}-${i}`}
               name={name}
               glitch={glitchIndices.includes(i % PARTNERS.length)}
             />
-          ))} */}
-
-          <LogoBlock
-            // key={`${name}-${i}`}
-            name={"UBS"}
-            // glitch={glitchIndices.includes(i % PARTNERS.length)}
-          />
+          ))}
         </div>
       </motion.div>
     </section>
