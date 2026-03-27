@@ -7,10 +7,10 @@ import type React from "react"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Agent M - Stock Portfolio",
+  title: "Agent M",
   description: "AI-powered stock portfolio management",
   openGraph: {
-    title: "Agent M - Stock Portfolio",
+    title: "Agentic AI Trading Portfolio",
     description: "AI-powered stock portfolio management",
     url: "https://agentic-m.com",
     siteName: "Agent M",
