@@ -1,8 +1,27 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { LINKS } from "./utils/utils"
 
 const ease = [0.22, 1, 0.36, 1] as const
+const CONTACT = [
+  {
+    title: "Privacy Statement",
+    link: LINKS.PRIVACY,
+  },
+  {
+    title: "Terms of Use",
+    link: LINKS.TERMS,
+  },
+  {
+    title: "Contact",
+    link: LINKS.CONTACT,
+  },
+  {
+    title: "GitHub",
+    link: LINKS.GITHUB,
+  },
+]
 
 export function Footer() {
   return (
@@ -22,18 +41,20 @@ export function Footer() {
             {"(C) 2026, AGENT M."}
           </span>
         </div>
+
         <div className="flex items-center gap-6">
-          {["Privacy", "Terms", "Status", "GitHub"].map((link, i) => (
+          {CONTACT.map(({ title, link }, i) => (
             <motion.a
-              key={link}
-              href="#"
+              key={title}
+              href={link}
+              target="_blank"
               initial={{ opacity: 0, y: 6 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 + i * 0.06, duration: 0.4, ease }}
               className="text-[10px] font-mono tracking-widest uppercase text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
-              {link}
+              {title}
             </motion.a>
           ))}
         </div>

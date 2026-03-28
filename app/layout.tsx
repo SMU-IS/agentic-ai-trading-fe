@@ -1,5 +1,6 @@
 import ScrollToTop from "@/components/scroll-to-top"
 import { ThemeProvider } from "@/components/theme-provider"
+import { LINKS } from "@/components/utils/utils"
 import { AuthProvider } from "@/lib/auth-context"
 import { Analytics } from "@vercel/analytics/react"
 import { GeistPixelGrid } from "geist/font/pixel"
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Agentic AI Trading Portfolio",
     description: "AI-powered stock portfolio management",
-    url: "https://agentic-m.com",
+    url: LINKS.URL,
     siteName: "Agent M",
     images:
       "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/open-graph-banner.png",
