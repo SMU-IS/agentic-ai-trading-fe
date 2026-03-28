@@ -22,7 +22,7 @@ export default function SummaryCards({
   const todayChangePercent = (todayChange / (totalValue - todayChange)) * 100
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
       {/* Total Value Card */}
       <Card className="border-border bg-card/60 backdrop-blur-sm">
         <CardHeader className="pb-2">

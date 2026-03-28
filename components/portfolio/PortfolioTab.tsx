@@ -13,7 +13,6 @@ import Cookies from "js-cookie"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
-// Add TradeEvent type
 export interface TradeEvent {
   id: string
   symbol: string
@@ -55,9 +54,7 @@ type Position = {
 }
 
 export default function PortfolioTab() {
-  const [selectedStock, setSelectedStock] = useState<StockWithHistory | null>(
-    null,
-  )
+  const [selectedStock, setSelectedStock] = useState<StockWithHistory | null>(null)
   const [cashValue, setCashValue] = useState<number>(0)
   const [totalValue, setTotalValue] = useState<number>(0)
   const [totalCost, setTotalCost] = useState<number>(0)
@@ -76,10 +73,8 @@ export default function PortfolioTab() {
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/account`,
           {
             credentials: "include",
-            headers: {
-              Authorization: `Bearer ${getToken()}`,
-            },
-          },
+            headers: { Authorization: `Bearer ${getToken()}` },
+          }
         )
         if (!accountRes.ok) throw new Error("Failed to fetch account")
         const account: AccountResponse = await accountRes.json()
@@ -91,26 +86,19 @@ export default function PortfolioTab() {
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
           {
             credentials: "include",
-            headers: {
-              Authorization: `Bearer ${getToken()}`,
-            },
-          },
+            headers: { Authorization: `Bearer ${getToken()}` },
+          }
         )
         if (!posRes.ok) throw new Error("Failed to fetch positions")
         const posData: Position[] = await posRes.json()
         setPositions(posData)
 
-        // Aggregate numbers
-        let cost = 0
-        let gain = 0
-        let today = 0
-
+        let cost = 0, gain = 0, today = 0
         for (const p of posData) {
           cost += Number(p.cost_basis)
           gain += Number(p.unrealized_pl)
           today += Number(p.unrealized_intraday_pl)
         }
-
         setTotalCost(cost)
         setTotalGain(gain)
         setTodayChange(today)
@@ -121,28 +109,28 @@ export default function PortfolioTab() {
         setLoading(false)
       }
     }
-
     fetchData()
   }, [])
 
   return (
     <>
+      {/* Status bar */}
       <div className="mb-4">
-        <div className="mb-6 flex items-right justify-end content-end">
+        <div className="mb-6 flex items-center justify-end">
           {loading ? (
             <div className="flex animate-pulse items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-muted" />
               <div className="h-3 w-48 rounded bg-muted" />
             </div>
           ) : (
-            <div className="flex items-center gap-2 justify-right">
+            <div className="flex items-center gap-2">
               <span
-                className={`h-2 w-2 rounded-full ${
+                className={`h-2 w-2 flex-shrink-0 rounded-full ${
                   tradingAccStatus ? "animate-pulse bg-teal-600" : "bg-red-500"
                 }`}
               />
               <p
-                className={`text-xs ${
+                className={`text-xs text-right ${
                   tradingAccStatus ? "text-primary" : "text-red-500"
                 }`}
               >
@@ -154,9 +142,8 @@ export default function PortfolioTab() {
           )}
         </div>
 
-        {loading ? (
-          <SummaryCardsSkeleton />
-        ) : (
+        {/* Summary Cards */}
+        {loading ? <SummaryCardsSkeleton /> : (
           <SummaryCards
             cash={cashValue}
             totalValue={totalValue}
@@ -167,15 +154,17 @@ export default function PortfolioTab() {
         )}
       </div>
 
-      <div className="mb-8 flex gap-4">
-        <div className="flex-[40]">
+      {/* Chart + News: stacked on mobile, side-by-side on lg+ */}
+      <div className="mb-8 flex flex-col gap-4 lg:flex-row">
+        <div className="w-full lg:flex-[40]">
           <PerformanceChart />
         </div>
-        <div className="flex-[60] min-w-0 overflow-hidden">
+        <div className="w-full min-w-0 overflow-hidden lg:flex-[60]">
           <MarketNews category="general" />
         </div>
       </div>
 
+      {/* Holdings Table */}
       <div>
         {loading ? (
           <HoldingsTableSkeleton />
@@ -202,7 +191,7 @@ export default function PortfolioTab() {
 // Summary Cards Skeleton
 function SummaryCardsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-4">
       {[1, 2, 3, 4].map((i) => (
         <Card key={i} className="border-border bg-card">
           <CardHeader className="pb-2">
@@ -218,47 +207,51 @@ function SummaryCardsSkeleton() {
   )
 }
 
-// Holdings Table Skeleton
+// Holdings Table Skeleton — scrollable on mobile
 function HoldingsTableSkeleton() {
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
       {/* Header */}
-      <div className="border-b border-border px-6 py-4">
+      <div className="border-b border-border px-4 py-4 sm:px-6">
         <div className="h-6 w-32 animate-pulse rounded bg-muted" />
       </div>
 
-      {/* Table Header */}
-      <div className="grid grid-cols-7 gap-4 border-b border-border bg-muted/30 px-6 py-3">
-        {[
-          "Stock",
-          "Shares",
-          "Avg Price",
-          "Current Price",
-          "Market Value",
-          "Gain/Loss",
-          "Today",
-        ].map((_, i) => (
-          <div key={i} className="h-4 animate-pulse rounded bbg-muted" />
-        ))}
-      </div>
-
-      {[1, 2, 3, 4, 5].map((row) => (
-        <div
-          key={row}
-          className="grid animate-pulse grid-cols-7 gap-4 border-b border-border px-6 py-4 last:border-b-0"
-        >
-          <div className="space-y-2">
-            <div className="h-5 w-16 rounded bg-muted" />
-            <div className="h-3 w-24 rounded bg-muted" />
+      {/* Scrollable table area */}
+      <div className="overflow-x-auto">
+        <div className="min-w-[640px]">
+          {/* Table Header */}
+          <div className="grid grid-cols-7 gap-4 border-b border-border bg-muted/30 px-6 py-3">
+            {[
+              "Stock",
+              "Shares",
+              "Avg Price",
+              "Current Price",
+              "Market Value",
+              "Gain/Loss",
+              "Today",
+            ].map((_, i) => (
+              <div key={i} className="h-4 animate-pulse rounded bg-muted" />
+            ))}
           </div>
 
-          {[1, 2, 3, 4, 5, 6].map((col) => (
-            <div key={col} className="flex items-center">
-              <div className="h-5 w-20 rounded bg-muted" />
+          {[1, 2, 3, 4, 5].map((row) => (
+            <div
+              key={row}
+              className="grid animate-pulse grid-cols-7 gap-4 border-b border-border px-6 py-4 last:border-b-0"
+            >
+              <div className="space-y-2">
+                <div className="h-5 w-16 rounded bg-muted" />
+                <div className="h-3 w-24 rounded bg-muted" />
+              </div>
+              {[1, 2, 3, 4, 5, 6].map((col) => (
+                <div key={col} className="flex items-center">
+                  <div className="h-5 w-20 rounded bg-muted" />
+                </div>
+              ))}
             </div>
           ))}
         </div>
-      ))}
+      </div>
     </div>
   )
 }
