@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-const PARTNERS = ["UBS", "Alpacca", "SMU"]
+const PARTNERS = ["UBS", "Alpaca", "SMU"]
 
 function LogoBlock({ name, glitch }: { name: string; glitch: boolean }) {
   return (
