@@ -32,7 +32,7 @@ export default function SummaryCards({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-semibold text-foreground">
+          <p className="text-xl md:text-3xl font-semibold text-foreground">
             $
             {totalValue.toLocaleString("en-US", {
               minimumFractionDigits: 2,
@@ -48,7 +48,7 @@ export default function SummaryCards({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-semibold text-foreground">
+          <p className="text-xl md:text-3xl  font-semibold text-foreground">
             $
             {cash.toLocaleString("en-US", {
               minimumFractionDigits: 2,
@@ -71,7 +71,7 @@ export default function SummaryCards({
               <TrendingDown className="h-5 w-5 text-red-500" />
             )}
             <p
-              className={`text-3xl font-semibold ${
+              className={`text-xl md:text-3xl font-semibold ${
                 totalGain >= 0 ? "text-primary" : "text-red-500"
               }`}
             >
@@ -106,7 +106,7 @@ export default function SummaryCards({
               <TrendingDown className="h-5 w-5 text-red-500" />
             )}
             <p
-              className={`text-3xl font-semibold ${
+              className={`text-xl md:text-3xl font-semibold ${
                 todayChange >= 0 ? "text-primary" : "text-red-500"
               }`}
             >
