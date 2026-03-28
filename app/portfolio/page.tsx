@@ -77,7 +77,7 @@ function PortfolioContent() {
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab)
     setMobileNavOpen(false)
-    router.push(`?tab=${tab}`, { scroll: false })
+    router.push(`?tab=${tab}`)
   }
 
   if (isLoading) return <LoadingScreen />

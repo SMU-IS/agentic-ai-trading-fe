@@ -1,6 +1,7 @@
+import ScrollToTop from "@/components/scroll-to-top"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth-context"
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 import { GeistPixelGrid } from "geist/font/pixel"
 import type { Metadata } from "next"
 import type React from "react"
@@ -54,7 +55,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <ScrollToTop />
+            {children}
+          </AuthProvider>
           <Analytics />
         </ThemeProvider>
       </body>
