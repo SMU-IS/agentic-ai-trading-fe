@@ -50,7 +50,7 @@ export function StatusCard() {
     }
   })
 
-  const onlineCount = regions.filter((r) => r.status === "ONLINE").length
+  const onlineCount = regions.filter((r) => r.status === "ACTIVE").length
   const throughput = calcGlobalThroughput(onlineCount, regions.length)
 
   return (
@@ -95,7 +95,7 @@ export function StatusCard() {
                   className="h-1.5 w-1.5"
                   style={{
                     backgroundColor:
-                      region.status === "ONLINE"
+                      region.status === "ACTIVE"
                         ? "hsl(var(--primary))"
                         : "hsl(var(--muted-foreground))",
                   }}
