@@ -20,10 +20,10 @@ function formatLatency(latency_s: number | null | undefined): string {
   return `${latency_s.toFixed(2)}s`
 }
 
-function deriveStatus(entry: { avg_latency_s: number | null; processed?: number } | undefined): "ONLINE" | "OFFLINE" {
-  if (!entry) return "OFFLINE"
+function deriveStatus(entry: { avg_latency_s: number | null; processed?: number } | undefined): "ACTIVE" | "IDLE" {
+  if (!entry) return "IDLE"
   // A service is considered ONLINE if it has processed at least 1 item in the window
-  return (entry.processed ?? 0) > 0 ? "ONLINE" : "OFFLINE"
+  return (entry.processed ?? 0) > 0 ? "ACTIVE" : "IDLE"
 }
 
 function calcGlobalThroughput(onlineCount: number, totalCount: number): number {
