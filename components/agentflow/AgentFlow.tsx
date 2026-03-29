@@ -385,7 +385,7 @@ function AgentFlowContent() {
   const { statuses: healthStatuses, secondsUntilRefresh } =
     useHealthCheck(30000)
 
-  const nodeSequence = ["1", "2", "3", "4", "13", "16"]
+  const nodeSequence = ["1", "2", "3", "4", "13", "16", "17"]
   const tourSequence = nodeSequence.map((nodeId) => ({
     nodeId,
     duration: 1500,
