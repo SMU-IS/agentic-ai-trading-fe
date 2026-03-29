@@ -17,21 +17,28 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
     // Node 1 — Reddit Scraper
     "1": [
       {
-        label: "Posts Scraped (Reddit)",
-        value: s?.["scraper:reddit"]?.processed ?? null,
-        suffix: "/hr",
-      },
-      {
-        label: "Avg Streaming Latency",
+        label: "Avg Streaming Latency (Reddit)",
         value: s?.["scraper:reddit"]?.avg_latency_s != null
           ? Math.round(s["scraper:reddit"].avg_latency_s * 1000)
           : null,
         suffix: "ms",
       },
+      {
+        label: "Avg Streaming Latency (TradingView)",
+        value: s?.["scraper:tradingview"]?.avg_latency_s != null
+          ? Math.round(s["scraper:tradingview"].avg_latency_s * 1000)
+          : null,
+        suffix: "ms",
+      },    
     ],
 
     // Node 2 — TradingView Scraper
     "2": [
+      {
+        label: "Posts Scraped (Reddit)",
+        value: s?.["scraper:reddit"]?.processed ?? null,
+        suffix: "/hr",
+      },
       {
         label: "Ideas Scraped",
         value: s?.["scraper:tradingview"]?.ideas_processed ?? null,
@@ -74,10 +81,6 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
           : null,
         suffix: "ms",
       },
-    ],
-
-    // Node 5 — Ticker Identification
-    "5": [
       {
         label: "Tickers Identified",
         value: s?.ticker?.processed ?? null,
@@ -88,10 +91,6 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
         value: p?.removed?.no_ticker ?? null,
         suffix: "",
       },
-    ],
-
-    // Node 6 — Sentiment Analysis
-    "6": [
       {
         label: "Posts Analysed",
         value: s?.sentiment?.processed ?? null,
@@ -103,11 +102,7 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
           ? Math.round(s.sentiment.avg_latency_s * 1000)
           : null,
         suffix: "ms",
-      },
-    ],
-
-    // Node 7 — Vectorisation & Embedding
-    "7": [
+      },    
       {
         label: "Posts Vectorised",
         value: p?.vectorised ?? null,
@@ -120,10 +115,57 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
           : null,
         suffix: "ms",
       },
+
     ],
 
-    // Node 8 — Signal Generation
-    "8": [
+    // // Node 5 — Ticker Identification
+    // "5": [
+    //   {
+    //     label: "Tickers Identified",
+    //     value: s?.ticker?.processed ?? null,
+    //     suffix: "/hr",
+    //   },
+    //   {
+    //     label: "Removed (No Ticker)",
+    //     value: p?.removed?.no_ticker ?? null,
+    //     suffix: "",
+    //   },
+    // ],
+
+    // // Node 6 — Sentiment Analysis
+    // "6": [
+    //   {
+    //     label: "Posts Analysed",
+    //     value: s?.sentiment?.processed ?? null,
+    //     suffix: "/hr",
+    //   },
+    //   {
+    //     label: "Avg Latency",
+    //     value: s?.sentiment?.avg_latency_s != null
+    //       ? Math.round(s.sentiment.avg_latency_s * 1000)
+    //       : null,
+    //     suffix: "ms",
+    //   },
+    // ],
+
+    // // Node 7 — Vectorisation & Embedding
+    // "7": [
+    //   {
+    //     label: "Posts Vectorised",
+    //     value: p?.vectorised ?? null,
+    //     suffix: "",
+    //   },
+    //   {
+    //     label: "Avg Latency",
+    //     value: s?.vectorisation?.avg_latency_s != null
+    //       ? Math.round(s.vectorisation.avg_latency_s * 1000)
+    //       : null,
+    //     suffix: "ms",
+    //   },
+    // ],
+
+    // Node 13 — Signal Generation
+    "13": [
       {
         label: "Signals Generated",
         value: p?.signal_generated ?? null,
@@ -136,8 +178,8 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
       },
     ],
 
-    // Node 9 — Order Placement / Trading Agent
-    "9": [
+    // Node 16 — Order Placement / Trading Agent
+    "16": [
       {
         label: "Orders Placed",
         value: p?.order_placed ?? null,
@@ -152,20 +194,20 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
       },
     ],
 
-    // Node 10 — Overall Pipeline (24hr)
-    "10": [
-      {
-        label: "Posts Scraped (24hr)",
-        value: p?.scraped ?? null,
-        suffix: "",
-      },
-      {
-        label: "Pipeline Drop Rate",
-        value: p?.scraped
-          ? Math.round(((p.scraped - (p.order_placed ?? 0)) / p.scraped) * 100)
-          : null,
-        suffix: "%",
-      },
-    ],
+    // // Node 10 — Overall Pipeline (24hr)
+    // "10": [
+    //   {
+    //     label: "Posts Scraped (24hr)",
+    //     value: p?.scraped ?? null,
+    //     suffix: "",
+    //   },
+    //   {
+    //     label: "Pipeline Drop Rate",
+    //     value: p?.scraped
+    //       ? Math.round(((p.scraped - (p.order_placed ?? 0)) / p.scraped) * 100)
+    //       : null,
+    //     suffix: "%",
+    //   },
+    // ],
   }), [p, s])
 }
