@@ -312,6 +312,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       if (!response.ok) throw new Error("Failed to fetch")
       const data = await response.json()
       setConversationHistory(data)
+      console.log(data)
     } catch (error) {
       console.error("Error fetching thread history:", error)
     }
