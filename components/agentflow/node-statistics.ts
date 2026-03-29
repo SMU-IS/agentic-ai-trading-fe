@@ -19,16 +19,16 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
       {
         label: "Avg Streaming Latency (Reddit)",
         value: s?.["scraper:reddit"]?.avg_latency_s != null
-          ? Math.round(s["scraper:reddit"].avg_latency_s * 1000)
+          ? Math.round(s["scraper:reddit"].avg_latency_s)
           : null,
-        suffix: "ms",
+        suffix: "s",
       },
       {
         label: "Avg Streaming Latency (TradingView)",
         value: s?.["scraper:tradingview"]?.avg_latency_s != null
-          ? Math.round(s["scraper:tradingview"].avg_latency_s * 1000)
+          ? Math.round(s["scraper:tradingview"].avg_latency_s )
           : null,
-        suffix: "ms",
+        suffix: "s",
       },    
     ],
 
@@ -40,12 +40,12 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
         suffix: "/hr",
       },
       {
-        label: "Ideas Scraped",
+        label: "Ideas Scraped (TradingView)",
         value: s?.["scraper:tradingview"]?.ideas_processed ?? null,
         suffix: "/hr",
       },
       {
-        label: "Minds Scraped",
+        label: "Minds Scraped (TradingView)",
         value: s?.["scraper:tradingview"]?.minds_processed ?? null,
         suffix: "/hr",
       },
@@ -75,7 +75,7 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
         suffix: "/hr",
       },
       {
-        label: "Avg Latency",
+        label: "Avg Latency (Events Identification)",
         value: s?.event?.avg_latency_s != null
           ? Math.round(s.event.avg_latency_s * 1000)
           : null,
@@ -97,7 +97,7 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
         suffix: "/hr",
       },
       {
-        label: "Avg Latency",
+        label: "Avg Latency (Sentiment Analysis)",
         value: s?.sentiment?.avg_latency_s != null
           ? Math.round(s.sentiment.avg_latency_s * 1000)
           : null,
@@ -109,7 +109,7 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
         suffix: "",
       },
       {
-        label: "Avg Latency",
+        label: "Avg Latency (Vectorisation & Embedding)",
         value: s?.vectorisation?.avg_latency_s != null
           ? Math.round(s.vectorisation.avg_latency_s * 1000)
           : null,
