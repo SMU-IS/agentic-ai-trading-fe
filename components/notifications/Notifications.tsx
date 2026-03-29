@@ -227,7 +227,7 @@ export default function NotificationsDropdown() {
       }
 
       try {
-        const wsUrl = `${NOTIF_URL}/ws/notifications/${userId}`
+        const wsUrl = `${NOTIF_URL}/ws/notifications/user_id=${userId}`
         console.log("Attempting to connect to:", wsUrl)
 
         const ws = new WebSocket(wsUrl)
