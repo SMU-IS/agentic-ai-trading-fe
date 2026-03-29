@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useServiceMetrics } from "@/hooks/useAgentMMetrics"
+import { useServiceMetrics } from "@/hooks/use-agent-metrics"
 
 // Maps each display row to its key in service_avg_latency
 const SERVICE_MAP = [
