@@ -264,7 +264,7 @@ export const initialNodes: Node[] = [
         "4. Decision engine",
       ],
     },
-    position: { x: 1150, y: 420 },
+    position: { x: 1150, y: 410 },
     parentId: "group-lower-backend",
     extent: "parent",
   },
