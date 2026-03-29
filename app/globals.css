@@ -252,3 +252,17 @@ nextjs-portal {
 .animate-blink {
   animation: blink 1s step-end infinite;
 }
+
+
+spline-viewer::part(logo) {
+  display: none !important;
+}
+
+a#logo {
+  display: none !important;
+}
+
+a.spline-watermark {
+  display: none !important;
+  visibility: hidden !important;
+}

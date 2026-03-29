@@ -7,7 +7,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 export function Navbar() {
   const navItems = [
     { name: "Partners", href: "#hero-section" },
-    { name: "Features", href: "#" },
+    // { name: "Features", href: "#" },
     { name: "Tech", href: "#tech-section" },
     { name: "FAQ", href: "#faq-section" },
   ]

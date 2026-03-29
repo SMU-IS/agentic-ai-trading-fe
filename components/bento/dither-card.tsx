@@ -1,61 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { useTheme } from "next-themes"
-
 export function DitherCard() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const { resolvedTheme } = useTheme()
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    const w = 320
-    const h = 240
-    canvas.width = w
-    canvas.height = h
-
-    const isDark = resolvedTheme === "dark"
-    const darkVal = isDark ? 230 : 10
-    const lightVal = isDark ? 15 : 230
-
-    const imageData = ctx.createImageData(w, h)
-    const data = imageData.data
-
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const idx = (y * w + x) * 4
-
-        const cx = w / 2
-        const cy = h / 2
-        const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2)
-        const maxDist = Math.sqrt(cx ** 2 + cy ** 2)
-        const gradient = 1 - dist / maxDist
-
-        const wave = Math.sin(x * 0.05) * Math.cos(y * 0.03) * 0.3
-
-        const bayerMatrix = [
-          [0, 2],
-          [3, 1],
-        ]
-        const bayerValue = bayerMatrix[y % 2][x % 2] / 4
-
-        const value = gradient + wave
-        const dithered = value > bayerValue ? darkVal : lightVal
-
-        data[idx] = dithered
-        data[idx + 1] = dithered
-        data[idx + 2] = dithered
-        data[idx + 3] = 255
-      }
-    }
-
-    ctx.putImageData(imageData, 0, 0)
-  }, [resolvedTheme])
-
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2">
@@ -66,14 +11,19 @@ export function DitherCard() {
           320x240
         </span>
       </div>
-      <div className="flex-1 flex items-center justify-center p-4 bg-background overflow-hidden">
-        <canvas
-          ref={canvasRef}
-          className="w-full h-auto"
-          style={{ imageRendering: "pixelated" }}
-          aria-label="Dithered sentiment network visualization"
-          role="img"
+      <div className="flex-1 relative overflow-hidden">
+        <iframe
+          src="https://my.spline.design/datatransfer-0GmPicp9ZOlhW5BhvQSps9T8/"
+          frameBorder="0"
+          width="100%"
+          height="140%"
+          className="absolute inset-0"
         />
+        {/* Covers the Spline link at bottom-right */}
+        {/* <div className="absolute bottom-5 right-4 w-36 h-10 bg-background rounded-xl  pointer-events-none" /> */}
+        {/* <p className="absolute bottom-8 right-14 z-12 text-[10px] text-muted-foreground pointer-events-none">
+          Powered by Agent M
+        </p> */}
       </div>
     </div>
   )

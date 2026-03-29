@@ -370,7 +370,7 @@ const nodeTypes: NodeTypes = {
   ),
 }
 
-function AgentFlowContent() {
+function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
   const [isDeveloperMode, setIsDeveloperMode] = useState(false)
@@ -462,7 +462,7 @@ function AgentFlowContent() {
     const y = (window.innerHeight * 0.7) / 2 - absoluteY * zoom - 150
     setViewport({ x, y, zoom }, { duration: 800 })
   }
-  
+
   const handleNodeClick = (event: React.MouseEvent, node: any) => {
     if (isPlaying) return
     const clickedIndex = nodeSequence.findIndex((id) => id === node.id)
@@ -699,14 +699,14 @@ function AgentFlowContent() {
           )}
 
           {/* Dev Mode Toggle */}
-          <Toggle
+          {showStatusCard && (<Toggle
             pressed={isDeveloperMode}
             onPressedChange={setIsDeveloperMode}
             className="absolute right-4 top-4 z-[1000] flex items-center gap-2 rounded-full border border-foreground/25 bg-card px-3 py-2 shadow-lg data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
           >
             <Code2 className="h-3 w-3" />
             <span className="text-xs font-medium">Agent Settings</span>
-          </Toggle>
+          </Toggle>)}
 
           {/* Health Legend + Countdown */}
           <Card className="w-28 absolute right-4 top-20 z-[1000] rounded-xl border border-foreground/25 bg-card/80 px-3 py-2 shadow-lg">
@@ -774,24 +774,23 @@ function AgentFlowContent() {
           </ReactFlow>
         </Card>
       </motion.div>
-      <motion.div> 
-         <Card
-          className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8"
-          // style={{ height: "70vh" }}
-        >
-        <StatusCard/>
-        </Card>
-      </motion.div>
-      
-
+      {/* Conditionally render the StatusCard block */}
+      {showStatusCard && (
+        <motion.div>
+          <Card className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8">
+            <StatusCard />
+          </Card>
+        </motion.div>
+      )}
     </div>
+
   )
 }
 
-export default function AgentFlowTab() {
+export default function AgentFlowTab({ showStatusCard = true }: { showStatusCard?: boolean }) {
   return (
     <ReactFlowProvider>
-      <AgentFlowContent />
+      <AgentFlowContent showStatusCard={showStatusCard} />
     </ReactFlowProvider>
   )
 }

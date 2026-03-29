@@ -169,7 +169,7 @@ export function AboutSection() {
             sizes="(max-width: 1024px) 100vw, 50vw"
             priority
           /> */}
-          <AgentFlowTab></AgentFlowTab>
+          <AgentFlowTab showStatusCard={false}></AgentFlowTab>
 
           {/* Bottom image coordinates */}
           <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 bg-foreground/80 backdrop-blur-sm">
