@@ -61,11 +61,18 @@ const SENTIMENT_COLORS: Record<string, string> = {
   neutral: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
 }
 
-const CREDIBILITY_COLORS = (score: number) => {
-  if (score >= 0.8) return "text-green-500 bg-green-500/10 border-green-500/20"
-  if (score >= 0.5)
-    return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20"
-  return "text-red-500 bg-red-500/10 border-red-500/20"
+// ── Replaces CREDIBILITY_COLORS: score here is sentiment_score (-1 to 1) ──────
+const SENTIMENT_SCORE_COLORS = (score: number) => {
+  if (score > 0.2) return "text-green-500 bg-green-500/10 border-green-500/20"
+  if (score < -0.2) return "text-red-500 bg-red-500/10 border-red-500/20"
+  return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20"
+}
+
+// Computes the avg sentiment score across all tickers in an article
+function avgSentimentScore(tickers: TickerMetadata[]): number | null {
+  if (!tickers.length) return null
+  const sum = tickers.reduce((acc, t) => acc + t.sentiment_score, 0)
+  return sum / tickers.length
 }
 
 export default function MarketNews({ category = "general" }: MarketNewsProps) {
@@ -86,8 +93,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
       const response = await fetch(
         `https://finnhub.io/api/v1/news?category=${newsCategory}&token=${FINNHUB_API_KEY}`,
       )
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
       const data: NewsArticle[] = await response.json()
       setNews(data)
     } catch (e) {
@@ -97,37 +103,35 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     }
   }
 
-const fetchAgentNews = async () => {
-  const token = getToken()
-  setLoading(true)
-  setError(null)
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_API_URL}/qdrant/news`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, 
+  const fetchAgentNews = async () => {
+    const token = getToken()
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_API_URL}/qdrant/news`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
         },
-        credentials: "include",
-      },
-    )
-    if (!response.ok)
-      throw new Error(`HTTP error! status: ${response.status}`)
-    const data: AgentNewsResponse = await response.json()
-    if (data.status === "success") {
-      setAgentNews(data.data)
-    } else {
-      throw new Error("Failed to fetch agent news")
+      )
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+      const data: AgentNewsResponse = await response.json()
+      if (data.status === "success") {
+        setAgentNews(data.data)
+      } else {
+        throw new Error("Failed to fetch agent news")
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to fetch agent news")
+    } finally {
+      setLoading(false)
     }
-  } catch (e) {
-    setError(e instanceof Error ? e.message : "Failed to fetch agent news")
-  } finally {
-    setLoading(false)
   }
-}
-
 
   useEffect(() => {
     if (selectedCategory === "agent") {
@@ -151,7 +155,7 @@ const fetchAgentNews = async () => {
                 data.tickers?.map((t: any) => ({
                   ticker: t.symbol,
                   event_type: t.event_type ?? "",
-                  sentiment_score: 0,
+                  sentiment_score: t.sentiment_score ?? 0,
                   sentiment_label: t.sentiment_label ?? "neutral",
                 })) ?? [],
               timestamp: new Date().toISOString(),
@@ -165,8 +169,7 @@ const fetchAgentNews = async () => {
           }
 
           setAgentNews((prev) => {
-            if (prev.some((n) => n.topic_id === normalized.topic_id))
-              return prev
+            if (prev.some((n) => n.topic_id === normalized.topic_id)) return prev
             return [normalized, ...prev]
           })
         } catch {
@@ -218,7 +221,6 @@ const fetchAgentNews = async () => {
   ]
 
   return (
-    // ↓ added w-full overflow-hidden
     <Card className="border-border bg-card/60 p-6 h-[450px] w-full overflow-hidden">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
@@ -232,9 +234,7 @@ const fetchAgentNews = async () => {
                   ? "bg-card text-foreground hover:bg-card"
                   : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/30"
               }`}
-              onClick={() =>
-                setSelectedCategory(cat.value as typeof selectedCategory)
-              }
+              onClick={() => setSelectedCategory(cat.value as typeof selectedCategory)}
               disabled={loading}
             >
               {cat.label}
@@ -245,9 +245,7 @@ const fetchAgentNews = async () => {
           size="icon"
           variant="ghost"
           onClick={() =>
-            selectedCategory === "agent"
-              ? fetchAgentNews()
-              : fetchMarketNews(selectedCategory)
+            selectedCategory === "agent" ? fetchAgentNews() : fetchMarketNews(selectedCategory)
           }
           disabled={loading}
           className="h-8 w-8"
@@ -267,10 +265,7 @@ const fetchAgentNews = async () => {
       {loading && (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="animate-pulse rounded-lg border border-border bg-muted/30 p-3"
-            >
+            <div key={i} className="animate-pulse rounded-lg border border-border bg-muted/30 p-3">
               <div className="flex gap-3">
                 <div className="h-16 w-24 rounded bg-muted" />
                 <div className="flex-1 space-y-2">
@@ -289,86 +284,87 @@ const fetchAgentNews = async () => {
         <div className="max-h-[360px] space-y-3 overflow-y-auto pr-2">
           {agentNews.length === 0 ? (
             <div className="rounded-lg border border-border p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                No agent news available
-              </p>
+              <p className="text-sm text-muted-foreground">No agent news available</p>
             </div>
           ) : (
-            agentNews.map((article) => (
-              // ↓ added w-full overflow-hidden min-w-0
-              <div
-                key={article.topic_id}
-                className="group w-full min-w-0 overflow-hidden cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
-                onClick={() =>
-                  article.metadata.url
-                    ? window.open(article.metadata.url, "_blank")
-                    : null
-                }
-              >
-                {/* Headline + external link */}
-                <div className="flex min-w-0 items-start justify-between gap-2">
-                  <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
-                    {article.metadata.headline}
-                  </h3>
-                  {article.metadata.url && (
-                    <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                  )}
-                </div>
+            agentNews.map((article) => {
+              // ── Compute avg sentiment score across all tickers for this article ──
+              const sentScore = avgSentimentScore(article.metadata.tickers_metadata)
 
-                {/* Summary */}
-                <p className="mt-1 min-w-0 line-clamp-2 text-xs text-muted-foreground">
-                  {article.metadata.text_content}
-                </p>
+              return (
+                <div
+                  key={article.topic_id}
+                  className="group w-full min-w-0 overflow-hidden cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
+                  onClick={() =>
+                    article.metadata.url ? window.open(article.metadata.url, "_blank") : null
+                  }
+                >
+                  {/* Headline + external link */}
+                  <div className="flex min-w-0 items-start justify-between gap-2">
+                    <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
+                      {article.metadata.headline}
+                    </h3>
+                    {article.metadata.url && (
+                      <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                    )}
+                  </div>
 
-                {/* Ticker badges */}
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {article.metadata.tickers_metadata.map((ticker) => (
-                    <span
-                      key={ticker.ticker}
-                      className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium ${
-                        SENTIMENT_COLORS[ticker.sentiment_label] ??
-                        SENTIMENT_COLORS.neutral
-                      }`}
-                    >
-                      <span className="font-bold">{ticker.ticker}</span>
-                      {ticker.event_type && (
-                        <span className="opacity-70">{ticker.event_type}</span>
-                      )}
-                      <span>
-                        {ticker.sentiment_label.charAt(0).toUpperCase() +
-                          ticker.sentiment_label.slice(1)}
+                  {/* Summary */}
+                  <p className="mt-1 min-w-0 line-clamp-2 text-xs text-muted-foreground">
+                    {article.metadata.text_content}
+                  </p>
+
+                  {/* Ticker badges */}
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {article.metadata.tickers_metadata.map((ticker) => (
+                      <span
+                        key={ticker.ticker}
+                        className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium ${
+                          SENTIMENT_COLORS[ticker.sentiment_label] ?? SENTIMENT_COLORS.neutral
+                        }`}
+                      >
+                        <span className="font-bold">{ticker.ticker}</span>
+                        {ticker.event_type && (
+                          <span className="opacity-70">{ticker.event_type}</span>
+                        )}
+                        <span>
+                          {ticker.sentiment_label.charAt(0).toUpperCase() +
+                            ticker.sentiment_label.slice(1)}
+                        </span>
                       </span>
+                    ))}
+                  </div>
+
+                  {/* Footer — credibility_score removed, avg sentiment_score added */}
+                  <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
+                    <span className="min-w-0 truncate font-medium">
+                      {article.metadata.source_domain}
                     </span>
-                  ))}
+                    {article.metadata.author && (
+                      <>
+                        <span className="flex-shrink-0">•</span>
+                        <span className="min-w-0 truncate">{article.metadata.author}</span>
+                      </>
+                    )}
+                    <span className="flex-shrink-0">•</span>
+                    <span className="flex-shrink-0">
+                      {formatAgentDate(article.metadata.timestamp)}
+                    </span>
+                    {sentScore !== null && (
+                      <>
+                        <span className="flex-shrink-0">•</span>
+                        <span
+                          className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
+                        >
+                          {sentScore > 0 ? "+" : ""}
+                          {sentScore.toFixed(2)} sentiment
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
-
-                {/* Footer */}
-                <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
-                  <span className="min-w-0 truncate font-medium">
-                    {article.metadata.source_domain}
-                  </span>
-                  {article.metadata.author && (
-                    <>
-                      <span className="flex-shrink-0">•</span>
-                      <span className="min-w-0 truncate">
-                        {article.metadata.author}
-                      </span>
-                    </>
-                  )}
-                  <span className="flex-shrink-0">•</span>
-                  <span className="flex-shrink-0">
-                    {formatAgentDate(article.metadata.timestamp)}
-                  </span>
-                  <span className="flex-shrink-0">•</span>
-                  <span
-                    className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${CREDIBILITY_COLORS(article.metadata.credibility_score)}`}
-                  >
-                    {Math.round(article.metadata.credibility_score * 100)}%
-                    credible
-                  </span>
-                </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
       )}
@@ -378,9 +374,7 @@ const fetchAgentNews = async () => {
         <div className="max-h-[360px] space-y-3 overflow-y-auto pr-2">
           {news.length === 0 ? (
             <div className="rounded-lg border border-border p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                No news available for this category
-              </p>
+              <p className="text-sm text-muted-foreground">No news available for this category</p>
             </div>
           ) : (
             news.map((article) => (
@@ -400,13 +394,9 @@ const fetchAgentNews = async () => {
                     {article.summary}
                   </p>
                   <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
-                    <span className="min-w-0 truncate font-medium">
-                      {article.source}
-                    </span>
+                    <span className="min-w-0 truncate font-medium">{article.source}</span>
                     <span className="flex-shrink-0">•</span>
-                    <span className="flex-shrink-0">
-                      {formatDate(article.datetime)}
-                    </span>
+                    <span className="flex-shrink-0">{formatDate(article.datetime)}</span>
                     {article.related && (
                       <>
                         <span className="flex-shrink-0">•</span>

@@ -89,7 +89,7 @@ const STATS = [
   { label: "Signals processed/ (24hr)", value: "1440/source" },
   { label: "Signals promoted to trades", value: "2%" },
   { label: "Avg decision latency", value: "12.8B" },
-  { label: "Avg decision latency", value: "4.2ms" },
+  { label: "Avg decision latency", value: "1.274s" },
 ]
 
 function StatBlock({
@@ -174,7 +174,7 @@ export function AboutSection() {
           {/* Bottom image coordinates */}
           <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 bg-foreground/80 backdrop-blur-sm">
             <span className="text-[10px] tracking-[0.2em] uppercase text-background/40 font-mono">
-              {"CAM: -45deg / ISO"}
+              {"MODEL: llama3.3 / sonar / nomic-embed-text-v1.5"}
             </span>
             <span className="text-[10px] tracking-[0.2em] uppercase text-background/40 font-mono">
               {"RES: 2048x2048"}

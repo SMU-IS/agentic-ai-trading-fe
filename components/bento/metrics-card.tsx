@@ -74,10 +74,10 @@ export function MetricsCard() {
         <span className="inline-block h-2 w-2 bg-primary" />
       </div>
       <div className="flex-1 flex flex-col justify-center gap-6 p-6">
-        <ScrambleNumber target="4.2ms" label="Avg Latency" delay={500} />
-        <ScrambleNumber target="12.8K" label="Requests / sec" delay={800} />
+        <ScrambleNumber target="1.274s" label="Avg Latency" delay={500} />
+        <ScrambleNumber target="12.8K" label="News Analysed / day" delay={800} />
         <ScrambleNumber target="99.97%" label="Uptime" delay={1100} />
-        <ScrambleNumber target="147" label="Models Deployed" delay={1400} />
+        <ScrambleNumber target="Llama 3.3" label="Model Used for News Analysis" delay={1400} />
       </div>
     </div>
   )
