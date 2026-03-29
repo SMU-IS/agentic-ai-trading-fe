@@ -212,8 +212,22 @@ export default function NotificationsDropdown() {
     const connectWebSocket = () => {
       if (!isComponentMounted) return
 
+      const token = getToken()
+      if (!token) return
+
+      // Decode user_id from JWT payload (base64 segment)
+      let userId: string
       try {
-        const wsUrl = `${NOTIF_URL}/ws/notifications`
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        userId = payload.sub ?? payload.user_id ?? payload.id
+        if (!userId) throw new Error("user_id not found in token")
+      } catch (err) {
+        console.error("❌ Failed to decode JWT for user_id:", err)
+        return
+      }
+
+      try {
+        const wsUrl = `${NOTIF_URL}/ws/notifications/${userId}`
         console.log("Attempting to connect to:", wsUrl)
 
         const ws = new WebSocket(wsUrl)
