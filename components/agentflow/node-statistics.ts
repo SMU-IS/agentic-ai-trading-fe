@@ -75,13 +75,6 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
         suffix: "/hr",
       },
       {
-        label: "Avg Latency (Events Identification)",
-        value: s?.event?.avg_latency_s != null
-          ? Math.round(s.event.avg_latency_s * 1000)
-          : null,
-        suffix: "ms",
-      },
-      {
         label: "Tickers Identified",
         value: s?.ticker?.processed ?? null,
         suffix: "/hr",
@@ -95,25 +88,11 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
         label: "Posts Analysed",
         value: s?.sentiment?.processed ?? null,
         suffix: "/hr",
-      },
-      {
-        label: "Avg Latency (Sentiment Analysis)",
-        value: s?.sentiment?.avg_latency_s != null
-          ? Math.round(s.sentiment.avg_latency_s * 1000)
-          : null,
-        suffix: "ms",
-      },    
+      },  
       {
         label: "Posts Vectorised",
         value: p?.vectorised ?? null,
         suffix: "",
-      },
-      {
-        label: "Avg Latency (Vectorisation & Embedding)",
-        value: s?.vectorisation?.avg_latency_s != null
-          ? Math.round(s.vectorisation.avg_latency_s * 1000)
-          : null,
-        suffix: "ms",
       },
 
     ],
