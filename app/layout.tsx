@@ -1,6 +1,8 @@
+import ScrollToTop from "@/components/scroll-to-top"
 import { ThemeProvider } from "@/components/theme-provider"
+import { LINKS } from "@/components/utils/utils"
 import { AuthProvider } from "@/lib/auth-context"
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 import { GeistPixelGrid } from "geist/font/pixel"
 import type { Metadata } from "next"
 import type React from "react"
@@ -12,27 +14,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Agentic AI Trading Portfolio",
     description: "AI-powered stock portfolio management",
-    url: "https://agentic-m.com",
+    url: LINKS.URL,
     siteName: "Agent M",
     images:
       "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/open-graph-banner.png",
-  },
-  icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
   },
 }
 
@@ -54,7 +39,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <ScrollToTop />
+            {children}
+          </AuthProvider>
           <Analytics />
         </ThemeProvider>
       </body>

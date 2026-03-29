@@ -17,8 +17,7 @@ export default function Page() {
           dismissible
           className="text-xs md:text-md"
         >
-          Agent M is currently in beta. We are actively refining the platform
-          and appreciate your feedback.
+          {process.env.NEXT_PUBLIC_BANNER_MESSAGE}
         </Banner>
       )}
       <Navbar />

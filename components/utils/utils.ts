@@ -9,3 +9,11 @@ export const formatDate = (dateStr: string) => {
   if (diffDays < 7) return `${diffDays}d ago`
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
 }
+
+export const LINKS = {
+  PRIVACY: "https://agentic-m.com",
+  TERMS: "https://agentic-m.com",
+  CONTACT: "mailto:hello@agentic-m.com",
+  URL: "https://agentic-m.com",
+  GITHUB: "https://github.com/SMU-IS",
+}
