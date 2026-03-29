@@ -103,7 +103,7 @@ export function usePipelineMetrics(pollInterval = POLL_INTERVAL_MS) {
  * time-to-stage latency across the full pipeline.
  */
 export function useServiceMetrics(pollInterval = POLL_INTERVAL_MS) {
-  return useMetrics<ServiceMetrics>(`${METRICS_BASE_URL}/services`, pollInterval);
+  return useMetrics<ServiceMetrics>(`${METRICS_BASE_URL}/service`, pollInterval);
 }
 
 // ─── Combined Hook ────────────────────────────────────────────────────────────
