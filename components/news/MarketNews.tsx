@@ -140,7 +140,22 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     if (selectedCategory === "agent") {
       fetchAgentNews()
 
-      const ws = new WebSocket(wsUrl)
+
+      const token = getToken()
+      if (!token) return
+
+      // Decode user_id from JWT payload (base64 segment)
+      let userId: string
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        userId = payload.sub ?? payload.user_id ?? payload.id
+        if (!userId) throw new Error("user_id not found in token")
+      } catch (err) {
+        console.error("❌ Failed to decode JWT for user_id:", err)
+        return
+      }
+
+      const ws = new WebSocket(`${wsUrl}?user_id=${userId}`)
       wsRef.current = ws
 
       ws.onmessage = (event) => {
