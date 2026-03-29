@@ -65,18 +65,18 @@ export default function SummaryCards({
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
-            {totalGain >= 0 ? (
+            {100000 - totalValue >= 0 ? (
               <TrendingUp className="h-5 w-5 text-primary" />
             ) : (
               <TrendingDown className="h-5 w-5 text-red-500" />
             )}
             <p
               className={`text-xl md:text-3xl font-semibold ${
-                totalGain >= 0 ? "text-primary" : "text-red-500"
+                100000 - totalValue >= 0 ? "text-primary" : "text-red-500"
               }`}
             >
               {100000 - totalValue >= 0 ? "+" : ""}$
-              {totalGain.toLocaleString("en-US", {
+              {Math.abs(100000 - totalValue).toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
             </p>
