@@ -38,7 +38,7 @@ import {
   AnimatePresence,
 } from "framer-motion"
 import { initialNodes, initialEdges } from "./flow-data"
-import { nodeStatistics } from "./node-statistics"
+import { useNodeStatistics } from "./node-statistics"
 import { useHealthCheck } from "@/hooks/use-health-check"
 import { HealthDot } from "@/components/agentflow/HealthDot"
 import { DevFilterPanel } from "@/components/agentflow/DevFilterPanel" // ← new import
@@ -47,12 +47,11 @@ const edgeTypes = {
   customSmooth: CustomSmoothEdge,
 }
 
-// Animated Counter Component
 const AnimatedCounter = ({
   value,
   suffix = "",
 }: {
-  value: number
+  value: number   // ← keep as non-nullable; null is handled by NodeStatistics above
   suffix?: string
 }) => {
   const count = useMotionValue(0)
@@ -73,7 +72,8 @@ const AnimatedCounter = ({
 
 // Node Statistics Component
 const NodeStatistics = ({ nodeId }: { nodeId: string }) => {
-  const stats = nodeStatistics[nodeId] || []
+  const nodeStats = useNodeStatistics() 
+  const stats = nodeStats[nodeId] ?? []
 
   return (
     <motion.div
@@ -96,7 +96,12 @@ const NodeStatistics = ({ nodeId }: { nodeId: string }) => {
             >
               <p className="text-xs text-muted-foreground">{stat.label}</p>
               <p className="text-2xl font-bold text-foreground">
-                <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                {stat.value === null ? (
+                  // ✅ Render a dash instead of passing null to AnimatedCounter
+                  <span className="text-muted-foreground">—</span>
+                ) : (
+                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                )}
               </p>
             </motion.div>
           ))}
