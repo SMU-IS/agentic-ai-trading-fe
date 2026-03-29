@@ -11,13 +11,13 @@ export function DitherCard() {
           320x240
         </span>
       </div>
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative h-100 overflow-hidden">
         <iframe
-          src="https://my.spline.design/datatransfer-0GmPicp9ZOlhW5BhvQSps9T8/"
+          src="https://my.spline.design/aidatamodelinteraction-cDXsWQg0jzsPx0ECE4YKmnZ0/"
           frameBorder="0"
           width="100%"
-          height="140%"
-          className="absolute inset-0"
+          height="150%"
+          className="absolute inset-0 top-0"
         />
         {/* Covers the Spline link at bottom-right */}
         {/* <div className="absolute bottom-5 right-4 w-36 h-10 bg-background rounded-xl  pointer-events-none" /> */}
