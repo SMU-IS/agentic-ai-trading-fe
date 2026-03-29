@@ -82,7 +82,7 @@ const NodeStatistics = ({ nodeId }: { nodeId: string }) => {
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: -20, scale: 0.8 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="absolute -left-64 top-1/2 z-50 w-56 -translate-y-1/2"
+      className="absolute -left-64 top-4 z-50 w-56 -translate-y-1/2"
       style={{ zIndex: 9999 }}
     >
       <Card className="z-10 border-2 border-primary/20 bg-card p-4 shadow-xl backdrop-blur-sm">
@@ -435,21 +435,34 @@ function AgentFlowContent() {
 
   const focusOnNode = (nodeId: string) => {
     const node = nodes.find((n) => n.id === nodeId)
-    if (node) {
-      setActiveNodeId(nodeId)
-      setNodes((nds) =>
-        nds.map((n) => ({
-          ...n,
-          data: { ...n.data, showStats: n.id === nodeId },
-        })),
-      )
-      const zoom = 1
-      const x = window.innerWidth / 2 - node.position.x * zoom - 110
-      const y = (window.innerHeight * 0.7) / 2 - node.position.y * zoom - 150
-      setViewport({ x, y, zoom }, { duration: 800 })
-    }
-  }
+    if (!node) return
 
+    // If node has a parentId, add the parent's canvas position
+    let absoluteX = node.position.x
+    let absoluteY = node.position.y
+
+    if (node.parentId) {
+      const parentNode = nodes.find((n) => n.id === node.parentId)
+      if (parentNode) {
+        absoluteX += parentNode.position.x
+        absoluteY += parentNode.position.y
+      }
+    }
+
+    setActiveNodeId(nodeId)
+    setNodes((nds) =>
+      nds.map((n) => ({
+        ...n,
+        data: { ...n.data, showStats: n.id === nodeId },
+      })),
+    )
+
+    const zoom = 1
+    const x = window.innerWidth / 2 - absoluteX * zoom - 110
+    const y = (window.innerHeight * 0.7) / 2 - absoluteY * zoom - 150
+    setViewport({ x, y, zoom }, { duration: 800 })
+  }
+  
   const handleNodeClick = (event: React.MouseEvent, node: any) => {
     if (isPlaying) return
     const clickedIndex = nodeSequence.findIndex((id) => id === node.id)
