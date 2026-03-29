@@ -86,8 +86,8 @@ export default function SummaryCards({
               totalGain >= 0 ? "text-primary" : "text-red-500"
             }`}
           >
-            {totalGain >= 0 ? "+" : ""}
-            {totalGainPercent.toFixed(2)}% all time
+            {Math.abs(100000 - totalValue) >= 0 ? "+" : ""}
+            {Math.abs((100000 - totalValue) / 100000 * 100).toFixed(2)}% all time
           </p>
         </CardContent>
       </Card>
