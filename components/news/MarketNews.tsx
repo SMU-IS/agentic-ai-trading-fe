@@ -52,7 +52,7 @@ interface AgentNewsResponse {
 }
 
 interface MarketNewsProps {
-  category?: "general" | "forex" | "crypto" | "merger" | "agent"
+  category?: "general" | "forex" | "merger" | "agent"
 }
 
 const SENTIMENT_COLORS: Record<string, string> = {
@@ -61,19 +61,20 @@ const SENTIMENT_COLORS: Record<string, string> = {
   neutral: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
 }
 
-// ── Replaces CREDIBILITY_COLORS: score here is sentiment_score (-1 to 1) ──────
 const SENTIMENT_SCORE_COLORS = (score: number) => {
   if (score > 0.2) return "text-green-500 bg-green-500/10 border-green-500/20"
   if (score < -0.2) return "text-red-500 bg-red-500/10 border-red-500/20"
   return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20"
 }
 
-// Computes the avg sentiment score across all tickers in an article
 function avgSentimentScore(tickers: TickerMetadata[]): number | null {
   if (!tickers.length) return null
   const sum = tickers.reduce((acc, t) => acc + t.sentiment_score, 0)
   return sum / tickers.length
 }
+
+// ── Agent sub-tab type ────────────────────────────────────────────────────────
+type AgentSubTab = "reddit" | "tradingview"
 
 export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const [news, setNews] = useState<NewsArticle[]>([])
@@ -81,6 +82,8 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState(category)
+  // ── Sub-tab state, only active when selectedCategory === "agent" ───────────
+  const [agentSubTab, setAgentSubTab] = useState<AgentSubTab>("reddit")
   const wsRef = useRef<WebSocket | null>(null)
 
   const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY
@@ -190,6 +193,11 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     }
   }, [selectedCategory])
 
+  // ── Filter agentNews by active sub-tab using topic_id prefix ─────────────
+  const filteredAgentNews = agentNews.filter((item) =>
+    item.topic_id.toLowerCase().startsWith(agentSubTab)
+  )
+
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp * 1000)
     const now = new Date()
@@ -214,10 +222,15 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
   }
 
+  // ── Crypto removed ────────────────────────────────────────────────────────
   const categories = [
     { value: "general", label: "General" },
-    { value: "crypto", label: "Crypto" },
-    { value: "agent", label: "Agent" },
+    { value: "agent",   label: "Agent"   },
+  ]
+
+  const agentSubTabs: { value: AgentSubTab; label: string }[] = [
+    { value: "reddit",      label: "Reddit"      },
+    { value: "tradingview", label: "TradingView" },
   ]
 
   return (
@@ -254,6 +267,25 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
         </Button>
       </div>
 
+      {/* ── Agent sub-tabs (Reddit / TradingView) — only shown in Agent mode ── */}
+      {selectedCategory === "agent" && (
+        <div className="mb-3 flex items-center gap-1 border-b border-border pb-2">
+          {agentSubTabs.map((sub) => (
+            <button
+              key={sub.value}
+              onClick={() => setAgentSubTab(sub.value)}
+              className={`px-3 py-1 text-xs font-medium tracking-wide rounded transition-colors ${
+                agentSubTab === sub.value
+                  ? "bg-primary/10 text-primary border border-primary/30"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {sub.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Error */}
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
@@ -281,14 +313,15 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
 
       {/* Agent News List */}
       {!loading && !error && selectedCategory === "agent" && (
-        <div className="max-h-[360px] space-y-3 overflow-y-auto pr-2">
-          {agentNews.length === 0 ? (
+        <div className="max-h-[320px] space-y-3 overflow-y-auto pr-2">
+          {filteredAgentNews.length === 0 ? (
             <div className="rounded-lg border border-border p-8 text-center">
-              <p className="text-sm text-muted-foreground">No agent news available</p>
+              <p className="text-sm text-muted-foreground">
+                No {agentSubTab === "reddit" ? "Reddit" : "TradingView"} news available
+              </p>
             </div>
           ) : (
-            agentNews.map((article) => {
-              // ── Compute avg sentiment score across all tickers for this article ──
+            filteredAgentNews.map((article) => {
               const sentScore = avgSentimentScore(article.metadata.tickers_metadata)
 
               return (
@@ -335,7 +368,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                     ))}
                   </div>
 
-                  {/* Footer — credibility_score removed, avg sentiment_score added */}
+                  {/* Footer */}
                   <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
                     <span className="min-w-0 truncate font-medium">
                       {article.metadata.source_domain}
