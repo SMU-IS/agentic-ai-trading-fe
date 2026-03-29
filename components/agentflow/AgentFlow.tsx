@@ -551,6 +551,7 @@ function AgentFlowContent() {
       opacity: activeNodeId ? (node.id === activeNodeId ? 1 : 0.3) : 1,
       transition: "opacity 0.3s ease",
       zIndex: node.id === activeNodeId ? 1000 : (node.zIndex ?? 1),
+      x: node.position.x,
     },
   }))
 
