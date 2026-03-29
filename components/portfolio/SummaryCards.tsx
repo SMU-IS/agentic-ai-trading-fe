@@ -75,7 +75,7 @@ export default function SummaryCards({
                 totalGain >= 0 ? "text-primary" : "text-red-500"
               }`}
             >
-              {totalGain >= 0 ? "+" : ""}$
+              {Math.abs(100000 - totalValue) >= 0 ? "+" : ""}$
               {Math.abs(100000 - totalValue).toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
