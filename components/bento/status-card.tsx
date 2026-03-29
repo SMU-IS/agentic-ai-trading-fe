@@ -92,7 +92,7 @@ export function StatusCard() {
               <span className="text-xs font-mono text-foreground">{region.name}</span>
               <div className="flex items-center gap-2">
                 <span
-                  className="h-1.5 w-1.5"
+                  className="inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full"
                   style={{
                     backgroundColor:
                       region.status === "ACTIVE"
