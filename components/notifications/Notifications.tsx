@@ -431,53 +431,82 @@ export default function NotificationsDropdown() {
     </div>
   )
 
-  const renderSignalNotification = (notification: SignalNotification) => (
-    <div
-      key={notification.id}
-      onClick={() => markAsRead(notification.id)}
-      className={cn(
-        "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
-        !notification.isRead && "bg-muted/30",
-      )}
-    >
-      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-purple-50">
-        <TrendingUp className="h-5 w-5 text-purple-500" />
-      </div>
-      <div className="flex-1 space-y-2">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold text-foreground">{notification.ticker}</p>
-          <span className={cn(
-            "rounded border px-2 py-0.5 text-[10px] font-bold",
-            notification.trade_signal === "BUY"
-              ? "border-green-500/20 bg-green-500/10 text-green-600"
-              : notification.trade_signal === "SELL"
-                ? "border-red-500/20 bg-red-500/10 text-red-500"
-                : "border-gray-500/20 bg-gray-500/10 text-gray-500",
-          )}>
+const renderSignalNotification = (notification: SignalNotification) => (
+  <div
+    key={notification.id}
+    onClick={() => markAsRead(notification.id)}
+    className={cn(
+      "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
+      !notification.isRead && "bg-muted/30",
+    )}
+  >
+    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-purple-50">
+      <TrendingUp className="h-5 w-5 text-purple-500" />
+    </div>
+    <div className="flex-1 space-y-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <p className="text-sm font-semibold text-foreground">
+          {notification.ticker ?? "—"}
+        </p>
+
+        {/* Trade signal badge — guard against undefined */}
+        {notification.trade_signal && (
+          <span
+            className={cn(
+              "rounded border px-2 py-0.5 text-[10px] font-bold",
+              notification.trade_signal === "BUY"
+                ? "border-green-500/20 bg-green-500/10 text-green-600"
+                : notification.trade_signal === "SELL"
+                  ? "border-red-500/20 bg-red-500/10 text-red-500"
+                  : "border-gray-500/20 bg-gray-500/10 text-gray-500",
+            )}
+          >
             {notification.trade_signal}
           </span>
-          <span className={cn(
-            "rounded border px-2 py-0.5 text-[10px] font-medium",
-            notification.credibility.toLowerCase() === "high"
-              ? "border-green-500/20 bg-green-500/10 text-green-600"
-              : notification.credibility.toLowerCase() === "medium"
-                ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-600"
-                : "border-red-500/20 bg-red-500/10 text-red-500",
-          )}>
+        )}
+
+        {/* Credibility badge — guard against undefined before .toLowerCase() */}
+        {notification.credibility && (
+          <span
+            className={cn(
+              "rounded border px-2 py-0.5 text-[10px] font-medium",
+              notification.credibility.toLowerCase() === "high"
+                ? "border-green-500/20 bg-green-500/10 text-green-600"
+                : notification.credibility.toLowerCase() === "medium"
+                  ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-600"
+                  : "border-red-500/20 bg-red-500/10 text-red-500",
+            )}
+          >
             {notification.credibility}
           </span>
-          <span className="text-[10px] text-muted-foreground">{notification.confidence}/10</span>
-        </div>
-        <p className="text-xs text-muted-foreground line-clamp-2">{notification.rumor_summary}</p>
-        <p className="text-xs text-muted-foreground">{getTimeAgo(notification.timestamp)}</p>
+        )}
+
+        {/* Confidence — guard against undefined */}
+        {notification.confidence != null && (
+          <span className="text-[10px] text-muted-foreground">
+            {notification.confidence}/10
+          </span>
+        )}
       </div>
-      {!notification.isRead && (
-        <div className="flex-shrink-0">
-          <div className="h-2 w-2 rounded-full bg-primary" />
-        </div>
+
+      {notification.rumor_summary && (
+        <p className="text-xs text-muted-foreground line-clamp-2">
+          {notification.rumor_summary}
+        </p>
       )}
+
+      <p className="text-xs text-muted-foreground">
+        {getTimeAgo(notification.timestamp)}
+      </p>
     </div>
-  )
+
+    {!notification.isRead && (
+      <div className="flex-shrink-0">
+        <div className="h-2 w-2 rounded-full bg-primary" />
+      </div>
+    )}
+  </div>
+)
 
   // ─── NEW: Render executed trade order notification ────────────────────────
   const renderOrderNotification = (notification: OrderNotification) => (
