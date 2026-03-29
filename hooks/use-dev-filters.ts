@@ -28,7 +28,7 @@ const DEFAULT_STATE: Record<Source, SourceState> = {
     tickers: [],
   },
   tradingview: {
-    enabled: false,
+    enabled: true,
     selectedSubreddits: [],
     tickerInput: "",
     tickers: [],
