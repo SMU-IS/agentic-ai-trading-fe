@@ -86,7 +86,7 @@ export default function AgentReasoningAccordion({
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   {[
                     {
-                      label: "Risk/Reward Ratio",
+                      label: "Reward:Risk Ratio",
                       value: selectedTrade.risk_evaluation.actual_rr,
                       color: "text-primary",
                     },
