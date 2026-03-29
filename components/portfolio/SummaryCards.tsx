@@ -75,7 +75,7 @@ export default function SummaryCards({
                 totalGain >= 0 ? "text-primary" : "text-red-500"
               }`}
             >
-              {totalGain >= 0 ? "+" : ""}$
+              {100000 - totalValue >= 0 ? "+" : ""}$
               {totalGain.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
@@ -83,10 +83,10 @@ export default function SummaryCards({
           </div>
           <p
             className={`text-sm ${
-              totalGain >= 0 ? "text-primary" : "text-red-500"
+              100000 - totalValue >= 0 ? "text-primary" : "text-red-500"
             }`}
           >
-            {totalGain >= 0 ? "+" : ""}
+            {100000 - totalValue >= 0 ? "+" : ""}
             {totalGainPercent.toFixed(2)}% all time
           </p>
         </CardContent>
