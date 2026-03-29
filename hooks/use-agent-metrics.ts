@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
-const METRICS_BASE_URL = "http://0.0.0.0:5014/metrics";
+const METRICS_BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}/metrics`
+
 const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes, aligned with tracker refresh cadence
 
 // ─── Types ────────────────────────────────────────────────────────────────────
