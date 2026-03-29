@@ -69,7 +69,7 @@ export function StatusCard() {
         <div className="grid grid-cols-3 gap-2 border-b border-border pb-2 mb-2">
           <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">Process</span>
           <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">Status</span>
-          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground text-right">Latency</span>
+          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground text-right">Real-Time Latency</span>
         </div>
 
         {loading && !data ? (

@@ -1,48 +1,171 @@
+import { useMemo } from "react"
+import { useAgentMMetrics } from "@/hooks/use-agent-metrics"
+
 export interface Statistic {
   label: string
-  value: number
+  value: number | null   // null while loading or when data unavailable
   suffix: string
 }
 
-export const nodeStatistics: Record<string, Statistic[]> = {
-  "1": [
-    { label: "Active Sources", value: 1, suffix: "" },
-    { label: "News Sources Monitored", value: 120, suffix: "+" },
-  ],
-  "2": [
-    { label: "News Ingested", value: 60, suffix: "/hour" },
-    { label: "Success Rate", value: 98, suffix: "%" },
-  ],
-  "3": [
-    { label: "Queue Size", value: 1250, suffix: "" },
-    { label: "Processing Rate", value: 50, suffix: "/min" },
-  ],
-  "4": [
-    { label: "Articles Processed", value: 2400, suffix: "/day" },
-    { label: "Avg Processing Time", value: 3, suffix: "s" },
-  ],
-  "5": [
-    { label: "Vectors Stored", value: 125000, suffix: "+" },
-    { label: "Query Latency", value: 45, suffix: "ms" },
-  ],
-  "6": [
-    { label: "Embeddings Generated", value: 500, suffix: "/min" },
-    { label: "Context Accuracy", value: 94, suffix: "%" },
-  ],
-  "7": [
-    { label: "Daily Conversations", value: 850, suffix: "" },
-    { label: "Avg Response Time", value: 2, suffix: "s" },
-  ],
-  "8": [
-    { label: "Trades Executed", value: 24, suffix: "/day" },
-    { label: "Win Rate", value: 67, suffix: "%" },
-  ],
-  "9": [
-    { label: "Topics Tracked", value: 45, suffix: "" },
-    { label: "Alerts Sent", value: 12, suffix: "/day" },
-  ],
-  "10": [
-    { label: "Notifications Sent", value: 320, suffix: "/day" },
-    { label: "Delivery Rate", value: 99, suffix: "%" },
-  ],
+export function useNodeStatistics(): Record<string, Statistic[]> {
+  const { pipeline, services } = useAgentMMetrics()
+
+  const p = pipeline.data
+  const s = services.data?.service_avg_latency
+
+  return useMemo(() => ({
+    // Node 1 — Reddit Scraper
+    "1": [
+      {
+        label: "Posts Scraped (Reddit)",
+        value: s?.["scraper:reddit"]?.processed ?? null,
+        suffix: "/hr",
+      },
+      {
+        label: "Avg Streaming Latency",
+        value: s?.["scraper:reddit"]?.avg_latency_s != null
+          ? Math.round(s["scraper:reddit"].avg_latency_s * 1000)
+          : null,
+        suffix: "ms",
+      },
+    ],
+
+    // Node 2 — TradingView Scraper
+    "2": [
+      {
+        label: "Ideas Scraped",
+        value: s?.["scraper:tradingview"]?.ideas_processed ?? null,
+        suffix: "/hr",
+      },
+      {
+        label: "Minds Scraped",
+        value: s?.["scraper:tradingview"]?.minds_processed ?? null,
+        suffix: "/hr",
+      },
+    ],
+
+    // Node 3 — Pre-processing
+    "3": [
+      {
+        label: "Posts Processed",
+        value: s?.preproc?.processed ?? null,
+        suffix: "/hr",
+      },
+      {
+        label: "Avg Latency",
+        value: s?.preproc?.avg_latency_s != null
+          ? Math.round(s.preproc.avg_latency_s * 1000)
+          : null,
+        suffix: "ms",
+      },
+    ],
+
+    // Node 4 — Event Identification
+    "4": [
+      {
+        label: "Events Identified",
+        value: s?.event?.processed ?? null,
+        suffix: "/hr",
+      },
+      {
+        label: "Avg Latency",
+        value: s?.event?.avg_latency_s != null
+          ? Math.round(s.event.avg_latency_s * 1000)
+          : null,
+        suffix: "ms",
+      },
+    ],
+
+    // Node 5 — Ticker Identification
+    "5": [
+      {
+        label: "Tickers Identified",
+        value: s?.ticker?.processed ?? null,
+        suffix: "/hr",
+      },
+      {
+        label: "Removed (No Ticker)",
+        value: p?.removed?.no_ticker ?? null,
+        suffix: "",
+      },
+    ],
+
+    // Node 6 — Sentiment Analysis
+    "6": [
+      {
+        label: "Posts Analysed",
+        value: s?.sentiment?.processed ?? null,
+        suffix: "/hr",
+      },
+      {
+        label: "Avg Latency",
+        value: s?.sentiment?.avg_latency_s != null
+          ? Math.round(s.sentiment.avg_latency_s * 1000)
+          : null,
+        suffix: "ms",
+      },
+    ],
+
+    // Node 7 — Vectorisation & Embedding
+    "7": [
+      {
+        label: "Posts Vectorised",
+        value: p?.vectorised ?? null,
+        suffix: "",
+      },
+      {
+        label: "Avg Latency",
+        value: s?.vectorisation?.avg_latency_s != null
+          ? Math.round(s.vectorisation.avg_latency_s * 1000)
+          : null,
+        suffix: "ms",
+      },
+    ],
+
+    // Node 8 — Signal Generation
+    "8": [
+      {
+        label: "Signals Generated",
+        value: p?.signal_generated ?? null,
+        suffix: "",
+      },
+      {
+        label: "Removed (No Event)",
+        value: p?.removed?.no_event ?? null,
+        suffix: "",
+      },
+    ],
+
+    // Node 9 — Order Placement / Trading Agent
+    "9": [
+      {
+        label: "Orders Placed",
+        value: p?.order_placed ?? null,
+        suffix: "",
+      },
+      {
+        label: "Avg E2E Latency",
+        value: p?.avg_e2e_latency_s != null
+          ? Math.round(p.avg_e2e_latency_s)
+          : null,
+        suffix: "s",
+      },
+    ],
+
+    // Node 10 — Overall Pipeline (24hr)
+    "10": [
+      {
+        label: "Posts Scraped (24hr)",
+        value: p?.scraped ?? null,
+        suffix: "",
+      },
+      {
+        label: "Pipeline Drop Rate",
+        value: p?.scraped
+          ? Math.round(((p.scraped - (p.order_placed ?? 0)) / p.scraped) * 100)
+          : null,
+        suffix: "%",
+      },
+    ],
+  }), [p, s])
 }
