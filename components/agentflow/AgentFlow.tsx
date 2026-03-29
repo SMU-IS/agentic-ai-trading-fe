@@ -16,6 +16,7 @@ import {
 import { GroupNode } from "@/components/labeled-group-node"
 import { CustomSmoothEdge } from "@/components/CustomSmoothEdge"
 import { MONITORED_NODE_IDS } from "@/hooks/use-health-check"
+import { StatusCard } from "../bento/status-card"
 
 import "@xyflow/react/dist/style.css"
 import {
@@ -759,6 +760,16 @@ function AgentFlowContent() {
           </ReactFlow>
         </Card>
       </motion.div>
+      <motion.div> 
+         <Card
+          className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8"
+          // style={{ height: "70vh" }}
+        >
+        <StatusCard/>
+        </Card>
+      </motion.div>
+      
+
     </div>
   )
 }
