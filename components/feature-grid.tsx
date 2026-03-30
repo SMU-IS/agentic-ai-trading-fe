@@ -29,7 +29,7 @@ export function FeatureGrid() {
         className="flex items-center gap-4 mb-8"
       >
         <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-          {"// SECTION: RAW_DATA"}
+          {"// SECTION: RAW_NEWS_DATA"}
         </span>
         <div className="flex-1 border-t border-border" />
         <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">

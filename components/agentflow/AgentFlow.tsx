@@ -390,7 +390,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
   const nodeSequence = ["1", "2", "3", "4", "13", "16"]
   const tourSequence = nodeSequence.map((nodeId) => ({
     nodeId,
-    duration: 1500,
+    duration: 2000,
   }))
 
   useEffect(() => {
