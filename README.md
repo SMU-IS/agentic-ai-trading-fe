@@ -1,4 +1,16 @@
-# Agent M
+<p align="center">
+  <img src="https://img.shields.io/github/issues/SMU-IS/agentic-ai-trading-fe" alt="Issue">
+  <img src="https://img.shields.io/github/issues-pr/SMU-IS/agentic-ai-trading-fe" alt="Pull Request">
+  <img src="https://img.shields.io/github/v/release/SMU-IS/agentic-ai-trading-fe" alt="Release Badge">
+</p>
+
+<p align="center">
+  <img width="250" height="250" alt="Agent-M" src="https://github.com/user-attachments/assets/e5a2b7ac-b397-4db6-88b1-4b61101ab62b" />
+</p>
+
+<h1 align="center">🤖 Agent M | Agentic AI Trading Portfolio Backend</h1>
+
+<div align="center">
 
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
@@ -6,7 +18,16 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![shadcn/ui](https://img.shields.io/badge/shadcn/ui-000000?style=for-the-badge&logo=shadcn-ui&logoColor=white)](https://ui.shadcn.com/)
 
-A modern, agentic AI-powered trading platform frontend built with Next.js, TypeScript, and shadcn/ui. This application provides users with a comprehensive suite of tools for managing their stock portfolios, analyzing performance, and leveraging AI for trading insights.
+</div>
+
+<p align="center">
+  <strong>A dynamic, fully autonomous trading portfolio companion designed to navigate the complex digital financial landscape.</strong>
+</p>
+
+<p align="center">
+  <a href="https://agentic-m.com"><strong>🚀 Check out the Live App</strong></a>
+</p>
+
 
 ## ✨ Key Features
 
@@ -103,31 +124,13 @@ Contributions are welcome! Please feel free to open an issue or submit a pull re
 
 This project is licensed under the MIT License - see the `LICENSE` file for details.
 
-## 💻 Acknowledgement
+## 🗳️ Acknowledgement
 
-Developed by Mvidia (Team 2), IS484 Project Experience <br />
-In Collaboration With UBS
+Developed by **Mvidia (Team 2)**, IS484 Project Experience in collaboration with **UBS**.
 
-<a href="https://www.linkedin.com/in/joshydavid/">
-  <img src="https://github.com/user-attachments/assets/4dfe0c89-8ced-4e08-bcf3-6261bdbb956d" width="80">
-</a> &nbsp;
-
-<a href="https://www.linkedin.com/in/bryancjh/">
-  <img src="https://github.com/user-attachments/assets/cc1782b1-e71f-410a-97a4-cfec08bccead" width="80">
-</a> &nbsp;
-
-<a href="https://www.linkedin.com/in/derricklkh/">
-  <img src="https://github.com/user-attachments/assets/2db4b711-b7d0-4368-8d12-6449c3fa2aa2" width="80">
-</a> &nbsp;
-
-<a href="https://www.linkedin.com/in/shawn-ng-yh/">
-  <img src="https://github.com/user-attachments/assets/6bd4f3a7-6784-402a-b891-03d91e15d705" width="80">
-</a> &nbsp;
-
-<a href="https://www.linkedin.com/in/jiayenbeh/">
-  <img src="[https://github.com/user-attachments/assets/6bd4f3a7-6784-402a-b891-03d91e15d705](https://media.licdn.com/dms/image/v2/D5603AQEqWsXbDOKWyw/profile-displayphoto-scale_400_400/B56ZmbOb1OHAAg-/0/1759245877416?e=1770249600&v=beta&t=w4zr9NdTnsOEKuO3Woe02NOv6NVU2hH8FadXhy51Y0s)" width="80">
-</a> &nbsp;
-
-<a href="https://www.linkedin.com/in/shawn-ng-yh/">
-  <img src="https://github.com/user-attachments/assets/6bd4f3a7-6784-402a-b891-03d91e15d705" width="80">
-</a> &nbsp;
+<a href="https://www.linkedin.com/in/joshydavid/"><img src="https://github.com/user-attachments/assets/f9dd5867-724a-4dff-a2ad-61c81ea6e3b5" width="80" title="Joshua David"></a>&nbsp;
+<a href="https://www.linkedin.com/in/bryancjh/"><img src="https://github.com/user-attachments/assets/cc1782b1-e71f-410a-97a4-cfec08bccead" width="80" title="Bryan Chia"></a>&nbsp;
+<a href="https://www.linkedin.com/in/derricklkh/"><img src="https://github.com/user-attachments/assets/2db4b711-b7d0-4368-8d12-6449c3fa2aa2" width="80" title="Derrick Lau"></a>&nbsp;
+<a href="https://www.linkedin.com/in/shawn-ng-yh/"><img src="https://github.com/user-attachments/assets/6bd4f3a7-6784-402a-b891-03d91e15d705" width="80" title="Shawn Ng"></a>&nbsp;
+<a href="https://www.linkedin.com/in/jiayenbeh/"><img src="https://github.com/user-attachments/assets/23ca9394-c7ed-4cdc-a1fc-5c67a37df9ee" width="80" title="Beh Jia Yen"></a>&nbsp;
+<a href="https://www.linkedin.com/in/zi-you-foo"><img src="https://github.com/user-attachments/assets/506dbced-5709-4477-978a-c0fb12ce7aec" width="80" title="Foo Zi You"></a>
