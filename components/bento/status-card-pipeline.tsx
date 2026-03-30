@@ -42,7 +42,7 @@ export function StatusCardPipeline() {
           trades-end-to-end.pipeline
         </span>
         <span className="text-[10px] tracking-widest text-muted-foreground">
-          {`TICK:${String(tick).padStart(4, "0")}`}
+          {/* {`TICK:${String(tick).padStart(4, "0")}`} */}
           <BlinkDot />
 
         </span>
