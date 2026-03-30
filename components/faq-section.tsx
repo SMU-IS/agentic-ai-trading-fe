@@ -21,9 +21,9 @@ const faqData = [
       "Users get a trading dashboard that visualises real-time sentiment indicators per stock, profit and loss trends over time, current portfolio holdings, trade logs, and portfolio positions, allowing them to monitor performance and understand how news affects their investments.",
   },
   {
-    question: "How does the RAG Trading Agent decide when to buy or sell?",
+    question: "How does the Trading Agent decide when to buy or sell?",
     answer:
-      "The RAG Trading Agent uses a pipeline where scraped news and social media posts are preprocessed, checked for credibility, analysed for sentiment, embedded, and retrieved via RAG; it then makes automated trading decisions using weighted sentiment and user-set risk guardrails before executing orders through broker APIs.",
+      "The Trading Agent uses a pipeline where scraped news and social media posts are preprocessed, checked for credibility, analysed for sentiment, embedded, and retrieved; it then makes automated trading decisions using weighted sentiment and user-set risk guardrails before executing orders through broker APIs.",
   },
   {
     question: "How do you ensure accuracy of the trade decisions?",

@@ -14,6 +14,10 @@ const SERVICE_MAP = [
 
 type ServiceKey = (typeof SERVICE_MAP)[number]["serviceKey"]
 
+function BlinkDot() {
+  return <span className="inline-block h-2 w-2 bg-primary animate-blink" />
+}
+
 function formatLatency(latency_s: number | null | undefined): string {
   if (latency_s == null) return "N/A"
   if (latency_s < 1) return `${(latency_s * 1000).toFixed(1)}ms`
@@ -61,6 +65,8 @@ export function StatusCard() {
         </span>
         <span className="text-[10px] tracking-widest text-muted-foreground">
           {`TICK:${String(tick).padStart(4, "0")}`}
+                  <BlinkDot />
+
         </span>
       </div>
 
