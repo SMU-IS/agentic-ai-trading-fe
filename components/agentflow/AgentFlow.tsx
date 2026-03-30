@@ -43,6 +43,7 @@ import { useNodeStatistics } from "./node-statistics"
 import { useHealthCheck } from "@/hooks/use-health-check"
 import { HealthDot } from "@/components/agentflow/HealthDot"
 import { DevFilterPanel } from "@/components/agentflow/DevFilterPanel" // ← new import
+import { StatusCardPipeline } from "../bento/status-card-pipeline"
 
 const edgeTypes = {
   customSmooth: CustomSmoothEdge,
@@ -774,6 +775,14 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
           </ReactFlow>
         </Card>
       </motion.div>
+      {/* Conditionally render the StatusCard block */}
+      {showStatusCard && (
+        <motion.div>
+          <Card className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8">
+            <StatusCardPipeline />
+          </Card>
+        </motion.div>
+      )}
       {/* Conditionally render the StatusCard block */}
       {showStatusCard && (
         <motion.div>
