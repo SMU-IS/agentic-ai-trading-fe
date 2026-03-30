@@ -570,7 +570,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
             <span className="font-geist font-thin">Agent</span>Flow
           </h1>
           <p className="text-sm text-muted-foreground">
-            View how your agents are performing with real-time health insights. Click on nodes to view stats, or use the tour to explore key components.
+            See your agents' performance in real-time. Click on nodes to view stats, or use the tour to explore key components.
           </p>
         </div>
 
@@ -668,7 +668,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
                       >
                         <Play className="h-4 w-4" />
                       </motion.div>
-                      Metrics Runthrough(10s)
+                      Play Metrics(10s)
                     </motion.div>
                   )}
                 </AnimatePresence>
