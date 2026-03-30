@@ -65,7 +65,7 @@ export function StatusCard() {
         </span>
         <span className="text-[10px] tracking-widest text-muted-foreground">
           {`TICK:${String(tick).padStart(4, "0")}`}
-                  <BlinkDot />
+           <BlinkDot />
 
         </span>
       </div>

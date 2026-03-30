@@ -9,6 +9,10 @@ function formatLatency(latency_s: number | null | undefined): string {
   return `${latency_s.toFixed(2)}s`
 }
 
+function BlinkDot() {
+  return <span className="inline-block h-2 w-2 bg-primary animate-blink" />
+}
+
 export function StatusCardPipeline() {
   const [tick, setTick] = useState(0)
   const { data, loading, error } = usePipelineMetrics()
@@ -39,6 +43,8 @@ export function StatusCardPipeline() {
         </span>
         <span className="text-[10px] tracking-widest text-muted-foreground">
           {`TICK:${String(tick).padStart(4, "0")}`}
+          <BlinkDot />
+
         </span>
       </div>
 

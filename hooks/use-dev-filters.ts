@@ -39,7 +39,7 @@ const DEFAULT_STATE: Record<Source, SourceState> = {
 
 async function fetchNewsSourceStatus(): Promise<Record<Source, boolean>> {
   const res = await fetch("/api/filters/news/status")
-  if (!res.ok) return { reddit: true, tradingview: false }
+  if (!res.ok) return { reddit: true, tradingview: true }
   return res.json()
 }
 

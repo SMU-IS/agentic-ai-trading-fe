@@ -775,22 +775,16 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
           </ReactFlow>
         </Card>
       </motion.div>
-      {/* Conditionally render the StatusCard block */}
-      {showStatusCard && (
-        <motion.div>
-          <Card className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8">
-            <StatusCardPipeline />
-          </Card>
-        </motion.div>
-      )}
-      {/* Conditionally render the StatusCard block */}
-      {showStatusCard && (
-        <motion.div>
-          <Card className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8">
-            <StatusCard />
-          </Card>
-        </motion.div>
-      )}
+    {showStatusCard && (
+      <motion.div className="flex gap-4">
+        <Card className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8 w-1/2">
+          <StatusCardPipeline />
+        </Card>
+        <Card className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8 w-1/2">
+          <StatusCard />
+        </Card>
+      </motion.div>
+    )}
     </div>
 
   )
