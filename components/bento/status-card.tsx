@@ -71,6 +71,21 @@ export function StatusCard() {
       </div>
 
       <div className="flex-1 flex flex-col p-4 gap-0">
+        {/* Window badge */}
+        {data && (
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">
+              Window
+            </span>
+            <span className="text-[9px] font-mono text-foreground">
+              {data.window_hours}hr
+            </span>
+            <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground ml-auto">
+              as of {new Date(data.computed_at).toLocaleTimeString()}
+            </span>
+          </div>
+        )}
+
         {/* Table header */}
         <div className="grid grid-cols-3 gap-2 border-b border-border pb-2 mb-2">
           <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">Process</span>
