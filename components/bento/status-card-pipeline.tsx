@@ -26,10 +26,10 @@ export function StatusCardPipeline() {
     ? [
         { label: "News Posts Scraped",          value: data.scraped },
         { label: "News Posts Vectorised",        value: data.vectorised },
-        { label: "Trade Signals Generated",       value: data.signal_generated },
-        { label: "Trade Orders Placed",           value: data.order_placed },
         { label: "Posts Removed: No Ticker",     value: data.removed.no_ticker },
         { label: "Posts Removed: No Event",      value: data.removed.no_event },
+        { label: "Trade Signals Generated",       value: data.signal_generated },
+        { label: "Final Orders Placed",           value: data.order_placed },
         { label: "Avg E-2-E Latency",         value: formatLatency(data.avg_e2e_latency_s) },
       ]
     : []
