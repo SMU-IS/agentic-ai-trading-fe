@@ -54,7 +54,7 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
     // Node 3 — Pre-processing
     "3": [
       {
-        label: "Posts Processed",
+        label: "Total Posts Processed",
         value: s?.preproc?.processed ?? null,
         suffix: "/hr",
       },
@@ -70,27 +70,27 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
     // Node 4 — Event Identification
     "4": [
       {
-        label: "Events Identified",
+        label: "News Events Identified",
         value: s?.event?.processed ?? null,
         suffix: "/hr",
       },
       {
-        label: "Tickers Identified",
-        value: s?.ticker?.processed ?? null,
-        suffix: "/hr",
-      },
-      {
-        label: "Removed (No Ticker)",
+        label: "News Events Removed (No Ticker)",
         value: p?.removed?.no_ticker ?? null,
         suffix: "",
       },
       {
-        label: "Posts Analysed",
+        label: "Stock Tickers Identified",
+        value: s?.ticker?.processed ?? null,
+        suffix: "/hr",
+      },
+      {
+        label: "News Events Analysed",
         value: s?.sentiment?.processed ?? null,
         suffix: "/hr",
       },  
       {
-        label: "Posts Vectorised",
+        label: "News Events Vectorised",
         value: p?.vectorised ?? null,
         suffix: "",
       },
@@ -146,12 +146,12 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
     // Node 13 — Signal Generation
     "13": [
       {
-        label: "Signals Generated",
+        label: "Trade Signals Generated",
         value: p?.signal_generated ?? null,
         suffix: "",
       },
       {
-        label: "Removed (No Event)",
+        label: "Trade Signals Removed (Not Confident)",
         value: p?.removed?.no_event ?? null,
         suffix: "",
       },
@@ -160,7 +160,7 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
     // Node 16 — Order Placement / Trading Agent
     "16": [
       {
-        label: "Orders Placed",
+        label: "Trade Orders Placed",
         value: p?.order_placed ?? null,
         suffix: "",
       },
