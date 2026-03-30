@@ -53,7 +53,7 @@ export function StatusCardPipeline() {
         {data && (
           <div className="mb-3 flex items-center gap-2">
             <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">
-              Window
+              past
             </span>
             <span className="text-[9px] font-mono text-foreground">
               {data.window_hours}hr

@@ -371,6 +371,7 @@ const nodeTypes: NodeTypes = {
   ),
 }
 
+
 function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
@@ -386,7 +387,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
   const { statuses: healthStatuses, secondsUntilRefresh } =
     useHealthCheck(30000)
 
-  const nodeSequence = ["1", "2", "3", "4", "13", "16", "17"]
+  const nodeSequence = ["1", "2", "3", "4", "13", "16"]
   const tourSequence = nodeSequence.map((nodeId) => ({
     nodeId,
     duration: 1500,
@@ -434,21 +435,23 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
     [edges],
   )
 
-  const focusOnNode = (nodeId: string) => {
+  const getAbsolutePosition = (nodeId: string): { x: number; y: number } => {
     const node = nodes.find((n) => n.id === nodeId)
-    if (!node) return
-
-    // If node has a parentId, add the parent's canvas position
-    let absoluteX = node.position.x
-    let absoluteY = node.position.y
+    if (!node) return { x: 0, y: 0 }
 
     if (node.parentId) {
-      const parentNode = nodes.find((n) => n.id === node.parentId)
-      if (parentNode) {
-        absoluteX += parentNode.position.x
-        absoluteY += parentNode.position.y
+      const parentPos = getAbsolutePosition(node.parentId)
+      return {
+        x: node.position.x + parentPos.x,
+        y: node.position.y + parentPos.y,
       }
     }
+
+    return { x: node.position.x, y: node.position.y }
+  }
+
+  const focusOnNode = (nodeId: string) => {
+    const { x: absoluteX, y: absoluteY } = getAbsolutePosition(nodeId)  // ✅
 
     setActiveNodeId(nodeId)
     setNodes((nds) =>
@@ -516,17 +519,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
       if (tourCancelledRef.current) break
       const node = nodes.find((n) => n.id === step.nodeId)
       if (node) {
-        setActiveNodeId(step.nodeId)
-        setNodes((nds) =>
-          nds.map((n) => ({
-            ...n,
-            data: { ...n.data, showStats: n.id === step.nodeId },
-          })),
-        )
-        const zoom = 1
-        const x = window.innerWidth / 2 - node.position.x * zoom - 110
-        const y = (window.innerHeight * 0.7) / 2 - node.position.y * zoom - 150
-        setViewport({ x, y, zoom }, { duration: 800 })
+        focusOnNode(step.nodeId)  // ✅ now uses absolute position + shared logic
         await new Promise((resolve) => setTimeout(resolve, step.duration))
       }
     }
@@ -577,7 +570,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
             <span className="font-geist font-thin">Agent</span>Flow
           </h1>
           <p className="text-sm text-muted-foreground">
-            Complete overview of the agentic workflow
+            View how your agents are performing with real-time health insights. Click on nodes to view stats, or use the tour to explore key components.
           </p>
         </div>
 
@@ -675,7 +668,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
                       >
                         <Play className="h-4 w-4" />
                       </motion.div>
-                      Play Tour (15s)
+                      Metrics Runthrough(10s)
                     </motion.div>
                   )}
                 </AnimatePresence>
