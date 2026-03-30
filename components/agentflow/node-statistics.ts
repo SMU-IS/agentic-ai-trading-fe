@@ -75,11 +75,6 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
         suffix: "/hr",
       },
       {
-        label: "News Events Removed (No Ticker)",
-        value: p?.removed?.no_ticker ?? null,
-        suffix: "",
-      },
-      {
         label: "Stock Tickers Identified",
         value: s?.ticker?.processed ?? null,
         suffix: "/hr",
@@ -91,8 +86,8 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
       },  
       {
         label: "News Events Vectorised",
-        value: p?.vectorised ?? null,
-        suffix: "",
+        value: s?.vectorisation?.processed ?? null,
+        suffix: "/hr",
       },
 
     ],
@@ -147,13 +142,8 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
     "13": [
       {
         label: "Trade Signals Generated",
-        value: p?.signal_generated ?? null,
-        suffix: "",
-      },
-      {
-        label: "Trade Signals Removed (Not Confident)",
-        value: p?.removed?.no_event ?? null,
-        suffix: "",
+        value: s?.signal?.processed ?? null,
+        suffix: "/hr",
       },
     ],
 
@@ -161,13 +151,13 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
     "16": [
       {
         label: "Trade Orders Placed",
-        value: p?.order_placed ?? null,
-        suffix: "",
+        value: s?.order?.processed ?? null,
+        suffix: "/hr",
       },
       {
-        label: "Avg E2E Latency",
-        value: p?.avg_e2e_latency_s != null
-          ? Math.round(p.avg_e2e_latency_s)
+        label: "Avg E2E Trade Latency",
+        value: s?.order?.avg_latency_s != null
+          ? Math.round(s.order.avg_latency_s)
           : null,
         suffix: "s",
       },
