@@ -4,7 +4,7 @@ import { TerminalCard } from "@/components/bento/terminal-card"
 import { DitherCard } from "@/components/bento/dither-card"
 import { MetricsCard } from "@/components/bento/metrics-card"
 import { motion } from "framer-motion"
-import { StatusCardPipeline } from "./bento/status-card-pipeline"
+import { StatusCard } from "./bento/status-card"
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -77,7 +77,7 @@ export function FeatureGrid() {
           variants={cardVariants}
           className="border-t-2 border-foreground min-h-[280px]"
         >
-          <StatusCardPipeline />
+          <StatusCard />
         </motion.div>
       </motion.div>
     </section>
