@@ -24,13 +24,13 @@ export function StatusCardPipeline() {
 
   const rows: { label: string; value: string | number }[] = data
     ? [
-        { label: "Posts Scraped",          value: data.scraped },
-        { label: "Posts Vectorised",        value: data.vectorised },
-        { label: "Signals Generated",       value: data.signal_generated },
-        { label: "Orders Placed",           value: data.order_placed },
-        { label: "Removed — No Ticker",     value: data.removed.no_ticker },
-        { label: "Removed — No Event",      value: data.removed.no_event },
-        { label: "Avg E2E Latency",         value: formatLatency(data.avg_e2e_latency_s) },
+        { label: "News Posts Scraped",          value: data.scraped },
+        { label: "News Posts Vectorised",        value: data.vectorised },
+        { label: "Trade Signals Generated",       value: data.signal_generated },
+        { label: "Trade Orders Placed",           value: data.order_placed },
+        { label: "Posts Removed: No Ticker",     value: data.removed.no_ticker },
+        { label: "Posts Removed: No Event",      value: data.removed.no_event },
+        { label: "Avg E-2-E Latency",         value: formatLatency(data.avg_e2e_latency_s) },
       ]
     : []
 
