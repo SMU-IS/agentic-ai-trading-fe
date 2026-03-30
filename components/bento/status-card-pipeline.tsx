@@ -39,7 +39,7 @@ export function StatusCardPipeline() {
       {/* Header */}
       <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2">
         <span className="text-[10px] tracking-widest text-muted-foreground uppercase">
-          end-to-end.pipeline
+          trades-end-to-end.pipeline
         </span>
         <span className="text-[10px] tracking-widest text-muted-foreground">
           {`TICK:${String(tick).padStart(4, "0")}`}
