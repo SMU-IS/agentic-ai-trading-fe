@@ -208,18 +208,12 @@ export default function NotificationsDropdown() {
     (n) => !n.isRead && n.type === "order",
   ).length
 
-  const filteredNotifications = useMemo(
-    () =>
-      notifications
-        .filter((n) => {
-          if (activeTab === "news") return n.type === "news"
-          if (activeTab === "signals") return n.type === "signal"
-          if (activeTab === "orders") return n.type === "order"
-          return false
-        })
-        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
-    [notifications, activeTab],
-  )
+  const filteredNotifications = notifications.filter((n) => {
+    if (activeTab === "news") return n.type === "news"
+    if (activeTab === "signals") return n.type === "signal"
+    if (activeTab === "orders") return n.type === "order"
+    return false
+  })
 
   // ─── 1. Fetch historical NEWS ─────────────────────────────────────────────
   useEffect(() => {
