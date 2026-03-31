@@ -564,7 +564,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between ">
         <div className="flex flex-col">
           <h1 className="text-xl text-foreground italic mb-2">
             <span className="font-geist font-thin">Agent</span>Flow
