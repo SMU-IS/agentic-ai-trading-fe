@@ -18,6 +18,8 @@ import {
 import { cn } from "@/lib/utils"
 import { v4 as uuidv4 } from "uuid"
 import Cookies from "js-cookie"
+import { FaReddit } from "react-icons/fa"
+import { SiTradingview } from "react-icons/si"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -546,6 +548,42 @@ export default function NotificationsDropdown() {
     }
   }
 
+  const getSourcePill = (topicId: string) => {
+    if (topicId.startsWith("reddit")) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-600 border border-orange-200">
+          <FaReddit className="h-3 w-3" />
+          Reddit
+        </span>
+      )
+    }
+
+    if (topicId.startsWith("tradingview_ideas")) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 border border-blue-200">
+          <SiTradingview className="h-3 w-3" />
+          TV Ideas
+        </span>
+      )
+    }
+
+    if (topicId.startsWith("tradingview_minds")) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-semibold text-cyan-600 border border-cyan-200">
+          <SiTradingview className="h-3 w-3" />
+          TV Minds
+        </span>
+      )
+    }
+
+    // Fallback for unknown sources
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-semibold text-gray-500 border border-gray-200">
+        Unknown
+      </span>
+    )
+  } 
+
   // ─── Renderers ────────────────────────────────────────────────────────────
   const renderNewsNotification = (notification: NewsNotification) => (
     <div
@@ -560,12 +598,22 @@ export default function NotificationsDropdown() {
         <Newspaper className="h-5 w-5 text-blue-500" />
       </div>
       <div className="flex-1 space-y-2">
-        <p className="text-sm font-semibold text-foreground line-clamp-2">{notification.headline}</p>
-        {notification.tickers?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {notification.tickers.map((ticker, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <span className="text-xs font-medium text-foreground">{ticker.symbol || "N/A"}</span>
+        <p className="text-sm font-semibold text-foreground line-clamp-2">
+          {notification.headline}
+        </p>
+
+        {/* Source pill + tickers row */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* ── Source pill derived from topic_id ── */}
+          {getSourcePill(notification.id)}
+
+          {/* Ticker badges */}
+          {notification.tickers?.length > 0 &&
+            notification.tickers.map((ticker, idx) => (
+              <div key={idx} className="flex items-center gap-1">
+                <span className="text-xs font-medium text-foreground">
+                  {ticker.symbol || "N/A"}
+                </span>
                 {ticker.event_type && (
                   <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", getEventTypeColor(ticker.event_type))}>
                     {ticker.event_type}
@@ -578,13 +626,17 @@ export default function NotificationsDropdown() {
                 )}
               </div>
             ))}
-          </div>
-        )}
+        </div>
+
         {notification.event_description && (
-          <p className="text-xs text-muted-foreground line-clamp-2">{notification.event_description}</p>
+          <p className="text-xs text-muted-foreground line-clamp-1">
+            {notification.event_description}
+          </p>
         )}
+
         <p className="text-xs text-muted-foreground">{getTimeAgo(notification.timestamp)}</p>
       </div>
+
       {!notification.isRead && (
         <div className="flex-shrink-0">
           <div className="h-2 w-2 rounded-full bg-primary" />
