@@ -35,6 +35,7 @@ interface TradeOrder {
   suggested_qty: string
   reasonings: string
   profile: string
+  timestamp?: string
 }
 
 // ⚠️ Adjust these fields once you confirm the real /trading/decisions/signals/ response shape
@@ -45,7 +46,7 @@ interface HistoricalSignal {
   credibility: string
   confidence: number
   rumor_summary: string
-  created_at?: string // may or may not be present
+  timestamp?: string  
 }
 
 interface HistoricalNewsItem {
@@ -291,8 +292,7 @@ export default function NotificationsDropdown() {
           credibility: item.credibility ?? "",
           confidence: item.confidence ?? 0,
           rumor_summary: item.rumor_summary ?? "",
-          // Use server timestamp if available, otherwise sentinel
-          timestamp: item.created_at ? new Date(item.created_at) : new Date(0),
+          timestamp: item.timestamp ? new Date(item.timestamp) : new Date(0), // ← use it
           isRead: false,
         }))
 
@@ -345,7 +345,7 @@ export default function NotificationsDropdown() {
           suggested_qty: order.suggested_qty,
           reasonings: order.reasonings,
           profile: order.profile,
-          timestamp: new Date(0), // orders API returns no timestamp
+          timestamp: order.timestamp ? new Date(order.timestamp) : new Date(0), // ← use it
           isRead: false,
         }))
 
@@ -487,7 +487,15 @@ export default function NotificationsDropdown() {
           parsed.map((n: any) => ({
             ...n,
             timestamp: new Date(n.timestamp),
-            // Sanitize signal fields to prevent toLowerCase crash on stale data
+            // ── Fix stale news ticker shape ──────────────────────────────
+            ...(n.type === "news" && {
+              tickers: (n.tickers ?? []).map((t: any) => ({
+                symbol: t.symbol ?? t.ticker ?? "",   // normalize stale "ticker" → "symbol"
+                event_type: t.event_type ?? "",
+                sentiment_label: t.sentiment_label ?? "neutral",
+              })),
+            }),
+            // ── Fix stale signal shape ───────────────────────────────────
             ...(n.type === "signal" && {
               credibility: n.credibility ?? "",
               trade_signal: n.trade_signal ?? "",
@@ -519,7 +527,7 @@ export default function NotificationsDropdown() {
     )
 
   const getTimeAgo = (date: Date) => {
-    if (date.getTime() === 0) return "Historical"
+    if (!date || isNaN(date.getTime()) || date.getTime() === 0) return "Historical"
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
     if (seconds < 60) return "just now"
     const minutes = Math.floor(seconds / 60)
@@ -562,7 +570,7 @@ export default function NotificationsDropdown() {
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 border border-blue-200">
           <SiTradingview className="h-3 w-3" />
-          TV Ideas
+          TradingView Ideas
         </span>
       )
     }
@@ -571,7 +579,7 @@ export default function NotificationsDropdown() {
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-semibold text-cyan-600 border border-cyan-200">
           <SiTradingview className="h-3 w-3" />
-          TV Minds
+          TradingView Minds
         </span>
       )
     }
@@ -612,7 +620,7 @@ export default function NotificationsDropdown() {
             notification.tickers.map((ticker, idx) => (
               <div key={idx} className="flex items-center gap-1">
                 <span className="text-xs font-medium text-foreground">
-                  {ticker.symbol || "N/A"}
+                  {ticker.symbol|| "N/A"}
                 </span>
                 {ticker.event_type && (
                   <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", getEventTypeColor(ticker.event_type))}>
