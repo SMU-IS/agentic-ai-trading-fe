@@ -4,12 +4,8 @@ import { useState, useEffect, useRef } from "react"
 import {
   Bell,
   Settings,
-  X,
-  CheckCheck,
   TrendingUp,
   TrendingDown,
-  AlertCircle,
-  DollarSign,
   Newspaper,
   History,
 } from "lucide-react"
@@ -25,13 +21,11 @@ import Cookies from "js-cookie"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
-// WebSocket notification types from backend
-type WSNotificationType = "NEWS_RECEIVED" | "SIGNAL_GENERATED"
-
 const NOTIF_URL = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}`
 const BASE_API_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`
 
-// ─── NEW: Trade Order type matching the REST API response ───────────────────
+// ─── REST response types ────────────────────────────────────────────────────
+
 interface TradeOrder {
   order_id: string
   symbol: string
@@ -40,6 +34,32 @@ interface TradeOrder {
   reasonings: string
   profile: string
 }
+
+// ⚠️ Adjust these fields once you confirm the real /trading/decisions/signals/ response shape
+interface HistoricalSignal {
+  id: string
+  ticker: string
+  trade_signal: string
+  credibility: string
+  confidence: number
+  rumor_summary: string
+  created_at?: string // may or may not be present
+}
+
+// ⚠️ Adjust these fields once you confirm the real /qdrant/news response shape
+interface HistoricalNews {
+  news_id: string
+  headline: string
+  tickers: Array<{
+    symbol: string
+    event_type: string
+    sentiment_label: string
+  }>
+  event_description: string
+  created_at?: string // may or may not be present
+}
+
+// ─── WebSocket types ────────────────────────────────────────────────────────
 
 interface WSNewsNotification {
   type: "NEWS_RECEIVED"
@@ -73,7 +93,8 @@ interface WSSignalNotification {
 
 type WSNotification = WSNewsNotification | WSSignalNotification
 
-// UI Notification types
+// ─── UI Notification types ──────────────────────────────────────────────────
+
 interface BaseNotification {
   id: string
   timestamp: Date
@@ -100,7 +121,6 @@ interface SignalNotification extends BaseNotification {
   rumor_summary: string
 }
 
-// ─── NEW: UI type for executed trade orders ──────────────────────────────────
 interface OrderNotification extends BaseNotification {
   type: "order"
   order_id: string
@@ -113,18 +133,53 @@ interface OrderNotification extends BaseNotification {
 
 type Notification = NewsNotification | SignalNotification | OrderNotification
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+/** Decode user_id from JWT. Returns null if token is missing or malformed. */
+function getUserIdFromToken(): string | null {
+  const token = getToken()
+  if (!token) return null
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]))
+    return payload.sub ?? payload.user_id ?? payload.id ?? null
+  } catch {
+    return null
+  }
+}
+
+/** Merge incoming notifications into existing state, skipping duplicates by id. */
+function mergeNotifications(
+  prev: Notification[],
+  incoming: Notification[],
+  position: "prepend" | "append" = "append",
+): Notification[] {
+  const existingIds = new Set(prev.map((n) => n.id))
+  const fresh = incoming.filter((n) => !existingIds.has(n.id))
+  return position === "prepend" ? [...fresh, ...prev] : [...prev, ...fresh]
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export default function NotificationsDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [activeTab, setActiveTab] = useState<"news" | "signals" | "orders">("news")
   const [isConnected, setIsConnected] = useState(false)
-  // ─── NEW: loading / error state for historical orders ────────────────────
+
+  // Per-tab loading / error states
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [ordersError, setOrdersError] = useState<string | null>(null)
+  const [signalsLoading, setSignalsLoading] = useState(false)
+  const [signalsError, setSignalsError] = useState<string | null>(null)
+  const [newsLoading, setNewsLoading] = useState(false)
+  const [newsError, setNewsError] = useState<string | null>(null)
 
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
 
   const unreadCount = notifications.filter((n) => !n.isRead).length
+  const unreadNewsCount = notifications.filter((n) => !n.isRead && n.type === "news").length
+  const unreadSignalsCount = notifications.filter((n) => !n.isRead && n.type === "signal").length
+  const unreadOrdersCount = notifications.filter((n) => !n.isRead && n.type === "order").length
 
   const filteredNotifications = notifications.filter((n) => {
     if (activeTab === "news") return n.type === "news"
@@ -133,24 +188,103 @@ export default function NotificationsDropdown() {
     return false
   })
 
-  const unreadNewsCount = notifications.filter((n) => !n.isRead && n.type === "news").length
-  const unreadSignalsCount = notifications.filter((n) => !n.isRead && n.type === "signal").length
-  const unreadOrdersCount = notifications.filter((n) => !n.isRead && n.type === "order").length
-
-  // ─── NEW: Fetch historical trade orders on mount ─────────────────────────
+  // ─── 1. Fetch historical NEWS ─────────────────────────────────────────────
   useEffect(() => {
-    const fetchHistoricalOrders = async () => {
+    const fetchHistoricalNews = async () => {
       const token = getToken()
       if (!token) return
 
-      // Decode user_id from JWT payload (base64 segment)
-      let userId: string
+      setNewsLoading(true)
+      setNewsError(null)
+
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]))
-        userId = payload.sub ?? payload.user_id ?? payload.id
-        if (!userId) throw new Error("user_id not found in token")
+        const res = await fetch(`${BASE_API_URL}/qdrant/news`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        })
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+        const data: HistoricalNews[] = await res.json()
+
+        const newsNotifications: NewsNotification[] = data.map((item) => ({
+          id: item.news_id,
+          type: "news",
+          headline: item.headline,
+          tickers: item.tickers ?? [],
+          event_description: item.event_description ?? "",
+          // Use server timestamp if available, otherwise sentinel
+          timestamp: item.created_at ? new Date(item.created_at) : new Date(0),
+          isRead: false,
+        }))
+
+        setNotifications((prev) => mergeNotifications(prev, newsNotifications, "append"))
       } catch (err) {
-        console.error("❌ Failed to decode JWT for user_id:", err)
+        console.error("❌ Failed to fetch historical news:", err)
+        setNewsError("Failed to load news history.")
+      } finally {
+        setNewsLoading(false)
+      }
+    }
+
+    fetchHistoricalNews()
+  }, [])
+
+  // ─── 2. Fetch historical SIGNALS ─────────────────────────────────────────
+  useEffect(() => {
+    const fetchHistoricalSignals = async () => {
+      const token = getToken()
+      if (!token) return
+
+      setSignalsLoading(true)
+      setSignalsError(null)
+
+      try {
+        const res = await fetch(`${BASE_API_URL}/trading/decisions/signals/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        })
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+        const data: HistoricalSignal[] = await res.json()
+
+        const signalNotifications: SignalNotification[] = data.map((item) => ({
+          id: `signal-${item.id}`,
+          type: "signal",
+          ticker: item.ticker ?? "",
+          trade_signal: item.trade_signal ?? "",
+          credibility: item.credibility ?? "",
+          confidence: item.confidence ?? 0,
+          rumor_summary: item.rumor_summary ?? "",
+          // Use server timestamp if available, otherwise sentinel
+          timestamp: item.created_at ? new Date(item.created_at) : new Date(0),
+          isRead: false,
+        }))
+
+        setNotifications((prev) => mergeNotifications(prev, signalNotifications, "append"))
+      } catch (err) {
+        console.error("❌ Failed to fetch historical signals:", err)
+        setSignalsError("Failed to load signal history.")
+      } finally {
+        setSignalsLoading(false)
+      }
+    }
+
+    fetchHistoricalSignals()
+  }, [])
+
+  // ─── 3. Fetch historical ORDERS ──────────────────────────────────────────
+  useEffect(() => {
+    const fetchHistoricalOrders = async () => {
+      const token = getToken()
+      const userId = getUserIdFromToken()
+      if (!token || !userId) {
+        console.error("❌ Missing token or user_id for orders fetch")
         return
       }
 
@@ -181,20 +315,12 @@ export default function NotificationsDropdown() {
           suggested_qty: order.suggested_qty,
           reasonings: order.reasonings,
           profile: order.profile,
-          // Historical orders have no server timestamp — use epoch 0 as sentinel
-          // so they sort behind any live notifications
-          timestamp: new Date(0),
+          timestamp: new Date(0), // orders API returns no timestamp
           isRead: false,
         }))
 
-        setNotifications((prev) => {
-          // Merge: skip duplicates already in state (e.g. from localStorage)
-          const existingIds = new Set(prev.map((n) => n.id))
-          const fresh = orderNotifications.filter((o) => !existingIds.has(o.id))
-          // Prepend live notifications, append historical orders at the end
-          return [...prev, ...fresh]
-        })
-      } catch (err: any) {
+        setNotifications((prev) => mergeNotifications(prev, orderNotifications, "append"))
+      } catch (err) {
         console.error("❌ Failed to fetch historical orders:", err)
         setOrdersError("Failed to load order history.")
       } finally {
@@ -203,9 +329,9 @@ export default function NotificationsDropdown() {
     }
 
     fetchHistoricalOrders()
-  }, []) // runs once on mount
+  }, [])
 
-  // WebSocket connection — unchanged
+  // ─── 4. WebSocket — live NEWS + SIGNALS ──────────────────────────────────
   useEffect(() => {
     let isComponentMounted = true
 
@@ -213,18 +339,8 @@ export default function NotificationsDropdown() {
       if (!isComponentMounted) return
 
       const token = getToken()
-      if (!token) return
-
-      // Decode user_id from JWT payload (base64 segment)
-      let userId: string
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]))
-        userId = payload.sub ?? payload.user_id ?? payload.id
-        if (!userId) throw new Error("user_id not found in token")
-      } catch (err) {
-        console.error("❌ Failed to decode JWT for user_id:", err)
-        return
-      }
+      const userId = getUserIdFromToken()
+      if (!token || !userId) return
 
       try {
         const wsUrl = `${NOTIF_URL}/ws/notifications?user_id=${userId}`
@@ -265,11 +381,11 @@ export default function NotificationsDropdown() {
               newNotification = {
                 id: `signal-${signal.id}-${Date.now()}`,
                 type: "signal",
-                ticker: signal.ticker,
-                trade_signal: signal.trade_signal,
-                credibility: signal.credibility,
-                confidence: signal.confidence,
-                rumor_summary: signal.rumor_summary,
+                ticker: signal.ticker ?? "",
+                trade_signal: signal.trade_signal ?? "",
+                credibility: signal.credibility ?? "",
+                confidence: signal.confidence ?? 0,
+                rumor_summary: signal.rumor_summary ?? "",
                 timestamp: new Date(),
                 isRead: false,
               }
@@ -304,7 +420,7 @@ export default function NotificationsDropdown() {
           setIsConnected(false)
 
           if (event.code !== 1000 && isComponentMounted) {
-            console.log("⏳ Attempting to reconnect in 5 seconds...")
+            console.log("⏳ Reconnecting in 5 seconds...")
             reconnectTimeoutRef.current = setTimeout(() => {
               if (isComponentMounted) connectWebSocket()
             }, 5000)
@@ -331,14 +447,25 @@ export default function NotificationsDropdown() {
     }
   }, [])
 
-  // Load notifications from localStorage on mount
+  // ─── 5. Persist to / restore from localStorage ───────────────────────────
   useEffect(() => {
     const saved = localStorage.getItem("mvdia_notifications")
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
         setNotifications(
-          parsed.map((n: any) => ({ ...n, timestamp: new Date(n.timestamp) })),
+          parsed.map((n: any) => ({
+            ...n,
+            timestamp: new Date(n.timestamp),
+            // Sanitize signal fields to prevent toLowerCase crash on stale data
+            ...(n.type === "signal" && {
+              credibility: n.credibility ?? "",
+              trade_signal: n.trade_signal ?? "",
+              confidence: n.confidence ?? 0,
+              rumor_summary: n.rumor_summary ?? "",
+              ticker: n.ticker ?? "",
+            }),
+          })),
         )
       } catch (err) {
         console.error("Failed to restore notifications:", err)
@@ -346,13 +473,13 @@ export default function NotificationsDropdown() {
     }
   }, [])
 
-  // Save to localStorage whenever notifications change
   useEffect(() => {
     if (notifications.length > 0) {
       localStorage.setItem("mvdia_notifications", JSON.stringify(notifications))
     }
   }, [notifications])
 
+  // ─── Actions ─────────────────────────────────────────────────────────────
   const markAllAsRead = () =>
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
 
@@ -362,9 +489,7 @@ export default function NotificationsDropdown() {
     )
 
   const getTimeAgo = (date: Date) => {
-    // Sentinel: historical orders have no real timestamp
     if (date.getTime() === 0) return "Historical"
-
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
     if (seconds < 60) return "just now"
     const minutes = Math.floor(seconds / 60)
@@ -393,6 +518,7 @@ export default function NotificationsDropdown() {
     }
   }
 
+  // ─── Renderers ────────────────────────────────────────────────────────────
   const renderNewsNotification = (notification: NewsNotification) => (
     <div
       key={`${notification.id}-${uuidv4()}`}
@@ -406,34 +532,28 @@ export default function NotificationsDropdown() {
         <Newspaper className="h-5 w-5 text-blue-500" />
       </div>
       <div className="flex-1 space-y-2">
-        <p className="text-sm font-semibold text-foreground line-clamp-2">
-          {notification.headline}
-        </p>
-        {notification.tickers &&
-          Array.isArray(notification.tickers) &&
-          notification.tickers.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {notification.tickers.map((ticker, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-foreground">{ticker.symbol || "N/A"}</span>
-                  {ticker.event_type && (
-                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", getEventTypeColor(ticker.event_type))}>
-                      {ticker.event_type}
-                    </span>
-                  )}
-                  {ticker.sentiment_label && (
-                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", getSentimentColor(ticker.sentiment_label))}>
-                      {ticker.sentiment_label}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+        <p className="text-sm font-semibold text-foreground line-clamp-2">{notification.headline}</p>
+        {notification.tickers?.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {notification.tickers.map((ticker, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <span className="text-xs font-medium text-foreground">{ticker.symbol || "N/A"}</span>
+                {ticker.event_type && (
+                  <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", getEventTypeColor(ticker.event_type))}>
+                    {ticker.event_type}
+                  </span>
+                )}
+                {ticker.sentiment_label && (
+                  <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", getSentimentColor(ticker.sentiment_label))}>
+                    {ticker.sentiment_label}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         {notification.event_description && (
-          <p className="text-xs text-muted-foreground line-clamp-2">
-            {notification.event_description}
-          </p>
+          <p className="text-xs text-muted-foreground line-clamp-2">{notification.event_description}</p>
         )}
         <p className="text-xs text-muted-foreground">{getTimeAgo(notification.timestamp)}</p>
       </div>
@@ -445,84 +565,62 @@ export default function NotificationsDropdown() {
     </div>
   )
 
-const renderSignalNotification = (notification: SignalNotification) => (
-  <div
-    key={notification.id}
-    onClick={() => markAsRead(notification.id)}
-    className={cn(
-      "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
-      !notification.isRead && "bg-muted/30",
-    )}
-  >
-    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-purple-50">
-      <TrendingUp className="h-5 w-5 text-purple-500" />
-    </div>
-    <div className="flex-1 space-y-2">
-      <div className="flex items-center gap-2 flex-wrap">
-        <p className="text-sm font-semibold text-foreground">
-          {notification.ticker ?? "—"}
-        </p>
-
-        {/* Trade signal badge — guard against undefined */}
-        {notification.trade_signal && (
-          <span
-            className={cn(
+  const renderSignalNotification = (notification: SignalNotification) => (
+    <div
+      key={notification.id}
+      onClick={() => markAsRead(notification.id)}
+      className={cn(
+        "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
+        !notification.isRead && "bg-muted/30",
+      )}
+    >
+      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-purple-50">
+        <TrendingUp className="h-5 w-5 text-purple-500" />
+      </div>
+      <div className="flex-1 space-y-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-sm font-semibold text-foreground">{notification.ticker || "—"}</p>
+          {notification.trade_signal && (
+            <span className={cn(
               "rounded border px-2 py-0.5 text-[10px] font-bold",
               notification.trade_signal === "BUY"
                 ? "border-green-500/20 bg-green-500/10 text-green-600"
                 : notification.trade_signal === "SELL"
                   ? "border-red-500/20 bg-red-500/10 text-red-500"
                   : "border-gray-500/20 bg-gray-500/10 text-gray-500",
-            )}
-          >
-            {notification.trade_signal}
-          </span>
-        )}
-
-        {/* Credibility badge — guard against undefined before .toLowerCase() */}
-        {notification.credibility && (
-          <span
-            className={cn(
+            )}>
+              {notification.trade_signal}
+            </span>
+          )}
+          {notification.credibility && (
+            <span className={cn(
               "rounded border px-2 py-0.5 text-[10px] font-medium",
               notification.credibility.toLowerCase() === "high"
                 ? "border-green-500/20 bg-green-500/10 text-green-600"
                 : notification.credibility.toLowerCase() === "medium"
                   ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-600"
                   : "border-red-500/20 bg-red-500/10 text-red-500",
-            )}
-          >
-            {notification.credibility}
-          </span>
+            )}>
+              {notification.credibility}
+            </span>
+          )}
+          {notification.confidence != null && (
+            <span className="text-[10px] text-muted-foreground">{notification.confidence}/10</span>
+          )}
+        </div>
+        {notification.rumor_summary && (
+          <p className="text-xs text-muted-foreground line-clamp-2">{notification.rumor_summary}</p>
         )}
-
-        {/* Confidence — guard against undefined */}
-        {notification.confidence != null && (
-          <span className="text-[10px] text-muted-foreground">
-            {notification.confidence}/10
-          </span>
-        )}
+        <p className="text-xs text-muted-foreground">{getTimeAgo(notification.timestamp)}</p>
       </div>
-
-      {notification.rumor_summary && (
-        <p className="text-xs text-muted-foreground line-clamp-2">
-          {notification.rumor_summary}
-        </p>
+      {!notification.isRead && (
+        <div className="flex-shrink-0">
+          <div className="h-2 w-2 rounded-full bg-primary" />
+        </div>
       )}
-
-      <p className="text-xs text-muted-foreground">
-        {getTimeAgo(notification.timestamp)}
-      </p>
     </div>
+  )
 
-    {!notification.isRead && (
-      <div className="flex-shrink-0">
-        <div className="h-2 w-2 rounded-full bg-primary" />
-      </div>
-    )}
-  </div>
-)
-
-  // ─── NEW: Render executed trade order notification ────────────────────────
   const renderOrderNotification = (notification: OrderNotification) => (
     <div
       key={notification.id}
@@ -532,7 +630,6 @@ const renderSignalNotification = (notification: SignalNotification) => (
         !notification.isRead && "bg-muted/30",
       )}
     >
-      {/* Icon */}
       <div className={cn(
         "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full",
         notification.action === "BUY" ? "bg-green-50" : "bg-red-50",
@@ -542,14 +639,9 @@ const renderSignalNotification = (notification: SignalNotification) => (
           : <TrendingDown className="h-5 w-5 text-red-500" />
         }
       </div>
-
-      {/* Content */}
       <div className="flex-1 space-y-2">
-        <div className="flex items-center gap-2">
-          {/* Symbol */}
+        <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-semibold text-foreground">{notification.symbol}</p>
-
-          {/* Action badge */}
           <span className={cn(
             "rounded border px-2 py-0.5 text-[10px] font-bold",
             notification.action === "BUY"
@@ -558,27 +650,14 @@ const renderSignalNotification = (notification: SignalNotification) => (
           )}>
             {notification.action}
           </span>
-
-          {/* Quantity */}
-          <span className="text-[10px] text-muted-foreground">
-            Qty: {notification.suggested_qty}
-          </span>
-
-          {/* Profile badge */}
+          <span className="text-[10px] text-muted-foreground">Qty: {notification.suggested_qty}</span>
           <span className="rounded border border-gray-500/20 bg-gray-500/10 px-2 py-0.5 text-[10px] font-medium text-gray-500 capitalize">
             {notification.profile}
           </span>
         </div>
-
-        {/* Truncated reasoning */}
-        <p className="text-xs text-muted-foreground line-clamp-2">
-          {notification.reasonings}
-        </p>
-
+        <p className="text-xs text-muted-foreground line-clamp-2">{notification.reasonings}</p>
         <p className="text-xs text-muted-foreground">{getTimeAgo(notification.timestamp)}</p>
       </div>
-
-      {/* Unread dot */}
       {!notification.isRead && (
         <div className="flex-shrink-0">
           <div className="h-2 w-2 rounded-full bg-primary" />
@@ -587,6 +666,18 @@ const renderSignalNotification = (notification: SignalNotification) => (
     </div>
   )
 
+  // ─── Tab loading/error helper ─────────────────────────────────────────────
+  const isTabLoading =
+    (activeTab === "news" && newsLoading) ||
+    (activeTab === "signals" && signalsLoading) ||
+    (activeTab === "orders" && ordersLoading)
+
+  const tabError =
+    activeTab === "news" ? newsError :
+    activeTab === "signals" ? signalsError :
+    ordersError
+
+  // ─── JSX ──────────────────────────────────────────────────────────────────
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -595,7 +686,6 @@ const renderSignalNotification = (notification: SignalNotification) => (
           className="relative border bg-muted/20 text-foreground hover:bg-primary/10 rounded-full"
         >
           <Bell className="h-5 w-5" />
-          {unreadCount > 0 && <></>}
           <span className={cn(
             "absolute -top-0 -left-1 h-3.5 w-3.5 rounded-full border-2 border-background animate-pulse",
             isConnected ? "bg-green-500" : "bg-red-500",
@@ -625,57 +715,28 @@ const renderSignalNotification = (notification: SignalNotification) => (
 
         {/* Tabs */}
         <div className="flex items-center gap-4 border-b px-4">
-          {/* News tab */}
-          <button
-            onClick={() => setActiveTab("news")}
-            className={cn(
-              "relative pb-3 pt-3 text-sm font-medium transition-colors",
-              activeTab === "news" ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            News
-            {unreadNewsCount > 0 && (
-              <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                {unreadNewsCount}
-              </span>
-            )}
-            {activeTab === "news" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
-          </button>
-
-          {/* Trade Signals tab */}
-          <button
-            onClick={() => setActiveTab("signals")}
-            className={cn(
-              "relative pb-3 pt-3 text-sm font-medium transition-colors",
-              activeTab === "signals" ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            Trade Signals
-            {unreadSignalsCount > 0 && (
-              <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                {unreadSignalsCount}
-              </span>
-            )}
-            {activeTab === "signals" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
-          </button>
-
-          {/* ─── NEW: Orders tab ─────────────────────────────────────────── */}
-          <button
-            onClick={() => setActiveTab("orders")}
-            className={cn(
-              "relative pb-3 pt-3 text-sm font-medium transition-colors",
-              activeTab === "orders" ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            Orders
-            {unreadOrdersCount > 0 && (
-              <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                {unreadOrdersCount}
-              </span>
-            )}
-            {activeTab === "orders" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
-          </button>
-
+          {(["news", "signals", "orders"] as const).map((tab) => {
+            const label = tab === "news" ? "News" : tab === "signals" ? "Trade Signals" : "Orders"
+            const count = tab === "news" ? unreadNewsCount : tab === "signals" ? unreadSignalsCount : unreadOrdersCount
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "relative pb-3 pt-3 text-sm font-medium transition-colors",
+                  activeTab === tab ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {label}
+                {count > 0 && (
+                  <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                    {count}
+                  </span>
+                )}
+                {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+              </button>
+            )
+          })}
           <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
             <Settings className="h-4 w-4 text-muted-foreground" />
           </Button>
@@ -683,19 +744,18 @@ const renderSignalNotification = (notification: SignalNotification) => (
 
         {/* Notifications List */}
         <div className="max-h-[500px] overflow-y-auto">
-          {/* ─── NEW: Orders loading / error state ───────────────────────── */}
-          {activeTab === "orders" && ordersLoading && (
+          {isTabLoading && (
             <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-              Loading order history…
+              Loading {activeTab} history…
             </div>
           )}
-          {activeTab === "orders" && ordersError && !ordersLoading && (
+          {tabError && !isTabLoading && (
             <div className="flex items-center justify-center py-8 text-sm text-red-500">
-              {ordersError}
+              {tabError}
             </div>
           )}
 
-          {filteredNotifications.length > 0 ? (
+          {!isTabLoading && filteredNotifications.length > 0 ? (
             <div className="divide-y">
               {filteredNotifications.map((notification) => {
                 if (notification.type === "news") return renderNewsNotification(notification)
@@ -704,7 +764,7 @@ const renderSignalNotification = (notification: SignalNotification) => (
               })}
             </div>
           ) : (
-            !ordersLoading && (
+            !isTabLoading && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 {activeTab === "news" ? (
                   <>
