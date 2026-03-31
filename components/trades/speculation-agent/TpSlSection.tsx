@@ -42,7 +42,7 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
             headers: {
               Authorization: `Bearer ${getToken()}`,
             },
-          }
+          },
         )
         if (!res.ok) return
         const data = await res.json()
@@ -62,7 +62,9 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
     const legPrice = parseFloat(
       leg.filled_avg_price || leg.limit_price || leg.stop_price || "0",
     )
-    return (legPrice - selectedTrade.price) * legQty
+    return selectedTrade.trade_type === "sell"
+      ? (selectedTrade.price - legPrice) * legQty // short: profit when exit < entry
+      : (legPrice - selectedTrade.price) * legQty // long: profit when exit > entry
   }
 
   const filledLegs = selectedTrade.legs.filter(
@@ -81,7 +83,11 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
       leg.filled_avg_price || leg.limit_price || leg.stop_price || "0",
     )
     const isFilled = leg.status === "filled"
-    const legPL = isFilled ? (legPrice - selectedTrade.price) * legQty : 0
+    const legPL = isFilled
+      ? selectedTrade.trade_type === "sell"
+        ? (selectedTrade.price - legPrice) * legQty
+        : (legPrice - selectedTrade.price) * legQty
+      : 0
     const shares = selectedTrade.quantity
     const perShare = isTakeProfit
       ? parseFloat(selectedTrade.risk_evaluation?.reward_per_share || "0")
@@ -176,8 +182,13 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
               </div>
             ) : currentPrice !== null ? (
               (() => {
+                const side = selectedTrade.trade_type // "buy" | "sell"
                 const unrealizedPnl =
-                  (currentPrice - selectedTrade.price) * selectedTrade.quantity
+                  side === "sell"
+                    ? (selectedTrade.price - currentPrice) *
+                      selectedTrade.quantity
+                    : (currentPrice - selectedTrade.price) *
+                      selectedTrade.quantity
                 const isPositive = unrealizedPnl >= 0
                 const tpPrice = parseFloat(
                   tpLeg?.limit_price || tpLeg?.filled_avg_price || "0",
@@ -189,7 +200,10 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                   tpPrice > 0 ? Math.abs(currentPrice - tpPrice) : Infinity
                 const distToSL =
                   slPrice > 0 ? Math.abs(currentPrice - slPrice) : Infinity
-                const isBullish = distToTP < distToSL
+                const isWinning =
+                  side === "sell"
+                    ? currentPrice < selectedTrade.price // short profits when price drops
+                    : currentPrice > selectedTrade.price // long profits when price rises
 
                 return (
                   <motion.div
@@ -201,10 +215,10 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                     {/* Ping dot */}
                     <span className="relative flex h-2 w-2 flex-shrink-0">
                       <span
-                        className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isBullish ? "bg-green-400" : "bg-red-400"} opacity-75`}
+                        className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isWinning ? "bg-green-400" : "bg-red-400"} opacity-75`}
                       />
                       <span
-                        className={`relative inline-flex h-2 w-2 rounded-full ${isBullish ? "bg-green-500" : "bg-red-500"}`}
+                        className={`relative inline-flex h-2 w-2 rounded-full ${isWinning ? "bg-green-500" : "bg-red-500"}`}
                       />
                     </span>
 

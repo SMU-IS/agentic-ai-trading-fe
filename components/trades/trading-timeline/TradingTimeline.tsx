@@ -28,7 +28,9 @@ export default function TradingTimeline({
   const [filterStatus, setFilterStatus] = useState<
     "all" | "filled" | "pending" | "cancelled"
   >("all")
-  const [filterSource, setFilterSource] = useState<"all" | "agent" | "manual">("all")
+  const [filterSource, setFilterSource] = useState<"all" | "agent" | "manual">(
+    "all",
+  )
   const [showFilters, setShowFilters] = useState(false)
   const [showStats, setShowStats] = useState(false)
   const [filterSymbols, setFilterSymbols] = useState<string[]>([])
@@ -47,7 +49,7 @@ export default function TradingTimeline({
         {
           credentials: "include",
           headers: { Authorization: `Bearer ${getToken()}` },
-        }
+        },
       )
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const orders = await res.json()
@@ -59,7 +61,8 @@ export default function TradingTimeline({
       }
 
       allTrades.sort(
-        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       )
       setTrades(allTrades)
     } catch (error) {
@@ -74,10 +77,12 @@ export default function TradingTimeline({
     if (filterType !== "all" && trade.trade_type !== filterType) return false
     if (filterStatus === "filled" && trade.status !== "filled") return false
     if (filterStatus === "pending" && trade.status !== "pending") return false
-    if (filterStatus === "cancelled" && trade.status !== "cancelled") return false
+    if (filterStatus === "cancelled" && trade.status !== "cancelled")
+      return false
     if (filterSource === "agent" && !trade.is_agent_trade) return false
     if (filterSource === "manual" && trade.is_agent_trade) return false
-    if (filterSymbols.length > 0 && !filterSymbols.includes(trade.symbol)) return false
+    if (filterSymbols.length > 0 && !filterSymbols.includes(trade.symbol))
+      return false
 
     if (filterPeriod !== "all") {
       const tradeDate = new Date(trade.timestamp)
@@ -111,9 +116,14 @@ export default function TradingTimeline({
     const tradePnL = filledLegs.reduce((legSum: number, leg: any) => {
       const legQty = parseFloat(leg.filled_qty || leg.quantity || "0")
       const legPrice = parseFloat(
-        leg.filled_avg_price || leg.limit_price || leg.stop_price || "0"
+        leg.filled_avg_price || leg.limit_price || leg.stop_price || "0",
       )
-      return legSum + (legPrice - trade.price) * legQty
+      return (
+        legSum +
+        (trade.trade_type === "sell"
+          ? (trade.price - legPrice) * legQty // short: profit when exit < entry
+          : (legPrice - trade.price) * legQty) // long: profit when exit > entry
+      )
     }, 0)
     return sum + tradePnL
   }, 0)
@@ -125,9 +135,9 @@ export default function TradingTimeline({
           .filter(
             (t) =>
               t.status === "filled" &&
-              !t.legs?.some((l: any) => l.status === "filled")
+              !t.legs?.some((l: any) => l.status === "filled"),
           )
-          .map((t) => t.symbol)
+          .map((t) => t.symbol),
       ),
     ]
 
@@ -138,12 +148,12 @@ export default function TradingTimeline({
           {
             credentials: "include",
             headers: { Authorization: `Bearer ${getToken()}` },
-          }
+          },
         )
           .then((r) => r.json())
           .then((d) => ({ sym, price: d.price?.current_price ?? null }))
-          .catch(() => ({ sym, price: null }))
-      )
+          .catch(() => ({ sym, price: null })),
+      ),
     ).then((results) => {
       const map: Record<string, number> = {}
       results.forEach(({ sym, price }) => {
@@ -157,12 +167,17 @@ export default function TradingTimeline({
     .filter(
       (t) =>
         t.status === "filled" &&
-        !t.legs?.some((l: any) => l.status === "filled")
+        !t.legs?.some((l: any) => l.status === "filled"),
     )
     .reduce((sum, t) => {
       const livePrice = livePrices[t.symbol]
       if (!livePrice) return sum
-      return sum + (livePrice - t.price) * t.quantity
+      return (
+        sum +
+        (t.trade_type === "sell"
+          ? (t.price - livePrice) * t.quantity // short: profit when price drops
+          : (livePrice - t.price) * t.quantity) // long: profit when price rises
+      )
     }, 0)
 
   const groupedTrades = filteredTrades.reduce(
@@ -172,14 +187,13 @@ export default function TradingTimeline({
       acc[dateKey].push(trade)
       return acc
     },
-    {} as Record<string, TradeEvent[]>
+    {} as Record<string, TradeEvent[]>,
   )
 
   return (
     <div className="flex h-full flex-col">
       <Card className="border-border bg-card h-full">
         <CardHeader className="flex-shrink-0 px-4 py-4 sm:px-6">
-
           {/* Title row */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
@@ -302,7 +316,8 @@ export default function TradingTimeline({
                     </div>
                     <div className="h-px flex-1 bg-border" />
                     <div className="text-xs text-muted-foreground">
-                      {dateTrades.length} trade{dateTrades.length !== 1 ? "s" : ""}
+                      {dateTrades.length} trade
+                      {dateTrades.length !== 1 ? "s" : ""}
                     </div>
                   </div>
 
