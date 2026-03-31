@@ -46,17 +46,33 @@ interface HistoricalSignal {
   created_at?: string // may or may not be present
 }
 
-// ⚠️ Adjust these fields once you confirm the real /qdrant/news response shape
-interface HistoricalNews {
-  news_id: string
-  headline: string
-  tickers: Array<{
-    symbol: string
-    event_type: string
-    sentiment_label: string
-  }>
-  event_description: string
-  created_at?: string // may or may not be present
+interface HistoricalNewsItem {
+  topic_id: string
+  text_content: string
+  metadata: {
+    topic_id: string
+    tickers: string[]
+    tickers_metadata: Array<{
+      ticker: string
+      event_type: string
+      sentiment_score: number
+      sentiment_label: string
+    }>
+    timestamp: string       // ISO string e.g. "2026-03-31T02:35:28+08:00"
+    source_domain: string
+    credibility_score: number
+    headline: string        // may be empty string — fall back to text_content
+    text_content: string
+    url: string
+    author: string
+  }
+}
+
+interface HistoricalNewsResponse {
+  status: string
+  count: number
+  next_offset: string
+  data: HistoricalNewsItem[]
 }
 
 // ─── WebSocket types ────────────────────────────────────────────────────────
@@ -187,6 +203,7 @@ export default function NotificationsDropdown() {
     if (activeTab === "orders") return n.type === "order"
     return false
   })
+  
 
   // ─── 1. Fetch historical NEWS ─────────────────────────────────────────────
   useEffect(() => {
@@ -207,16 +224,27 @@ export default function NotificationsDropdown() {
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
-        const data: HistoricalNews[] = await res.json()
+        const json: HistoricalNewsResponse = await res.json()
 
-        const newsNotifications: NewsNotification[] = data.map((item) => ({
-          id: item.news_id,
+        const newsNotifications: NewsNotification[] = json.data.map((item) => ({
+          id: item.topic_id,
           type: "news",
-          headline: item.headline,
-          tickers: item.tickers ?? [],
-          event_description: item.event_description ?? "",
-          // Use server timestamp if available, otherwise sentinel
-          timestamp: item.created_at ? new Date(item.created_at) : new Date(0),
+          // Use headline if present, otherwise fall back to text_content
+          headline: item.metadata.headline?.trim()
+            ? item.metadata.headline
+            : item.text_content,
+          // Normalise tickers_metadata → match the existing NewsNotification shape
+          tickers: item.metadata.tickers_metadata.map((t) => ({
+            symbol: t.ticker,           // ticker → symbol
+            event_type: t.event_type,
+            sentiment_label: t.sentiment_label,
+          })),
+          event_description: item.metadata.source_domain
+            ? `via ${item.metadata.source_domain} · ${item.metadata.author}`
+            : "",
+          timestamp: item.metadata.timestamp
+            ? new Date(item.metadata.timestamp)
+            : new Date(0),
           isRead: false,
         }))
 
