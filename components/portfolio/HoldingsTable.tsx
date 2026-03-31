@@ -1,6 +1,6 @@
 "use client"
 
-import Cookies from "js-cookie" 
+import Cookies from "js-cookie"
 import StockLogo from "@/components/StockLogo"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -41,8 +41,12 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   const [askAISymbol, setAskAISymbol] = useState<string | null>(null)
   const [askAIData, setAskAIData] = useState<any>(null)
 
-  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null)
-  const [liquidateStock, setLiquidateStock] = useState<StockWithHistory | null>(null)
+  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(
+    null,
+  )
+  const [liquidateStock, setLiquidateStock] = useState<StockWithHistory | null>(
+    null,
+  )
 
   const [positions, setPositions] = useState<StockWithHistory[]>([])
   const [positionsLoading, setPositionsLoading] = useState(false)
@@ -70,7 +74,10 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
       const res = await fetch(`${BASE_URL}/trading/positions`, {
         method: "GET",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         credentials: "include",
       })
 
@@ -86,7 +93,10 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         const currentPrice = Number(p.current_price ?? 0)
         const avgPrice = Number(p.avg_entry_price ?? 0)
         const changePercent = Number(
-          p.unrealized_intraday_plpc ?? p.change_today ?? p.unrealized_plpc ?? 0,
+          p.unrealized_intraday_plpc ??
+            p.change_today ??
+            p.unrealized_plpc ??
+            0,
         )
         const change = Number(p.unrealized_intraday_pl ?? p.unrealized_pl ?? 0)
         const totalPL = Number(p.unrealized_pl ?? 0)
@@ -113,7 +123,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
   }
 
   useEffect(() => {
-    fetchPositions()  
+    fetchPositions()
   }, [])
 
   const longPositions = positions.filter((p) => p.shares >= 0)
@@ -130,7 +140,10 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
         const res = await fetch(`${BASE_URL}/trading/orders/all`, {
           method: "GET",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           credentials: "include",
         })
 
@@ -181,8 +194,13 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
 
           if (Array.isArray(o.legs)) {
             for (const leg of o.legs) {
-              if (leg && leg.status === "filled" && Number(leg.filled_qty) !== 0) {
-                const legDatetime = leg.filled_at || leg.submitted_at || leg.created_at
+              if (
+                leg &&
+                leg.status === "filled" &&
+                Number(leg.filled_qty) !== 0
+              ) {
+                const legDatetime =
+                  leg.filled_at || leg.submitted_at || leg.created_at
                 const price = Number(leg.filled_avg_price ?? 0)
                 const qty = Number(leg.qty ?? 0)
                 const filledQty = Number(leg.filled_qty ?? 0)
@@ -213,7 +231,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
       }
     }
 
-    fetchTransactions()  
+    fetchTransactions()
   }, [showTransactionsModal])
 
   const handleRowClick = async (position: StockWithHistory) => {
@@ -221,7 +239,10 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
     try {
       const res = await fetch(`${BASE_URL}/trading/orders/all`, {
         method: "GET",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         credentials: "include",
       })
 
@@ -365,7 +386,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
         return (
           <tr
             key={stock.symbol}
-            onClick={() => handleRowClick(stock)}  
+            onClick={() => handleRowClick(stock)}
             onContextMenu={(e) => handleContextMenu(e, stock)}
             className="cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted/30"
           >
@@ -378,14 +399,20 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 <p className="text-sm text-muted-foreground">{stock.name}</p>
               </div>
             </td>
-            <td className="hidden w-1/8 px-6 py-4 text-foreground sm:table-cell">
+            <td className=" w-1/8 px-6 py-4 text-foreground sm:table-cell">
               {sharesAbs}
             </td>
             <td className="w-1/8 px-6 py-4 text-right text-foreground">
-              ${stock.avgPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              $
+              {stock.avgPrice.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+              })}
             </td>
             <td className="w-1/8 px-6 py-4 text-right text-foreground">
-              ${stock.currentPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              $
+              {stock.currentPrice.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+              })}
             </td>
             <td className="w-1/8 px-6 py-4 text-right">
               <div
@@ -403,17 +430,20 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 </span>
               </div>
             </td>
-            <td className="hidden w-1/8 px-6 py-4 text-right text-foreground md:table-cell">
+            <td className=" w-1/8 px-6 py-4 text-right text-foreground md:table-cell">
               ${value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </td>
-            <td className="hidden w-1/8 px-6 py-4 text-right lg:table-cell">
+            <td className=" w-1/8 px-6 py-4 text-right lg:table-cell">
               <div className={gain >= 0 ? "text-primary" : "text-red-500"}>
                 <p>
                   {gain >= 0 ? "+" : ""}$
                   {gain.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </p>
-                <p className={`text-sm ${gain >= 0 ? "text-teal-500" : "text-red-300"}`}>
-                  {gain >= 0 ? "+" : ""}{gainPercent.toFixed(2)}%
+                <p
+                  className={`text-sm ${gain >= 0 ? "text-teal-500" : "text-red-300"}`}
+                >
+                  {gain >= 0 ? "+" : ""}
+                  {gainPercent.toFixed(2)}%
                 </p>
               </div>
             </td>
@@ -438,19 +468,35 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
           </Button>
         </div>
       </div>
-      <Card className="mb-8 overflow-hidden border-border bg-card">
+      <Card className="mb-8 overflow- border-border bg-card overflow-auto">
         <div className="overflow-x-auto overflow-y-auto max-h-[400px]">
           <table className="w-full">
-            <thead className="sticky top-0 z-10 bg-card border-b-2 border-border shadow-[0_1px_0_0_hsl(var(--border))]">
+            <thead className="sticky bg-card top-0 border-border shadow-[0_1px_0_0_hsl(var(--border))]">
               <tr className="border-b border-border">
-                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">Symbol</th>
-                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">Stock</th>
-                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">Qty</th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Avg. Price</th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Current Price</th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Total P/L</th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">Current Value</th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">Total Gain/Loss</th>
+                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                  Symbol
+                </th>
+                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
+                  Stock
+                </th>
+                <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
+                  Qty
+                </th>
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                  Avg. Price
+                </th>
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                  Current Price
+                </th>
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                  Total P/L
+                </th>
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">
+                  Current Value
+                </th>
+                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">
+                  Total Gain/Loss
+                </th>
               </tr>
             </thead>
             {renderTableBody(longPositions, false)}
@@ -459,20 +505,38 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
       </Card>
       {shortPositions.length > 0 && (
         <>
-          <h2 className="mb-2 text-lg font-semibold text-foreground">Short Positions</h2>
-          <Card className="overflow-hidden border-border bg-card">
+          <h2 className="mb-2 text-lg font-semibold text-foreground">
+            Short Positions
+          </h2>
+          <Card className="overflow-auto border-border bg-card">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="sticky top-0 z-10 bg-card">
+                <thead className="sticky bg-card top-0 border-border shadow-[0_1px_0_0_hsl(var(--border))]">
                   <tr className="border-b border-border">
-                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">Symbol</th>
-                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">Stock</th>
-                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">Qty</th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Avg. Sold Price</th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Current Price</th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">Total P/L</th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">Current Value</th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">Total Gain/Loss</th>
+                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                      Symbol
+                    </th>
+                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
+                      Stock
+                    </th>
+                    <th className="w-1/8 px-6 py-4 text-left text-sm font-medium text-muted-foreground sm:table-cell">
+                      Qty
+                    </th>
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                      Avg. Sold Price
+                    </th>
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                      Current Price
+                    </th>
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                      Total P/L
+                    </th>
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">
+                      Current Value
+                    </th>
+                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground lg:table-cell">
+                      Total Gain/Loss
+                    </th>
                   </tr>
                 </thead>
                 {renderTableBody(shortPositions, true)}
@@ -484,7 +548,10 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
       {contextMenu && (
         <div
           className="fixed z-50 min-w-[200px] rounded-lg border border-border bg-background/85 py-1 shadow-xl"
-          style={{ left: `${contextMenu.x}px`, top: `${contextMenu.y - 100}px` }}
+          style={{
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y - 100}px`,
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           <button

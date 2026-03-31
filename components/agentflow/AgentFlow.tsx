@@ -53,7 +53,7 @@ const AnimatedCounter = ({
   value,
   suffix = "",
 }: {
-  value: number   // ← keep as non-nullable; null is handled by NodeStatistics above
+  value: number // ← keep as non-nullable; null is handled by NodeStatistics above
   suffix?: string
 }) => {
   const count = useMotionValue(0)
@@ -74,7 +74,7 @@ const AnimatedCounter = ({
 
 // Node Statistics Component
 const NodeStatistics = ({ nodeId }: { nodeId: string }) => {
-  const nodeStats = useNodeStatistics() 
+  const nodeStats = useNodeStatistics()
   const stats = nodeStats[nodeId] ?? []
 
   return (
@@ -371,8 +371,11 @@ const nodeTypes: NodeTypes = {
   ),
 }
 
-
-function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean }) {
+function AgentFlowContent({
+  showStatusCard = true,
+}: {
+  showStatusCard?: boolean
+}) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
   const [isDeveloperMode, setIsDeveloperMode] = useState(false)
@@ -451,7 +454,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
   }
 
   const focusOnNode = (nodeId: string) => {
-    const { x: absoluteX, y: absoluteY } = getAbsolutePosition(nodeId)  // ✅
+    const { x: absoluteX, y: absoluteY } = getAbsolutePosition(nodeId) // ✅
 
     setActiveNodeId(nodeId)
     setNodes((nds) =>
@@ -519,7 +522,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
       if (tourCancelledRef.current) break
       const node = nodes.find((n) => n.id === step.nodeId)
       if (node) {
-        focusOnNode(step.nodeId)  // ✅ now uses absolute position + shared logic
+        focusOnNode(step.nodeId) // ✅ now uses absolute position + shared logic
         await new Promise((resolve) => setTimeout(resolve, step.duration))
       }
     }
@@ -563,7 +566,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
   }))
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 md:gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Title + description — full width on mobile, left side on desktop */}
         <div className="flex flex-col">
@@ -571,12 +574,13 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
             <span className="font-geist font-thin">Agent</span>Flow
           </h1>
           <p className="text-sm text-muted-foreground">
-            See your agents' performance in real-time. Click on nodes to view stats, or use the tour to explore key components.
+            See your agents' performance in real-time. Click on nodes to view
+            stats, or use the tour to explore key components.
           </p>
         </div>
 
         {/* Buttons — full width row on mobile, right side on desktop */}
-        <div className="flex items-center gap-2 sm:flex-shrink-0">
+        <div className="flex items-end   gap-2 flex-end">
           <Button
             onClick={handleRefresh}
             className="rounded-full border border-foreground/25 bg-card text-foreground hover:bg-primary/5"
@@ -644,7 +648,11 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
                     >
                       <motion.div
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
                       >
                         <LoaderCircle className="h-4 w-4" />
                       </motion.div>
@@ -691,14 +699,16 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
           )}
 
           {/* Dev Mode Toggle */}
-          {showStatusCard && (<Toggle
-            pressed={isDeveloperMode}
-            onPressedChange={setIsDeveloperMode}
-            className="absolute right-4 top-4 z-[1000] flex items-center gap-2 rounded-full border border-foreground/25 bg-card px-3 py-2 shadow-lg data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
-          >
-            <Code2 className="h-3 w-3" />
-            <span className="text-xs font-medium">Agent Settings</span>
-          </Toggle>)}
+          {showStatusCard && (
+            <Toggle
+              pressed={isDeveloperMode}
+              onPressedChange={setIsDeveloperMode}
+              className="absolute right-4 top-4 z-[1000] flex items-center gap-2 rounded-full border border-foreground/25 bg-card px-3 py-2 shadow-lg data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
+            >
+              <Code2 className="h-3 w-3" />
+              <span className="text-xs font-medium">Agent Settings</span>
+            </Toggle>
+          )}
 
           {/* Health Legend + Countdown */}
           <Card className="w-28 absolute right-4 top-20 z-[1000] rounded-xl border border-foreground/25 bg-card/80 px-3 py-2 shadow-lg">
@@ -766,22 +776,25 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
           </ReactFlow>
         </Card>
       </motion.div>
-    {showStatusCard && (
-      <motion.div className="flex gap-4">
-        <Card className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8 w-1/2">
-          <StatusCardPipeline />
-        </Card>
-        <Card className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8 w-1/2">
-          <StatusCard />
-        </Card>
-      </motion.div>
-    )}
+      {showStatusCard && (
+        <motion.div className="flex flex-col gap-4 sm:flex-row">
+          <Card className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8 w-full sm:w-1/2">
+            <StatusCardPipeline />
+          </Card>
+          <Card className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden p-8 w-full sm:w-1/2">
+            <StatusCard />
+          </Card>
+        </motion.div>
+      )}
     </div>
-
   )
 }
 
-export default function AgentFlowTab({ showStatusCard = true }: { showStatusCard?: boolean }) {
+export default function AgentFlowTab({
+  showStatusCard = true,
+}: {
+  showStatusCard?: boolean
+}) {
   return (
     <ReactFlowProvider>
       <AgentFlowContent showStatusCard={showStatusCard} />

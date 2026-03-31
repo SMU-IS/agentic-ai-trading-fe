@@ -165,7 +165,7 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
 
   return (
     <div className="rounded-lg border border-border bg-muted p-4">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2">
           <Target className="h-5 w-5 text-muted-foreground" />
           <span className="text-sm font-bold">Take Profit / Stop Loss</span>

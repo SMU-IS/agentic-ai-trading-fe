@@ -22,7 +22,6 @@ import Cookies from "js-cookie"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
-
 type TimePeriod = "Daily" | "Weekly" | "Monthly"
 
 interface PortfolioHistoryPoint {
@@ -178,22 +177,22 @@ export default function PerformanceChart() {
   }
 
   return (
-    <Card className="border-border bg-card/60 h-[450px]">
+    <Card className="border-border bg-card/60 h-auto md:h-[450px] ">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-xl font-semibold text-foreground">
+          <CardTitle className="text-lg sm:text-xl font-semibold text-foreground">
             Portfolio Performance
           </CardTitle>
           <CardDescription className="mt-1 text-muted-foreground">
             {getDescription()}
           </CardDescription>
         </div>
-        <div className="flex items-center overflow-hidden rounded-lg border border-border">
+        <div className="flex items-center overflow-hidden rounded-lg border border-border flex-shrink-0">
           {(["Daily", "Weekly", "Monthly"] as TimePeriod[]).map((period) => (
             <button
               key={period}
               onClick={() => setTimePeriod(period)}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-colors ${
                 timePeriod === period
                   ? "bg-card text-foreground"
                   : "bg-muted/30 text-muted-foreground hover:text-foreground"
@@ -206,7 +205,7 @@ export default function PerformanceChart() {
       </CardHeader>
       <CardContent className="pt-4">
         {loading ? (
-          <div className="flex h-[350px] w-full items-center justify-center">
+          <div className="flex h-[220px] sm:h-[300px] md:h-[350px] w-full items-center justify-center">
             <div className="flex flex-col items-center gap-2">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
               <p className="text-sm text-muted-foreground">
@@ -215,7 +214,7 @@ export default function PerformanceChart() {
             </div>
           </div>
         ) : error ? (
-          <div className="flex h-[350px] w-full items-center justify-center">
+          <div className="flex h-[220px] sm:h-[300px] md:h-[350px] w-full items-center justify-center">
             <div className="text-center">
               <p className="text-sm text-red-500">
                 Failed to load portfolio history
@@ -229,7 +228,7 @@ export default function PerformanceChart() {
             </div>
           </div>
         ) : performanceData.length === 0 ? (
-          <div className="flex h-[350px] w-full items-center justify-center">
+          <div className="flex h-[220px] sm:h-[300px] md:h-[350px] w-full items-center justify-center">
             <p className="text-sm text-muted-foreground">
               No portfolio data available
             </p>
@@ -242,7 +241,7 @@ export default function PerformanceChart() {
                 color: "hsl(221, 83%, 53%)",
               },
             }}
-            className="h-[350px] w-full"
+            className="h-[220px] sm:h-[300px] md:h-[350px] w-full"
           >
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
@@ -295,7 +294,7 @@ export default function PerformanceChart() {
                   }}
                   axisLine={false}
                   tickLine={false}
-                  width={60}
+                  width={50}
                   tickCount={8}
                 />
                 <Tooltip
@@ -312,7 +311,10 @@ export default function PerformanceChart() {
                   }}
                   itemStyle={{ color: "hsl(var(--muted-foreground))" }}
                   formatter={(value: number) => [
-                    `$${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                    `$${value.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`,
                     "Value",
                   ]}
                   labelFormatter={formatTooltipLabel}

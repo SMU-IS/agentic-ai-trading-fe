@@ -41,7 +41,7 @@ export default function SignalDataAccordion({
                 </span>
               </div>
               <span
-                className={`rounded border px-2 py-0.5 text-xs font-bold ${
+                className={`hidden md:block rounded border px-2 py-0.5 text-xs font-bold ${
                   selectedTrade.signal_data.trade_signal === "BUY"
                     ? "border-green-500/20 bg-green-500/10 text-green-500"
                     : "border-red-500/20 bg-red-500/10 text-red-500"
@@ -50,7 +50,7 @@ export default function SignalDataAccordion({
                 {selectedTrade.signal_data.trade_signal}
               </span>
               <span
-                className={`rounded border px-2 py-0.5 text-xs font-medium ${getCredibilityColor(
+                className={`hidden md:block rounded border px-2 py-0.5 text-xs font-medium ${getCredibilityColor(
                   selectedTrade.signal_data.credibility,
                 )}`}
               >

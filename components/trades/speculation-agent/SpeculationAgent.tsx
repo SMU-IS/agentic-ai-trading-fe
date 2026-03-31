@@ -182,7 +182,7 @@ export default function SpeculationAgent({
         }}
         contextData={askAIData}
       />
-      <div className="h-full flex flex-col pr-2 overflow-y-auto">
+      <div className="h-full flex flex-col overflow-y-auto">
         <Card className="bg-card border-border flex-shrink-0 h-[calc(80vh)] overflow-y-auto">
           <CardHeader>
             <TradeHeader selectedTrade={selectedTrade} />
@@ -191,14 +191,14 @@ export default function SpeculationAgent({
           <CardContent className="space-y-4 mt-0">
             <PnLSection pnlData={pnlData} selectedTrade={selectedTrade} />
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 ">
               <div className="bg-muted rounded-lg p-4 border">
                 <div className="text-xs text-muted-foreground mb-1">
                   {selectedTrade.trade_type === "buy"
                     ? "Entry Price"
                     : "Sell Price"}
                 </div>
-                <div className="text-xl font-bold">
+                <div className="text-sm md:text-xl font-bold">
                   ${selectedTrade.price.toFixed(2)}
                 </div>
               </div>
@@ -206,7 +206,7 @@ export default function SpeculationAgent({
                 <div className="text-xs text-muted-foreground mb-1">
                   Quantity
                 </div>
-                <div className="text-xl font-bold">
+                <div className="text-sm md:text-xl font-bold">
                   {selectedTrade.quantity} shares
                 </div>
               </div>
@@ -214,7 +214,7 @@ export default function SpeculationAgent({
                 <div className="text-xs text-muted-foreground mb-1">
                   Total Value
                 </div>
-                <div className="text-xl font-bold">
+                <div className="text-sm md:text-xl font-bold">
                   ${selectedTrade.total_value.toFixed(2)}
                 </div>
               </div>
