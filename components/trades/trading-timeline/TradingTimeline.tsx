@@ -192,8 +192,8 @@ export default function TradingTimeline({
 
   return (
     <div className="flex h-full flex-col">
-      <Card className="border-border bg-card h-full">
-        <CardHeader className="flex-shrink-0 px-4 py-4 sm:px-6">
+      <Card className="border-border bg-card h-full h-[calc(80vh)] flex flex-col">
+        <CardHeader className="flex-shrink-0 px-4 py-6 sm:px-6">
           {/* Title row */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
@@ -289,10 +289,9 @@ export default function TradingTimeline({
         {/* Scrollable trade list */}
         <CardContent
           className="
-            px-3 pb-4 sm:px-6
-            h-[calc(100svh-280px)]
-            sm:h-[calc(100vh-300px)]
+            px-3 pb-4 sm:px-6            
             min-h-[300px]
+            h-full
             flex-1
             overflow-y-auto
           "

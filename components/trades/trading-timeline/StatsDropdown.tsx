@@ -47,7 +47,7 @@ export default function StatsDropdown({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border border-border bg-card p-4 shadow-lg"
+            className="absolute left-[-100px] md:right-0 top-full z-50 mt-2 w-80 rounded-lg border border-border bg-card p-4 shadow-lg"
           >
             <h4 className="mb-3 text-sm font-medium">Trading Statistics</h4>
             <div className="grid grid-cols-2 gap-3">

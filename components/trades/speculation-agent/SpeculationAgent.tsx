@@ -173,109 +173,111 @@ export default function SpeculationAgent({
   }
 
   return (
-<>
-    <AskAI
-      open={showAskAI}
-      onOpenChange={(open) => {
-        setShowAskAI(open)
-        if (!open) setAskAIData(null)
-      }}
-      contextData={askAIData}
-    />
-    <div className="h-full flex flex-col pr-2 overflow-y-auto">
-      <Card className="bg-card border-border flex-shrink-0 h-[calc(100vh-150px)] overflow-y-auto">
-        <CardHeader>
-          <TradeHeader selectedTrade={selectedTrade} />
-        </CardHeader>
+    <>
+      <AskAI
+        open={showAskAI}
+        onOpenChange={(open) => {
+          setShowAskAI(open)
+          if (!open) setAskAIData(null)
+        }}
+        contextData={askAIData}
+      />
+      <div className="h-full flex flex-col pr-2 overflow-y-auto">
+        <Card className="bg-card border-border flex-shrink-0 h-[calc(80vh)] overflow-y-auto">
+          <CardHeader>
+            <TradeHeader selectedTrade={selectedTrade} />
+          </CardHeader>
 
-        <CardContent className="space-y-4 mt-0">
-          <PnLSection pnlData={pnlData} selectedTrade={selectedTrade} />
+          <CardContent className="space-y-4 mt-0">
+            <PnLSection pnlData={pnlData} selectedTrade={selectedTrade} />
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-muted rounded-lg p-4 border">
-              <div className="text-xs text-muted-foreground mb-1">
-                {selectedTrade.trade_type === "buy"
-                  ? "Entry Price"
-                  : "Sell Price"}
-              </div>
-              <div className="text-xl font-bold">
-                ${selectedTrade.price.toFixed(2)}
-              </div>
-            </div>
-            <div className="bg-muted rounded-lg p-4 border">
-              <div className="text-xs text-muted-foreground mb-1">Quantity</div>
-              <div className="text-xl font-bold">
-                {selectedTrade.quantity} shares
-              </div>
-            </div>
-            <div className="bg-muted rounded-lg p-4 border">
-              <div className="text-xs text-muted-foreground mb-1">
-                Total Value
-              </div>
-              <div className="text-xl font-bold">
-                ${selectedTrade.total_value.toFixed(2)}
-              </div>
-            </div>
-          </div>
-
-          {selectedTrade.order_class === "bracket" &&
-            selectedTrade.legs &&
-            selectedTrade.legs.length > 0 && (
-              <TpSlSection selectedTrade={selectedTrade} />
-            )}
-
-          <SignalDataAccordion selectedTrade={selectedTrade} />
-
-          <AgentReasoningAccordion selectedTrade={selectedTrade} />
-
-          {selectedTrade.is_agent_trade &&
-            selectedTrade.trading_agent_reasonings?.startsWith(
-              "[Trade Conflict]",
-            ) && (
-              <div className="rounded-lg border-2 border-orange-500/30 bg-orange-500/5 p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <Bot className="w-6 h-6 text-orange-500 mr-2" />
-                  <span className="text-sm font-bold text-orange-500">
-                    Agent Reasoning
-                  </span>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-muted rounded-lg p-4 border">
+                <div className="text-xs text-muted-foreground mb-1">
+                  {selectedTrade.trade_type === "buy"
+                    ? "Entry Price"
+                    : "Sell Price"}
                 </div>
-                <p className="text-sm text-foreground">
-                  {selectedTrade.trading_agent_reasonings}
-                </p>
+                <div className="text-xl font-bold">
+                  ${selectedTrade.price.toFixed(2)}
+                </div>
+              </div>
+              <div className="bg-muted rounded-lg p-4 border">
+                <div className="text-xs text-muted-foreground mb-1">
+                  Quantity
+                </div>
+                <div className="text-xl font-bold">
+                  {selectedTrade.quantity} shares
+                </div>
+              </div>
+              <div className="bg-muted rounded-lg p-4 border">
+                <div className="text-xs text-muted-foreground mb-1">
+                  Total Value
+                </div>
+                <div className="text-xl font-bold">
+                  ${selectedTrade.total_value.toFixed(2)}
+                </div>
+              </div>
+            </div>
+
+            {selectedTrade.order_class === "bracket" &&
+              selectedTrade.legs &&
+              selectedTrade.legs.length > 0 && (
+                <TpSlSection selectedTrade={selectedTrade} />
+              )}
+
+            <SignalDataAccordion selectedTrade={selectedTrade} />
+
+            <AgentReasoningAccordion selectedTrade={selectedTrade} />
+
+            {selectedTrade.is_agent_trade &&
+              selectedTrade.trading_agent_reasonings?.startsWith(
+                "[Trade Conflict]",
+              ) && (
+                <div className="rounded-lg border-2 border-orange-500/30 bg-orange-500/5 p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <Bot className="w-6 h-6 text-orange-500 mr-2" />
+                    <span className="text-sm font-bold text-orange-500">
+                      Agent Reasoning
+                    </span>
+                  </div>
+                  <p className="text-sm text-foreground">
+                    {selectedTrade.trading_agent_reasonings}
+                  </p>
+                </div>
+              )}
+
+            {selectedTrade.is_agent_trade && (
+              <div className="sticky bottom-0 left-0 right-0 bg-card py-4 border-t border-border -mx-6 px-6">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleAskAIClick}
+                  className="w-full h-10 bg-foreground/80 text-background relative group transition-all duration-300 rounded-xl hover:bg-foreground/70 hover:text-background border-none"
+                >
+                  <span
+                    className="pointer-events-none absolute -inset-[2px] rounded-xl animate-rotate-border"
+                    style={{
+                      padding: "3px",
+                      background:
+                        "conic-gradient(from var(--angle, 0deg), #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
+                      WebkitMask:
+                        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                      WebkitMaskComposite: "xor",
+                      maskComposite: "exclude",
+                      zIndex: -1,
+                    }}
+                  />
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Ask AI about this trade
+                </Button>
               </div>
             )}
 
-          {selectedTrade.is_agent_trade && (
-            <div className="sticky bottom-0 left-0 right-0 bg-card py-4 border-t border-border -mx-6 px-6">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleAskAIClick}
-                className="w-full h-10 bg-foreground/80 text-background relative group transition-all duration-300 rounded-xl hover:bg-foreground/70 hover:text-background border-none"
-              >
-                <span
-                  className="pointer-events-none absolute -inset-[2px] rounded-xl animate-rotate-border"
-                  style={{
-                    padding: "3px",
-                    background:
-                      "conic-gradient(from var(--angle, 0deg), #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
-                    WebkitMask:
-                      "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                    WebkitMaskComposite: "xor",
-                    maskComposite: "exclude",
-                    zIndex: -1,
-                  }}
-                />
-                <Sparkles className="h-4 w-4 mr-2" />
-                Ask AI about this trade
-              </Button>
-            </div>
-          )}
-
-          <OrderDetails selectedTrade={selectedTrade} />
-        </CardContent>
-      </Card>
-    </div>
+            <OrderDetails selectedTrade={selectedTrade} />
+          </CardContent>
+        </Card>
+      </div>
     </>
   )
 }

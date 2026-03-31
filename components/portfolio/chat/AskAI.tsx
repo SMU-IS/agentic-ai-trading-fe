@@ -300,14 +300,14 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   }, [showLibrary])
 
   const fetchData = async () => {
-    const token = getToken() 
+    const token = getToken()
 
     try {
       const response = await fetch(`${THREAD_HISTORY_URL}?user_id=${userId}`, {
         credentials: "include",
         headers: {
-              Authorization: `Bearer ${token}`,
-            },
+          Authorization: `Bearer ${token}`,
+        },
       })
       if (!response.ok) throw new Error("Failed to fetch")
       const data = await response.json()
@@ -350,7 +350,10 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
     const response = await fetch(`${CHAT_URL}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
       body: JSON.stringify({
         query: userMessage,
         user_id: userId,
@@ -670,7 +673,9 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                             >
                               <SquarePen className="h-3.5 w-3.5" />
                             </motion.div>
-                            {isResetting ? "Creating..." : "New Chat"}
+                            <span className="hidden md:block">
+                              {isResetting ? "Creating..." : "New Chat"}
+                            </span>
                           </motion.div>
                         </motion.button>
 
@@ -698,8 +703,8 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                             : "border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-muted-foreground/30"
                         }`}
                       >
-                        <PanelLeft className="h-3.5 w-3.5" />
-                        Recent Chats
+                        <PanelLeft className="h-3.5 w-3.5 " />
+                        <span className="hidden md:block">Recent Chats</span>
                       </button>
 
                       {/* Tooltip */}
@@ -815,7 +820,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                 <div className="flex-shrink-0 flex items-center gap-2 border-t border-border px-4 py-3">
                   <div className="flex flex-1 items-center gap-2">
                     <input
-                      className="flex-1 rounded-xl border-border bg-border px-4 py-3 text-sm outline-none transition-all focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
+                      className="flex-1 rounded-xl border-border bg-border px-4 py-3 text-base sm:text-sm outline-none transition-all focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
                       placeholder="Ask anything about your portfolio..."
                       value={input}
                       onChange={(e) => setInput(e.target.value)}

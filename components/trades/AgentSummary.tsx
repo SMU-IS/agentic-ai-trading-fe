@@ -524,14 +524,14 @@ export default function AgentSummary() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
               {/* Quick Query Buttons */}
-              <div className="absolute z-20 top-20 left-6 flex flex-wrap gap-2 mt-2">
+              <div className="hidden md:flex absolute z-20 top-20 left-6 flex flex-wrap gap-2 mt-2 ">
                 {SAVED_QUERIES.map((query) => (
                   <Button
                     key={query.id}
                     size="sm"
                     onClick={() => handleQuickQuery(query)}
                     disabled={loading}
-                    className="bg-card text-foreground text-xs hover:bg-card/50"
+                    className="bg-card text-foreground text-xs hover:bg-card/50 "
                   >
                     {query.title}
                   </Button>
