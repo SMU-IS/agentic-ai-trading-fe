@@ -100,10 +100,10 @@ export function StatusCardPipeline() {
           <div className="mt-auto pt-4">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">
-                Pipeline Yield (Vectorised / Scraped)
+                Pipeline Yield (Orders Placed / News Scraped)
               </span>
               <span className="text-[9px] font-mono text-foreground">
-                {Math.round((data.vectorised / data.scraped) * 100)}%
+                {Math.round((data.order_placed / data.scraped) * 100)}%
               </span>
             </div>
             <div className="h-2 w-full border border-foreground">

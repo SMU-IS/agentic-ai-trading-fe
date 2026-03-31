@@ -9,9 +9,7 @@ const PARTNERS = ["UBS", "Alpaca", "SMU"]
 function LogoBlock({ name, glitch }: { name: string; glitch: boolean }) {
   return (
     <div
-      className={`flex items-center justify-center px-8 py-4 border-x-2 m-auto border-foreground shrink-0 ${
-        glitch ? "animate-glitch" : ""
-      }`}
+      className={`flex items-center justify-center px-8 py-4 border-x-2 m-auto border-foreground shrink-0`}
     >
       <span className="text-sm font-mono tracking-[0.15em] uppercase text-foreground whitespace-nowrap">
         {name}

@@ -69,7 +69,7 @@ export function MetricsCard() {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2">
         <span className="text-[10px] tracking-widest text-muted-foreground uppercase">
-          inference.metrics
+          news_analysis.metrics
         </span>
         <span className="inline-block h-2 w-2 bg-primary" />
       </div>

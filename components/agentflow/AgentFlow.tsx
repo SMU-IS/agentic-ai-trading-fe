@@ -564,7 +564,8 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between ">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Title + description — full width on mobile, left side on desktop */}
         <div className="flex flex-col">
           <h1 className="text-xl text-foreground italic mb-2">
             <span className="font-geist font-thin">Agent</span>Flow
@@ -574,7 +575,8 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Buttons — full width row on mobile, right side on desktop */}
+        <div className="flex items-center gap-2 sm:flex-shrink-0">
           <Button
             onClick={handleRefresh}
             className="rounded-full border border-foreground/25 bg-card text-foreground hover:bg-primary/5"
@@ -642,11 +644,7 @@ function AgentFlowContent({ showStatusCard = true }: { showStatusCard?: boolean 
                     >
                       <motion.div
                         animate={{ rotate: 360 }}
-                        transition={{
-                          duration: 1,
-                          repeat: Infinity,
-                          ease: "linear",
-                        }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                       >
                         <LoaderCircle className="h-4 w-4" />
                       </motion.div>
