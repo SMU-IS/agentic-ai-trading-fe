@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import {
   Bell,
   Settings,
@@ -46,7 +46,7 @@ interface HistoricalSignal {
   credibility: string
   confidence: number
   rumor_summary: string
-  timestamp?: string  
+  timestamp?: string
 }
 
 interface HistoricalNewsItem {
@@ -61,10 +61,10 @@ interface HistoricalNewsItem {
       sentiment_score: number
       sentiment_label: string
     }>
-    timestamp: string       // ISO string e.g. "2026-03-31T02:35:28+08:00"
+    timestamp: string // ISO string e.g. "2026-03-31T02:35:28+08:00"
     source_domain: string
     credibility_score: number
-    headline: string        // may be empty string — fall back to text_content
+    headline: string // may be empty string — fall back to text_content
     text_content: string
     url: string
     author: string
@@ -181,7 +181,9 @@ function mergeNotifications(
 
 export default function NotificationsDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [activeTab, setActiveTab] = useState<"news" | "signals" | "orders">("news")
+  const [activeTab, setActiveTab] = useState<"news" | "signals" | "orders">(
+    "news",
+  )
   const [isConnected, setIsConnected] = useState(false)
 
   // Per-tab loading / error states
@@ -196,22 +198,28 @@ export default function NotificationsDropdown() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
 
   const unreadCount = notifications.filter((n) => !n.isRead).length
-  const unreadNewsCount = notifications.filter((n) => !n.isRead && n.type === "news").length
-  const unreadSignalsCount = notifications.filter((n) => !n.isRead && n.type === "signal").length
-  const unreadOrdersCount = notifications.filter((n) => !n.isRead && n.type === "order").length
+  const unreadNewsCount = notifications.filter(
+    (n) => !n.isRead && n.type === "news",
+  ).length
+  const unreadSignalsCount = notifications.filter(
+    (n) => !n.isRead && n.type === "signal",
+  ).length
+  const unreadOrdersCount = notifications.filter(
+    (n) => !n.isRead && n.type === "order",
+  ).length
 
-const filteredNotifications = useMemo(
-  () =>
-    notifications
-      .filter((n) => {
-        if (activeTab === "news") return n.type === "news"
-        if (activeTab === "signals") return n.type === "signal"
-        if (activeTab === "orders") return n.type === "order"
-        return false
-      })
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
-  [notifications, activeTab],
-
+  const filteredNotifications = useMemo(
+    () =>
+      notifications
+        .filter((n) => {
+          if (activeTab === "news") return n.type === "news"
+          if (activeTab === "signals") return n.type === "signal"
+          if (activeTab === "orders") return n.type === "order"
+          return false
+        })
+        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
+    [notifications, activeTab],
+  )
 
   // ─── 1. Fetch historical NEWS ─────────────────────────────────────────────
   useEffect(() => {
@@ -243,7 +251,7 @@ const filteredNotifications = useMemo(
             : item.text_content,
           // Normalise tickers_metadata → match the existing NewsNotification shape
           tickers: item.metadata.tickers_metadata.map((t) => ({
-            symbol: t.ticker,           // ticker → symbol
+            symbol: t.ticker, // ticker → symbol
             event_type: t.event_type,
             sentiment_label: t.sentiment_label,
           })),
@@ -256,7 +264,9 @@ const filteredNotifications = useMemo(
           isRead: false,
         }))
 
-        setNotifications((prev) => mergeNotifications(prev, newsNotifications, "append"))
+        setNotifications((prev) =>
+          mergeNotifications(prev, newsNotifications, "append"),
+        )
       } catch (err) {
         console.error("❌ Failed to fetch historical news:", err)
         setNewsError("Failed to load news history.")
@@ -301,7 +311,9 @@ const filteredNotifications = useMemo(
           isRead: false,
         }))
 
-        setNotifications((prev) => mergeNotifications(prev, signalNotifications, "append"))
+        setNotifications((prev) =>
+          mergeNotifications(prev, signalNotifications, "append"),
+        )
       } catch (err) {
         console.error("❌ Failed to fetch historical signals:", err)
         setSignalsError("Failed to load signal history.")
@@ -354,7 +366,9 @@ const filteredNotifications = useMemo(
           isRead: false,
         }))
 
-        setNotifications((prev) => mergeNotifications(prev, orderNotifications, "append"))
+        setNotifications((prev) =>
+          mergeNotifications(prev, orderNotifications, "append"),
+        )
       } catch (err) {
         console.error("❌ Failed to fetch historical orders:", err)
         setOrdersError("Failed to load order history.")
@@ -385,7 +399,10 @@ const filteredNotifications = useMemo(
         wsRef.current = ws
 
         ws.onopen = () => {
-          if (!isComponentMounted) { ws.close(); return }
+          if (!isComponentMounted) {
+            ws.close()
+            return
+          }
           console.log("✅ Connected to notifications WebSocket")
           setIsConnected(true)
         }
@@ -400,7 +417,9 @@ const filteredNotifications = useMemo(
             if (data.type === "NEWS_RECEIVED") {
               const tickers = Array.isArray(data.tickers)
                 ? data.tickers
-                : data.tickers ? [data.tickers] : []
+                : data.tickers
+                  ? [data.tickers]
+                  : []
 
               newNotification = {
                 id: data.news_id,
@@ -431,7 +450,10 @@ const filteredNotifications = useMemo(
               return [newNotification, ...prev]
             })
 
-            if ("Notification" in window && Notification.permission === "granted") {
+            if (
+              "Notification" in window &&
+              Notification.permission === "granted"
+            ) {
               new Notification("Incoming: Market News Update", {
                 body:
                   data.type === "NEWS_RECEIVED"
@@ -441,7 +463,11 @@ const filteredNotifications = useMemo(
               })
             }
           } catch (err) {
-            console.error("❌ Failed to parse WebSocket message:", err, event.data)
+            console.error(
+              "❌ Failed to parse WebSocket message:",
+              err,
+              event.data,
+            )
           }
         }
 
@@ -495,7 +521,7 @@ const filteredNotifications = useMemo(
             // ── Fix stale news ticker shape ──────────────────────────────
             ...(n.type === "news" && {
               tickers: (n.tickers ?? []).map((t: any) => ({
-                symbol: t.symbol ?? t.ticker ?? "",   // normalize stale "ticker" → "symbol"
+                symbol: t.symbol ?? t.ticker ?? "", // normalize stale "ticker" → "symbol"
                 event_type: t.event_type ?? "",
                 sentiment_label: t.sentiment_label ?? "neutral",
               })),
@@ -532,7 +558,8 @@ const filteredNotifications = useMemo(
     )
 
   const getTimeAgo = (date: Date) => {
-    if (!date || isNaN(date.getTime()) || date.getTime() === 0) return "Historical"
+    if (!date || isNaN(date.getTime()) || date.getTime() === 0)
+      return "Historical"
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
     if (seconds < 60) return "just now"
     const minutes = Math.floor(seconds / 60)
@@ -546,18 +573,24 @@ const filteredNotifications = useMemo(
   const getEventTypeColor = (eventType: string) => {
     if (!eventType) return "text-purple-600 bg-purple-50"
     switch (eventType.toUpperCase()) {
-      case "PRICE_ALERT": return "text-orange-600 bg-orange-50"
-      case "VOLUME_SPIKE": return "text-blue-600 bg-blue-50"
-      default: return "text-purple-600 bg-purple-50"
+      case "PRICE_ALERT":
+        return "text-orange-600 bg-orange-50"
+      case "VOLUME_SPIKE":
+        return "text-blue-600 bg-blue-50"
+      default:
+        return "text-purple-600 bg-purple-50"
     }
   }
 
   const getSentimentColor = (sentiment: string) => {
     if (!sentiment) return "text-gray-600 bg-gray-50"
     switch (sentiment.toLowerCase()) {
-      case "positive": return "text-green-600 bg-green-50"
-      case "negative": return "text-red-600 bg-red-50"
-      default: return "text-gray-600 bg-gray-50"
+      case "positive":
+        return "text-green-600 bg-green-50"
+      case "negative":
+        return "text-red-600 bg-red-50"
+      default:
+        return "text-gray-600 bg-gray-50"
     }
   }
 
@@ -595,7 +628,7 @@ const filteredNotifications = useMemo(
         Unknown
       </span>
     )
-  } 
+  }
 
   // ─── Renderers ────────────────────────────────────────────────────────────
   const renderNewsNotification = (notification: NewsNotification) => (
@@ -625,15 +658,25 @@ const filteredNotifications = useMemo(
             notification.tickers.map((ticker, idx) => (
               <div key={idx} className="flex items-center gap-1">
                 <span className="text-xs font-medium text-foreground">
-                  {ticker.symbol|| "N/A"}
+                  {ticker.symbol || "N/A"}
                 </span>
                 {ticker.event_type && (
-                  <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", getEventTypeColor(ticker.event_type))}>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                      getEventTypeColor(ticker.event_type),
+                    )}
+                  >
                     {ticker.event_type}
                   </span>
                 )}
                 {ticker.sentiment_label && (
-                  <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", getSentimentColor(ticker.sentiment_label))}>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                      getSentimentColor(ticker.sentiment_label),
+                    )}
+                  >
                     {ticker.sentiment_label}
                   </span>
                 )}
@@ -647,7 +690,9 @@ const filteredNotifications = useMemo(
           </p>
         )}
 
-        <p className="text-xs text-muted-foreground">{getTimeAgo(notification.timestamp)}</p>
+        <p className="text-xs text-muted-foreground">
+          {getTimeAgo(notification.timestamp)}
+        </p>
       </div>
 
       {!notification.isRead && (
@@ -672,39 +717,51 @@ const filteredNotifications = useMemo(
       </div>
       <div className="flex-1 space-y-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-semibold text-foreground">{notification.ticker || "—"}</p>
+          <p className="text-sm font-semibold text-foreground">
+            {notification.ticker || "—"}
+          </p>
           {notification.trade_signal && (
-            <span className={cn(
-              "rounded border px-2 py-0.5 text-[10px] font-bold",
-              notification.trade_signal === "BUY"
-                ? "border-green-500/20 bg-green-500/10 text-green-600"
-                : notification.trade_signal === "SELL"
-                  ? "border-red-500/20 bg-red-500/10 text-red-500"
-                  : "border-gray-500/20 bg-gray-500/10 text-gray-500",
-            )}>
+            <span
+              className={cn(
+                "rounded border px-2 py-0.5 text-[10px] font-bold",
+                notification.trade_signal === "BUY"
+                  ? "border-green-500/20 bg-green-500/10 text-green-600"
+                  : notification.trade_signal === "SELL"
+                    ? "border-red-500/20 bg-red-500/10 text-red-500"
+                    : "border-gray-500/20 bg-gray-500/10 text-gray-500",
+              )}
+            >
               {notification.trade_signal}
             </span>
           )}
           {notification.credibility && (
-            <span className={cn(
-              "rounded border px-2 py-0.5 text-[10px] font-medium",
-              notification.credibility.toLowerCase() === "high"
-                ? "border-green-500/20 bg-green-500/10 text-green-600"
-                : notification.credibility.toLowerCase() === "medium"
-                  ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-600"
-                  : "border-red-500/20 bg-red-500/10 text-red-500",
-            )}>
+            <span
+              className={cn(
+                "rounded border px-2 py-0.5 text-[10px] font-medium",
+                notification.credibility.toLowerCase() === "high"
+                  ? "border-green-500/20 bg-green-500/10 text-green-600"
+                  : notification.credibility.toLowerCase() === "medium"
+                    ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-600"
+                    : "border-red-500/20 bg-red-500/10 text-red-500",
+              )}
+            >
               {notification.credibility}
             </span>
           )}
           {notification.confidence != null && (
-            <span className="text-[10px] text-muted-foreground">{notification.confidence}/10</span>
+            <span className="text-[10px] text-muted-foreground">
+              {notification.confidence}/10
+            </span>
           )}
         </div>
         {notification.rumor_summary && (
-          <p className="text-xs text-muted-foreground line-clamp-2">{notification.rumor_summary}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2">
+            {notification.rumor_summary}
+          </p>
         )}
-        <p className="text-xs text-muted-foreground">{getTimeAgo(notification.timestamp)}</p>
+        <p className="text-xs text-muted-foreground">
+          {getTimeAgo(notification.timestamp)}
+        </p>
       </div>
       {!notification.isRead && (
         <div className="flex-shrink-0">
@@ -723,33 +780,46 @@ const filteredNotifications = useMemo(
         !notification.isRead && "bg-muted/30",
       )}
     >
-      <div className={cn(
-        "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full",
-        notification.action === "BUY" ? "bg-green-50" : "bg-red-50",
-      )}>
-        {notification.action === "BUY"
-          ? <TrendingUp className="h-5 w-5 text-green-500" />
-          : <TrendingDown className="h-5 w-5 text-red-500" />
-        }
+      <div
+        className={cn(
+          "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full",
+          notification.action === "BUY" ? "bg-green-50" : "bg-red-50",
+        )}
+      >
+        {notification.action === "BUY" ? (
+          <TrendingUp className="h-5 w-5 text-green-500" />
+        ) : (
+          <TrendingDown className="h-5 w-5 text-red-500" />
+        )}
       </div>
       <div className="flex-1 space-y-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-semibold text-foreground">{notification.symbol}</p>
-          <span className={cn(
-            "rounded border px-2 py-0.5 text-[10px] font-bold",
-            notification.action === "BUY"
-              ? "border-green-500/20 bg-green-500/10 text-green-600"
-              : "border-red-500/20 bg-red-500/10 text-red-500",
-          )}>
+          <p className="text-sm font-semibold text-foreground">
+            {notification.symbol}
+          </p>
+          <span
+            className={cn(
+              "rounded border px-2 py-0.5 text-[10px] font-bold",
+              notification.action === "BUY"
+                ? "border-green-500/20 bg-green-500/10 text-green-600"
+                : "border-red-500/20 bg-red-500/10 text-red-500",
+            )}
+          >
             {notification.action}
           </span>
-          <span className="text-[10px] text-muted-foreground">Qty: {notification.suggested_qty}</span>
+          <span className="text-[10px] text-muted-foreground">
+            Qty: {notification.suggested_qty}
+          </span>
           <span className="rounded border border-gray-500/20 bg-gray-500/10 px-2 py-0.5 text-[10px] font-medium text-gray-500 capitalize">
             {notification.profile}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground line-clamp-2">{notification.reasonings}</p>
-        <p className="text-xs text-muted-foreground">{getTimeAgo(notification.timestamp)}</p>
+        <p className="text-xs text-muted-foreground line-clamp-2">
+          {notification.reasonings}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {getTimeAgo(notification.timestamp)}
+        </p>
       </div>
       {!notification.isRead && (
         <div className="flex-shrink-0">
@@ -766,9 +836,11 @@ const filteredNotifications = useMemo(
     (activeTab === "orders" && ordersLoading)
 
   const tabError =
-    activeTab === "news" ? newsError :
-    activeTab === "signals" ? signalsError :
-    ordersError
+    activeTab === "news"
+      ? newsError
+      : activeTab === "signals"
+        ? signalsError
+        : ordersError
 
   // ─── JSX ──────────────────────────────────────────────────────────────────
   return (
@@ -779,10 +851,12 @@ const filteredNotifications = useMemo(
           className="relative border bg-muted/20 text-foreground hover:bg-primary/10 rounded-full"
         >
           <Bell className="h-5 w-5" />
-          <span className={cn(
-            "absolute -top-0 -left-1 h-3.5 w-3.5 rounded-full border-2 border-background animate-pulse",
-            isConnected ? "bg-green-500" : "bg-red-500",
-          )} />
+          <span
+            className={cn(
+              "absolute -top-0 -left-1 h-3.5 w-3.5 rounded-full border-2 border-background animate-pulse",
+              isConnected ? "bg-green-500" : "bg-red-500",
+            )}
+          />
         </Button>
       </DropdownMenuTrigger>
 
@@ -791,10 +865,14 @@ const filteredNotifications = useMemo(
         <div className="flex items-center justify-between border-b px-4 py-3">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">Notifications</h3>
-            <span className={cn(
-              "text-xs px-2 py-0.5 rounded-full",
-              isConnected ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700",
-            )}>
+            <span
+              className={cn(
+                "text-xs px-2 py-0.5 rounded-full",
+                isConnected
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700",
+              )}
+            >
               {isConnected ? "Live" : "Offline"}
             </span>
           </div>
@@ -809,15 +887,27 @@ const filteredNotifications = useMemo(
         {/* Tabs */}
         <div className="flex items-center gap-4 border-b px-4">
           {(["news", "signals", "orders"] as const).map((tab) => {
-            const label = tab === "news" ? "News" : tab === "signals" ? "Trade Signals" : "Orders"
-            const count = tab === "news" ? unreadNewsCount : tab === "signals" ? unreadSignalsCount : unreadOrdersCount
+            const label =
+              tab === "news"
+                ? "News"
+                : tab === "signals"
+                  ? "Trade Signals"
+                  : "Orders"
+            const count =
+              tab === "news"
+                ? unreadNewsCount
+                : tab === "signals"
+                  ? unreadSignalsCount
+                  : unreadOrdersCount
             return (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={cn(
                   "relative pb-3 pt-3 text-sm font-medium transition-colors",
-                  activeTab === tab ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                  activeTab === tab
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {label}
@@ -826,7 +916,9 @@ const filteredNotifications = useMemo(
                     {count}
                   </span>
                 )}
-                {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+                {activeTab === tab && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                )}
               </button>
             )
           })}
@@ -851,9 +943,12 @@ const filteredNotifications = useMemo(
           {!isTabLoading && filteredNotifications.length > 0 ? (
             <div className="divide-y">
               {filteredNotifications.map((notification) => {
-                if (notification.type === "news") return renderNewsNotification(notification)
-                if (notification.type === "signal") return renderSignalNotification(notification)
-                if (notification.type === "order") return renderOrderNotification(notification)
+                if (notification.type === "news")
+                  return renderNewsNotification(notification)
+                if (notification.type === "signal")
+                  return renderSignalNotification(notification)
+                if (notification.type === "order")
+                  return renderOrderNotification(notification)
               })}
             </div>
           ) : (
@@ -862,24 +957,36 @@ const filteredNotifications = useMemo(
                 {activeTab === "news" ? (
                   <>
                     <Newspaper className="mb-3 h-12 w-12 text-muted-foreground" />
-                    <p className="text-sm font-medium text-foreground">No news notifications</p>
+                    <p className="text-sm font-medium text-foreground">
+                      No news notifications
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      {isConnected ? "Listening for new updates..." : "Reconnecting..."}
+                      {isConnected
+                        ? "Listening for new updates..."
+                        : "Reconnecting..."}
                     </p>
                   </>
                 ) : activeTab === "signals" ? (
                   <>
                     <TrendingUp className="mb-3 h-12 w-12 text-muted-foreground" />
-                    <p className="text-sm font-medium text-foreground">No trade signals</p>
+                    <p className="text-sm font-medium text-foreground">
+                      No trade signals
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      {isConnected ? "Listening for new signals..." : "Reconnecting..."}
+                      {isConnected
+                        ? "Listening for new signals..."
+                        : "Reconnecting..."}
                     </p>
                   </>
                 ) : (
                   <>
                     <History className="mb-3 h-12 w-12 text-muted-foreground" />
-                    <p className="text-sm font-medium text-foreground">No executed orders</p>
-                    <p className="text-xs text-muted-foreground">Agent-M has not placed any orders yet.</p>
+                    <p className="text-sm font-medium text-foreground">
+                      No executed orders
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Agent-M has not placed any orders yet.
+                    </p>
                   </>
                 )}
               </div>
