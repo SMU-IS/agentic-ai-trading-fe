@@ -228,8 +228,8 @@ export function AboutSection() {
                   chatter into autonomous, risk‑aware trades.
                 </p>
                 <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed">
-                  No black boxes. No vague “AI said so” Just transparent agent
-                  workflows, deterministic routing from signal to order, and
+                  No black boxes. No vague “AI did it". Just transparent agent
+                  workflows & reasonings, deterministic routing from signal to order, and
                   millisecond‑latency decisions across every major market
                   session.
                 </p>
