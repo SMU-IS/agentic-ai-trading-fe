@@ -1,13 +1,13 @@
 "use client"
 
-import { Cpu } from "lucide-react"
-import { motion } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { motion } from "framer-motion"
+import { Cpu } from "lucide-react"
+import Link from "next/link"
 
 export function Navbar() {
   const navItems = [
     { name: "Partners", href: "#hero-section" },
-    // { name: "Features", href: "#" },
     { name: "Tech", href: "#tech-section" },
     { name: "FAQ", href: "#faq-section" },
   ]
@@ -41,9 +41,11 @@ export function Navbar() {
             className="flex items-center gap-3"
           >
             <Cpu size={16} strokeWidth={1.5} />
-            <span className="text-xs font-geist font-thin tracking-[0.15em] ">
-              Agent M
-            </span>
+            <Link href="/portfolio">
+              <span className="text-xs font-geist font-thin tracking-[0.15em] ">
+                Agent M
+              </span>
+            </Link>
           </motion.div>
 
           {/* Center nav links */}
