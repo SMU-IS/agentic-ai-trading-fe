@@ -105,7 +105,7 @@ const TestimonialCard = ({ quote, name, company, avatar, type }) => {
     quoteClasses += " text-foreground/80 text-[17px] font-normal leading-6"
     nameClasses += " text-foreground text-sm font-normal leading-[22px]"
     companyClasses += " text-muted-foreground text-sm font-normal leading-[22px]"
-    cardHeight = "h-[244px]"
+    // cardHeight = "h-[244px]"
   }
 
   return (
@@ -140,7 +140,7 @@ function MobileCarousel() {
   const posRef = useRef(0)
   const rafRef = useRef<number>()
   const isPausedRef = useRef(false)
-  const SPEED = 0.5 // px per frame (~30px/s at 60fps)
+  const SPEED = 0.7 // px per frame (~30px/s at 60fps)
 
   useEffect(() => {
     const track = trackRef.current
