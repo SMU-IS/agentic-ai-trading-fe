@@ -37,7 +37,7 @@ export interface TradeEvent {
 }
 
 type AccountResponse = {
-  cash: string
+  non_marginable_buying_power: string
   portfolio_value: string
 }
 
@@ -79,7 +79,7 @@ export default function PortfolioTab() {
         if (!accountRes.ok) throw new Error("Failed to fetch account")
         const account: AccountResponse = await accountRes.json()
         setTotalValue(Number(account.portfolio_value))
-        setCashValue(Number(account.cash))
+        setCashValue(Number(account.non_marginable_buying_power))
         setTradingAccStatus(true)
 
         const posRes = await fetch(
