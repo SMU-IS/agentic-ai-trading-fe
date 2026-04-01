@@ -60,7 +60,7 @@ function UptimeCounter() {
   const [seconds, setSeconds] = useState(0)
 
   useEffect(() => {
-    const base = 31536000 + Math.floor(Math.random() * 1000000)
+    const base = 0 + Math.floor(Math.random() * 1000000)
     setSeconds(base)
     const interval = setInterval(() => setSeconds((s) => s + 1), 1000)
     return () => clearInterval(interval)

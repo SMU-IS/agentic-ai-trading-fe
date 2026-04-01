@@ -44,6 +44,22 @@ export interface ServiceMetrics {
   };
 }
 
+export interface ClusterMetrics {
+  uptime_percentage: number;
+  average_latency_ms: number;
+  timestamp: string;
+}
+
+// ─── Cluster Metrics Hook ─────────────────────────────────────────────────────
+
+/**
+ * Fetches AgentFlow cluster-level health metrics.
+ * Covers: uptime percentage, average latency (ms), and timestamp.
+ */
+export function useClusterMetrics(pollInterval = POLL_INTERVAL_MS) {
+  return useMetrics<ClusterMetrics>(`${METRICS_BASE_URL}/cluster`, pollInterval);
+}
+
 // ─── Generic Fetch Hook ───────────────────────────────────────────────────────
 
 interface UseMetricsResult<T> {
@@ -115,15 +131,18 @@ export function useServiceMetrics(pollInterval = POLL_INTERVAL_MS) {
 export function useAgentMMetrics(pollInterval = POLL_INTERVAL_MS) {
   const pipeline = usePipelineMetrics(pollInterval);
   const services = useServiceMetrics(pollInterval);
+  const cluster = useClusterMetrics(pollInterval);  
 
   return {
     pipeline,
     services,
-    loading: pipeline.loading || services.loading,
-    error: pipeline.error ?? services.error,
+    cluster,                                         
+    loading: pipeline.loading || services.loading || cluster.loading, 
+    error: pipeline.error ?? services.error ?? cluster.error,          
     refetch: () => {
       pipeline.refetch();
       services.refetch();
+      cluster.refetch();                            
     },
   };
 }

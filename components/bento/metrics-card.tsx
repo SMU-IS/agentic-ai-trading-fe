@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useClusterMetrics } from "@/hooks/use-agent-metrics"
 
 interface ScrambleNumberProps {
   target: string
@@ -13,6 +14,7 @@ function ScrambleNumber({ target, label, delay = 0 }: ScrambleNumberProps) {
   const [scrambling, setScrambling] = useState(false)
 
   useEffect(() => {
+    setDisplay(target.replace(/[0-9]/g, "0"))
     const timeout = setTimeout(() => {
       setScrambling(true)
       let iterations = 0
@@ -47,7 +49,7 @@ function ScrambleNumber({ target, label, delay = 0 }: ScrambleNumberProps) {
     }, delay)
 
     return () => clearTimeout(timeout)
-  }, [target, delay])
+  }, [target, delay]) // ← re-scrambles when target changes from API
 
   return (
     <div className="flex flex-col gap-1">
@@ -65,6 +67,16 @@ function ScrambleNumber({ target, label, delay = 0 }: ScrambleNumberProps) {
 }
 
 export function MetricsCard() {
+  const { data, loading } = useClusterMetrics()
+
+  // Format values — fall back to placeholder while loading
+  const avgLatency = data
+    ? `${data.average_latency_ms.toFixed(2)}ms`
+    : "-.--ms"
+  const uptime = data
+    ? `${data.uptime_percentage.toFixed(1)}%`
+    : "-.--%"
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2">
@@ -74,10 +86,13 @@ export function MetricsCard() {
         <span className="inline-block h-2 w-2 bg-primary" />
       </div>
       <div className="flex-1 flex flex-col justify-center gap-6 p-6">
-        <ScrambleNumber target="1.274s" label="Avg Latency" delay={500} />
+        {/* ── Live from /metrics/cluster ── */}
+        <ScrambleNumber target={avgLatency} label="Avg Latency" delay={500} />
         <ScrambleNumber target="12.8K" label="News Analysed / day" delay={800} />
-        <ScrambleNumber target="99.97%" label="Uptime" delay={1100} />
-        <ScrambleNumber target="Llama 3.3" label="Model Used for News Analysis" delay={1400} />
+        <ScrambleNumber target={uptime} label="Uptime" delay={1100} />
+        {/* ── Static ── */}
+        <ScrambleNumber target="Yahoo Finance, TradingView, Reddit" label="News Sources" delay={1400} />
+        <ScrambleNumber target="Llama 3.3" label="Model Used for News Analysis" delay={1700} />
       </div>
     </div>
   )
