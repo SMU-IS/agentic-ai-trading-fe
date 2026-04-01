@@ -6,16 +6,16 @@ import { LINKS } from "./utils/utils"
 const ease = [0.22, 1, 0.36, 1] as const
 const CONTACT = [
   {
+    title: LINKS.CONTACT.split("mailto:")[1],
+    link: LINKS.CONTACT,
+  },
+  {
     title: "Privacy Statement",
     link: LINKS.PRIVACY,
   },
   {
     title: "Terms of Use",
     link: LINKS.TERMS,
-  },
-  {
-    title: "Contact",
-    link: LINKS.CONTACT,
   },
   {
     title: "GitHub",
