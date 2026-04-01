@@ -18,7 +18,7 @@ const testimonials = [
       "Agent M only acts within the risk limits I set. It trades aggressively when I want it to, or conservatively when I dial it back.",
     name: "Priya S.",
     company: "Independent Trader",
-    avatar: "",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Josh.png",
     type: "small-dark",
   },
   {
@@ -26,8 +26,7 @@ const testimonials = [
       "I used to spend hours reading financial news and Reddit threads. Now Agent M scrapes all of that and I only get pinged when something actually affects my holdings.",
     name: "J A.",
     company: "Retail Trader",
-    avatar:
-      "https://github.com/user-attachments/assets/f9dd5867-724a-4dff-a2ad-61c81ea6e3b5",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Josh.png",
     type: "small-dark",
   },
   {
@@ -35,8 +34,7 @@ const testimonials = [
       "The moment breaking news drops that's relevant to my stocks, I get a notification instantly, not 20 minutes later. And right after, another alert confirms the trade was executed. The speed is the whole point.",
     name: "Rachel K.",
     company: "Swing Trader",
-    avatar:
-      "https://github.com/user-attachments/assets/506dbced-5709-4477-978a-c0fb12ce7aec",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Josh.png",
     type: "small-dark",
   },
   {
@@ -53,8 +51,7 @@ const testimonials = [
       "I'll type 'Why did you sell NVDA yesterday?' and it explains the exact news event and sentiment score that triggered it. It's crazy transparent for a retail investor.",
     name: "Sofia R.",
     company: "Quantitative Analyst",
-    avatar:
-      "https://github.com/user-attachments/assets/23ca9394-c7ed-4cdc-a1fc-5c67a37df9ee",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Josh.png",
     type: "small-dark",
   },
   {
