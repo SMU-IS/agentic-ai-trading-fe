@@ -419,7 +419,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
 
       {/* Standard Finnhub News List */}
       {!loading && !error && selectedCategory !== "agent" && (
-        <div className="max-h-[360px] space-y-3 overflow-y-auto pr-2">
+        <div className="max-h-[360px] space-y-3 overflow-y-auto">
           {news.length === 0 ? (
             <div className="rounded-lg border border-border p-8 text-center">
               <p className="text-sm text-muted-foreground">No news available for this category</p>

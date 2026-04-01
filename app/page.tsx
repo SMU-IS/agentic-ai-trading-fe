@@ -5,6 +5,7 @@ import { Footer } from "@/components/footer"
 import { GlitchMarquee } from "@/components/glitch-marquee"
 import { HeroSection } from "@/components/hero-section"
 import { Navbar } from "@/components/navbar"
+import { TestimonialGridSection } from "@/components/testimonial-grid-section"
 import { Banner } from "@/components/ui/banner"
 
 export default function Page() {
@@ -25,6 +26,7 @@ export default function Page() {
         <HeroSection />
         <GlitchMarquee />
         <FeatureGrid />
+        <TestimonialGridSection/>
         <AboutSection />
         <FAQSection />
       </main>
