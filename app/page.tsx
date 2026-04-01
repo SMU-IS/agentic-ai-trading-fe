@@ -26,8 +26,8 @@ export default function Page() {
         <HeroSection />
         <GlitchMarquee />
         <FeatureGrid />
-        <TestimonialGridSection/>
         <AboutSection />
+        <TestimonialGridSection/>
         <FAQSection />
       </main>
       <Footer />

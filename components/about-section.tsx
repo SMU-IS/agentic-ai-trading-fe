@@ -210,9 +210,9 @@ export function AboutSection() {
                 transition={{ duration: 0.5, delay: 0.2, ease }}
                 className="text-2xl lg:text-3xl font-mono font-bold tracking-tight uppercase text-balance"
               >
-                Infrastructure built for
+                Stop reading news
                 <br />
-                <span className="text-primary">real-time intelligence</span>
+                <span className="text-primary">we do it for you</span>
               </motion.h2>
 
               <motion.div
@@ -228,7 +228,7 @@ export function AboutSection() {
                   chatter into autonomous, risk‑aware trades.
                 </p>
                 <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed">
-                  No black boxes. No vague “AI alpha.” Just transparent agent
+                  No black boxes. No vague “AI said so” Just transparent agent
                   workflows, deterministic routing from signal to order, and
                   millisecond‑latency decisions across every major market
                   session.

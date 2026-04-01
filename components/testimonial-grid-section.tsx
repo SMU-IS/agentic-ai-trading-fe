@@ -155,7 +155,7 @@ function MobileCarousel() {
   const posRef = useRef(0)
   const rafRef = useRef<number>()
   const isPausedRef = useRef(false)
-  const SPEED = 0.6
+  const SPEED = 0.7
 
   useEffect(() => {
     const track = trackRef.current
