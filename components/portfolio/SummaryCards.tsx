@@ -21,6 +21,9 @@ export default function SummaryCards({
   const totalGainPercent = (totalGain / totalCost) * 100
   const todayChangePercent = (todayChange / (totalValue - todayChange)) * 100
 
+  const pnl = totalValue - 100000          
+  const pnlPct = (pnl / 100000) * 100 
+
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
       {/* Total Value Card */}
@@ -65,29 +68,19 @@ export default function SummaryCards({
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
-            {totalGain >= 0 ? (
+            {pnl >= 0 ? (
               <TrendingUp className="h-5 w-5 text-primary" />
             ) : (
               <TrendingDown className="h-5 w-5 text-red-500" />
             )}
-            <p
-              className={`text-xl md:text-3xl font-semibold ${
-                totalGain >= 0 ? "text-primary" : "text-red-500"
-              }`}
-            >
-              {Math.abs(100000 - totalValue) <= 0 ? "+" : ""}$
-              {Math.abs(100000 - totalValue).toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-              })}
+            <p className={`text-xl md:text-3xl font-semibold ${pnl >= 0 ? "text-primary" : "text-red-500"}`}>
+              {pnl >= 0 ? "+" : "-"}$
+              {Math.abs(pnl).toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </p>
           </div>
-          <p
-            className={`text-sm ${
-              totalGain >= 0 ? "text-primary" : "text-red-500"
-            }`}
-          >
-            {Math.abs(100000 - totalValue) <= 0 ? "+" : ""}
-            {Math.abs((100000 - totalValue) / 100000 * 100).toFixed(2)}% all time
+          <p className={`text-sm ${pnl >= 0 ? "text-primary" : "text-red-500"}`}>
+            {pnl >= 0 ? "+" : "-"}
+            {Math.abs(pnlPct).toFixed(2)}% all time
           </p>
         </CardContent>
       </Card>
