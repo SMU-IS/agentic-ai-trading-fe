@@ -90,7 +90,7 @@ const TestimonialCard = ({ quote, name, company, avatar, type }) => {
     )
   } else if (type === "large-light") {
     cardClasses += " bg-[rgba(231,236,235,0.12)]"
-    quoteClasses += " text-foreground text-2xl font-medium leading-8"
+    quoteClasses += " text-foreground text-xl font-medium leading-8"
     nameClasses += " text-foreground text-base font-normal leading-6"
     companyClasses += " text-muted-foreground text-base font-normal leading-6"
     cardHeight = "h-[502px]"
