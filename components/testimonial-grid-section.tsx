@@ -3,61 +3,62 @@ import Image from "next/image"
 const testimonials = [
   {
     quote:
-      "The real-time code suggestions from Pointer feel like having a senior engineer reviewing every line of code as you write. The accuracy of its recommendations has improved our overall code quality, reduced review time.",
-    name: "Annette Black",
-    company: "Sony",
+      "Agent M reads the news, weighs the sentiment, and just executes the trade — I check my dashboard in the morning and see exactly what it did and why. I don't have time to monitor markets all day.",
+    name: "Marcus T.",
+    company: "Retail Investor",
     avatar: "/images/avatars/annette-background.png",
     type: "large-teal",
   },
   {
     quote:
-      "Integrating Pointer into our stack was smooth, and the MCP server connections saved us days of configuration work",
-    name: "Dianne Russell",
-    company: "McDonald's",
+      "Agent M only acts within the risk limits I set. It trades aggressively when I want it to, or conservatively when I dial it back.",
+    name: "Priya S.",
+    company: "Independent Trader",
     avatar: "/images/avatars/dianne-russell.png",
     type: "small-dark",
   },
   {
     quote:
-      "Pointer’s multi-agent coding feature has been a game changer. We’re fixing complex bugs in hours instead of spending entire sprints on them.",
-    name: "Cameron Williamson",
-    company: "IBM",
+      "I used to spend hours reading financial news and Reddit threads. Now Agent M scrapes all of that and I only get pinged when something actually affects my holdings.",
+    name: "J L.",
+    company: "Retail Trader",
     avatar: "/images/avatars/cameron-williamson.png",
     type: "small-dark",
   },
   {
     quote:
-      "We no longer juggle multiple tools. Pointer brought all our integrations together in one place, which simplified our entire workflow.",
-    name: "Robert Fox",
-    company: "MasterCard",
+      "I was skeptical on social media news and it would hallucinate and make bad trades. But I'm amazed at how it fact-checks claims and only acts on credibility-weighted sentiment, it's held off on trades when news turned out to be unreliable.",
+    name: "Rachel K.",
+    company: "Swing Trader",
     avatar: "/images/avatars/robert-fox.png",
     type: "small-dark",
   },
   {
     quote:
-      "We started with the free plan just to test it out, but within a week we upgraded to Pro. Now, we can’t imagine coding without it",
-    name: "Darlene Robertson",
-    company: "Ferrari",
+      "I connected my existing account from Alpaca and Agent M immediately connected and got to work. The process was so seamless.",
+    name: "David N.",
+    company: "Long-term Investor",
     avatar: "/images/avatars/darlene-robertson.png",
     type: "small-dark",
   },
   {
     quote:
-      "Collaborative coding feels effortless now. With Pointer’s real-time previews, pair programming has become faster and more productive.",
-    name: "Cody Fisher",
-    company: "Apple",
+      "I'll type 'Why did you sell NVDA yesterday?' and it explains the exact news event and sentiment score that triggered it. It's crazy transparent for a retail investor.",
+    name: "Sofia R.",
+    company: "Quantitative Analyst",
     avatar: "/images/avatars/cody-fisher.png",
     type: "small-dark",
   },
   {
     quote:
-      "Deploying on Vercel with Pointer was not just simple, it felt seamless. We went from coding to seeing our changes live in minutes without worrying about build pipelines or configuration issues.",
-    name: "Albert Flores",
-    company: "Louis Vuitton",
+      "The moment breaking news drops that's relevant to my stocks, I get a notification instantly, not 20 minutes later. And right after, another alert confirms the trade was executed. The speed is the whole point.",
+    name: "Wei C.",
+    company: "Student",
     avatar: "/images/avatars/albert-flores.png",
     type: "large-light",
   },
 ]
+
 
 const TestimonialCard = ({ quote, name, company, avatar, type }) => {
   const isLargeCard = type.startsWith("large")
@@ -152,7 +153,7 @@ export function TestimonialGridSection() {
           </h2>
           <p className="self-stretch text-center text-sm font-medium leading-[18.20px] text-muted-foreground md:text-sm md:leading-relaxed lg:text-base lg:leading-relaxed">
             {
-              "Hear how developers ship products faster, collaborate seamlessly,"
+              "We are on beta, but here's what our users are saying about Agent M:"
             }{" "}
             <br />{" "}
             {"and build with confidence using Agent M's powerful AI tools"}
