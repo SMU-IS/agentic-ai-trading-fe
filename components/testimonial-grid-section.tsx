@@ -61,8 +61,21 @@ const testimonials = [
     type: "large-light",
   },
 ]
-
-const TestimonialCard = ({ quote, name, company, avatar, type }) => {
+const TestimonialCard = ({
+  quote,
+  name,
+  company,
+  avatar,
+  type,
+  fixedHeight = true, // ← new opt-out prop
+}: {
+  quote: string
+  name: string
+  company: string
+  avatar: string
+  type: string
+  fixedHeight?: boolean
+}) => {
   const isLargeCard = type.startsWith("large")
   const avatarSize = isLargeCard ? 48 : 36
   const avatarBorderRadius = isLargeCard ? "rounded-[41px]" : "rounded-[30.75px]"
@@ -73,15 +86,20 @@ const TestimonialCard = ({ quote, name, company, avatar, type }) => {
   let nameClasses = ""
   let companyClasses = ""
   let backgroundElements = null
-  let cardHeight = ""
   const cardWidth = "w-full md:w-[384px]"
+
+  // Only apply fixed height when the prop allows it
+  const cardHeight = fixedHeight
+    ? type === "large-teal" || type === "large-light"
+      ? "h-[502px]"
+      : "h-[244px]"
+    : "" // no height class → card sizes to its content
 
   if (type === "large-teal") {
     cardClasses += " bg-primary"
-    quoteClasses += " text-primary-foreground text-2xl font-medium leading-8"
+    quoteClasses += " text-primary-foreground text-xl font-medium leading-8"
     nameClasses += " text-primary-foreground text-base font-normal leading-6"
     companyClasses += " text-primary-foreground/60 text-base font-normal leading-6"
-    cardHeight = "h-[502px]"
     backgroundElements = (
       <div
         className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
@@ -93,7 +111,6 @@ const TestimonialCard = ({ quote, name, company, avatar, type }) => {
     quoteClasses += " text-foreground text-xl font-medium leading-8"
     nameClasses += " text-foreground text-base font-normal leading-6"
     companyClasses += " text-muted-foreground text-base font-normal leading-6"
-    cardHeight = "h-[502px]"
     backgroundElements = (
       <div
         className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat opacity-20"
@@ -105,7 +122,6 @@ const TestimonialCard = ({ quote, name, company, avatar, type }) => {
     quoteClasses += " text-foreground/80 text-[17px] font-normal leading-6"
     nameClasses += " text-foreground text-sm font-normal leading-[22px]"
     companyClasses += " text-muted-foreground text-sm font-normal leading-[22px]"
-    // cardHeight = "h-[244px]"
   }
 
   return (
@@ -114,7 +130,7 @@ const TestimonialCard = ({ quote, name, company, avatar, type }) => {
       <div className={`relative z-10 break-words font-normal ${quoteClasses}`}>
         {quote}
       </div>
-      <div className="relative z-10 flex items-center justify-start gap-3">
+      <div className="relative z-10 flex items-center justify-start gap-3 mt-4">
         <Image
           src={avatar || "/placeholder.svg"}
           alt={`${name} avatar`}
@@ -132,15 +148,14 @@ const TestimonialCard = ({ quote, name, company, avatar, type }) => {
   )
 }
 
-// ─── Mobile conveyor belt ────────────────────────────────────────────────────
+// ─── Mobile conveyor belt ─────────────────────────────────────────────────────
 
 function MobileCarousel() {
   const trackRef = useRef<HTMLDivElement>(null)
-  // rAF-based smooth scroll — pauses when user touches the strip
   const posRef = useRef(0)
   const rafRef = useRef<number>()
   const isPausedRef = useRef(false)
-  const SPEED = 0.7 // px per frame (~30px/s at 60fps)
+  const SPEED = 0.5
 
   useEffect(() => {
     const track = trackRef.current
@@ -149,12 +164,8 @@ function MobileCarousel() {
     const tick = () => {
       if (!isPausedRef.current) {
         posRef.current += SPEED
-        // Once we've scrolled exactly half the track (the original set),
-        // snap back to 0 — the duplicate set makes this invisible.
         const halfWidth = track.scrollWidth / 2
-        if (posRef.current >= halfWidth) {
-          posRef.current = 0
-        }
+        if (posRef.current >= halfWidth) posRef.current = 0
         track.style.transform = `translateX(-${posRef.current}px)`
       }
       rafRef.current = requestAnimationFrame(tick)
@@ -164,7 +175,6 @@ function MobileCarousel() {
 
     const pause = () => { isPausedRef.current = true }
     const resume = () => { isPausedRef.current = false }
-
     track.addEventListener("touchstart", pause, { passive: true })
     track.addEventListener("touchend", resume, { passive: true })
 
@@ -175,11 +185,9 @@ function MobileCarousel() {
     }
   }, [])
 
-  // Render originals + one duplicate set so the loop is seamless
   const items = [...testimonials, ...testimonials]
 
   return (
-    // Outer mask — fade edges for a polished look
     <div
       className="relative w-full overflow-hidden md:hidden"
       style={{
@@ -189,19 +197,15 @@ function MobileCarousel() {
           "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
       }}
     >
-      {/* Track — will be translated by the rAF loop */}
       <div
         ref={trackRef}
-        className="flex gap-4 will-change-transform"
+        className="flex items-start gap-4 will-change-transform"
         style={{ width: "max-content" }}
       >
         {items.map((t, i) => (
-          <div
-            key={i}
-            // Fixed card width on mobile so all cards are uniform in the belt
-            className="w-[280px] flex-shrink-0"
-          >
-            <TestimonialCard {...t} />
+          <div key={i} className="w-[280px] flex-shrink-0">
+            {/* fixedHeight={false} → card grows with its content */}
+            <TestimonialCard {...t} fixedHeight={false} />
           </div>
         ))}
       </div>
@@ -209,7 +213,7 @@ function MobileCarousel() {
   )
 }
 
-// ─── Section ─────────────────────────────────────────────────────────────────
+// ─── Section ──────────────────────────────────────────────────────────────────
 
 export function TestimonialGridSection() {
   return (
@@ -225,10 +229,10 @@ export function TestimonialGridSection() {
         </div>
       </div>
 
-      {/* ── Mobile: conveyor belt ── */}
+      {/* Mobile: conveyor belt, no fixed height */}
       <MobileCarousel />
 
-      {/* ── Desktop: original 3-column grid (hidden on mobile) ── */}
+      {/* Desktop: original 3-column grid with fixed heights */}
       <div className="mx-auto hidden w-full max-w-[1100px] md:flex md:flex-row items-start justify-center gap-4 pb-4 pt-0.5 md:gap-4 md:pb-6 lg:gap-6 lg:pb-10">
         <div className="flex flex-1 flex-col items-start justify-start gap-4 md:gap-4 lg:gap-6">
           <TestimonialCard {...testimonials[0]} />
