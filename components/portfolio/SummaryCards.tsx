@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Wallet, TrendingUp, TrendingDown } from "lucide-react"
 
 interface SummaryCardsProps {
-  cash: number
+  non_marginable_buying_power: number
   totalValue: number
   totalGain: number
   totalCost: number
@@ -12,7 +12,7 @@ interface SummaryCardsProps {
 }
 
 export default function SummaryCards({
-  cash,
+  non_marginable_buying_power,
   totalValue,
   totalGain,
   totalCost,
@@ -44,13 +44,13 @@ export default function SummaryCards({
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Wallet className="h-4 w-4" />
-            Cash (USD)
+            Buying Power (Cash Available)
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-xl md:text-3xl  font-semibold text-foreground">
             $
-            {cash.toLocaleString("en-US", {
+            {non_marginable_buying_power.toLocaleString("en-US", {
               minimumFractionDigits: 2,
             })}
           </p>
