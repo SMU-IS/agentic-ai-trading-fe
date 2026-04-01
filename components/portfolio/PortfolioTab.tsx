@@ -145,7 +145,7 @@ export default function PortfolioTab() {
         {/* Summary Cards */}
         {loading ? <SummaryCardsSkeleton /> : (
           <SummaryCards
-            cash={cashValue}
+            non_marginable_buying_power={cashValue}
             totalValue={totalValue}
             totalGain={totalGain}
             totalCost={totalCost}
