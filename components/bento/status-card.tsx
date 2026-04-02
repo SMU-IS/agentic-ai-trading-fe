@@ -81,9 +81,9 @@ export function StatusCard() {
           transition={{ duration: 0.5, delay: 0.2, ease }}
           className="text-2xl lg:text-3xl font-mono font-bold tracking-tight uppercase text-balance"
         >
-          Stop reading news
+          We read the market.
           <br />
-          <span className="text-primary">we do it for you</span>
+          <span className="text-primary"> You reap the rewards.</span>
         </motion.h2>
       </div>
 
