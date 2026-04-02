@@ -481,13 +481,21 @@ function AgentFlowContent({
       })),
     )
 
-    const isMobile = window.innerWidth < 768
-    const isLanding = containerWidth < 768   // ← reads from state, set by ResizeObserver
-    const zoom = isMobile ? 0.4 : isLanding ? 0.7 : 1
-    const horizontalCenter = isLanding ? containerWidth / 2 : window.innerWidth / 2
+    const isMobile = window.innerWidth < 480
+    const isLanding = containerWidth < 768
+    const zoom = isMobile ? 0.25 : isLanding ? 0.7 : 1
 
-    const x = horizontalCenter - absoluteX * zoom - 110
-    const y = (window.innerHeight * 0.7) / 2 - absoluteY * zoom - 150
+    const horizontalCenter = isMobile
+      ? window.innerWidth / 2
+      : isLanding
+        ? containerWidth / 2
+        : window.innerWidth / 2
+
+    const nodeHalfWidth = 110 * zoom
+    const nodeHalfHeight = 150 * zoom
+
+    const x = horizontalCenter - absoluteX * zoom - nodeHalfWidth
+    const y = (window.innerHeight * 0.7) / 2 - absoluteY * zoom - nodeHalfHeight
     setViewport({ x, y, zoom }, { duration: 800 })
   }
 
