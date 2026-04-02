@@ -483,7 +483,7 @@ function AgentFlowContent({
 
     const isMobile = window.innerWidth < 480
     const isLanding = containerWidth < 768
-    const zoom = isMobile ? 0.25 : isLanding ? 0.7 : 1
+    const zoom = isMobile ? 0.4 : isLanding ? 0.7 : 1
 
     const horizontalCenter = isMobile
       ? window.innerWidth / 2
