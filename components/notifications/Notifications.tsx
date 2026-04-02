@@ -862,9 +862,9 @@ export default function NotificationsDropdown() {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-[480px] p-0">
+      <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-[480px] p-0">
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-4 py-3">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between border-b px-4 py-3">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">Notifications</h3>
             <span
@@ -930,7 +930,7 @@ export default function NotificationsDropdown() {
         </div>
 
         {/* Notifications List */}
-        <div className="max-h-[500px] overflow-y-auto">
+        <div className="max-h-[60vh] sm:max-h-[500px] overflow-y-auto">
           {isTabLoading && (
             <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
               Loading {activeTab} history…
