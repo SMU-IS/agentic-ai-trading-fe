@@ -894,7 +894,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   <div className="flex items-end gap-2 rounded-xl border border-border bg-border px-3 pt-1.5 pb-3 focus-within:border-gray-600 focus-within:ring-2 focus-within:ring-gray-600 transition-all">
                     <textarea
                       rows={1}
-                      className="min-h-[10vh]flex-1 bg-transparent py-1.5 text-base sm:text-sm outline-none placeholder:text-muted-foreground resize-none leading-relaxed"
+                      className="min-h-[10vh] flex-1 bg-transparent py-1.5 text-base sm:text-sm outline-none placeholder:text-muted-foreground resize-none leading-relaxed"
                       placeholder={
                         isListening
                           ? "Listening... speak now"
