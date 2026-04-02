@@ -86,10 +86,10 @@ function UptimeCounter() {
 
 /* ── stat block ── */
 const STATS = [
-  { label: "Signals processed/ (24hr)", value: "1440/source" },
-  { label: "Signals promoted to trades", value: "2%" },
-  { label: "Avg decision latency", value: "12.8B" },
-  { label: "Avg decision latency", value: "1.274s" },
+  { label: "Signal Intelligence", value: "News Analysis Agent" },
+  { label: "Autonomous Brokerage", value: "via Alpaca" },
+  { label: "Technical Analysis", value: "RSI, MACD, Bollinger" },
+  { label: "Risk Management", value: "TP / SL" },
 ]
 
 function StatBlock({
