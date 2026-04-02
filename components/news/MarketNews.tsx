@@ -144,12 +144,15 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
       const data: AgentNewsResponse = await response.json()
 
       if (data.status === "success") {
-        // Append on "load more", replace on fresh fetch
-        setAgentNews((prev) =>
-          isLoadMore ? [...prev, ...data.data] : data.data,
-        )
+        setAgentNews((prev) => {
+          const merged = isLoadMore ? [...prev, ...data.data] : data.data
+          return merged.sort(
+            (a, b) =>
+              new Date(b.metadata.timestamp).getTime() -
+              new Date(a.metadata.timestamp).getTime(),
+          )
+        })
 
-        // Update cursor — null means no more pages
         setNextOffset(data.next_offset ?? null)
         setHasMore(!!data.next_offset)
       } else {
@@ -226,7 +229,11 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
 
           setAgentNews((prev) => {
             if (prev.some((n) => n.topic_id === normalized.topic_id)) return prev
-            return [normalized, ...prev]
+            return [normalized, ...prev].sort(
+              (a, b) =>
+                new Date(b.metadata.timestamp).getTime() -
+                new Date(a.metadata.timestamp).getTime(),
+            )
           })
         } catch {
           // ignore parse errors
@@ -277,11 +284,11 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
 
   const categories = [
     { value: "general", label: "General" },
-    { value: "agent",   label: "Agent"   },
+    { value: "agent", label: "Agent" },
   ]
 
   const agentSubTabs: { value: AgentSubTab; label: string }[] = [
-    { value: "reddit",      label: "Reddit"      },
+    { value: "reddit", label: "Reddit" },
     { value: "tradingview", label: "TradingView" },
   ]
 
@@ -294,11 +301,10 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
           {categories.map((cat) => (
             <Button
               key={cat.value}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                selectedCategory === cat.value
-                  ? "bg-card text-foreground hover:bg-card"
-                  : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/30"
-              }`}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${selectedCategory === cat.value
+                ? "bg-card text-foreground hover:bg-card"
+                : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                }`}
               onClick={() => setSelectedCategory(cat.value as typeof selectedCategory)}
               disabled={loading}
             >
@@ -334,11 +340,10 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
             <button
               key={sub.value}
               onClick={() => setAgentSubTab(sub.value)}
-              className={`px-3 py-1 text-xs font-medium tracking-wide rounded transition-colors ${
-                agentSubTab === sub.value
-                  ? "bg-primary/10 text-primary border border-primary/30"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-3 py-1 text-xs font-medium tracking-wide rounded transition-colors ${agentSubTab === sub.value
+                ? "bg-primary/10 text-primary border border-primary/30"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               {sub.label}
             </button>
@@ -413,9 +418,8 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                       {article.metadata.tickers_metadata.map((ticker) => (
                         <span
                           key={ticker.ticker}
-                          className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium ${
-                            SENTIMENT_COLORS[ticker.sentiment_label] ?? SENTIMENT_COLORS.neutral
-                          }`}
+                          className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium ${SENTIMENT_COLORS[ticker.sentiment_label] ?? SENTIMENT_COLORS.neutral
+                            }`}
                         >
                           <span className="font-bold">{ticker.ticker}</span>
                           {ticker.event_type && (
