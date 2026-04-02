@@ -465,7 +465,8 @@ function AgentFlowContent({
     )
 
     const isMobile = window.innerWidth < 768
-    const zoom = isMobile ? 0.4 : 1
+    const isLanding = window.innerWidth < 1024
+    const zoom = isMobile ? 0.4 : isLanding ? 0.7 : 1
     const x = window.innerWidth / 2 - absoluteX * zoom - 110
     const y = (window.innerHeight * 0.7) / 2 - absoluteY * zoom - 150
     setViewport({ x, y, zoom }, { duration: 800 })
