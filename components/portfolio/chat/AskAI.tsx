@@ -908,7 +908,8 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                         e.target.style.height = `${e.target.scrollHeight}px`
                       }}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey && !loading) {
+                        const isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches
+                        if (e.key === "Enter" && !e.shiftKey && !loading && !isMobile) {
                           e.preventDefault()
                           handleSend()
                         }
