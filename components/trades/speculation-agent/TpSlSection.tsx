@@ -16,6 +16,9 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
   const [currentPrice, setCurrentPrice] = useState<number | null>(null)
   const [loadingPrice, setLoadingPrice] = useState(false)
 
+  const [isMobile, setIsMobile] = useState(false)
+  const [mobileFlipped, setMobileFlipped] = useState(false)
+
   const tpLeg = selectedTrade.legs?.find(
     (leg: any) => leg.order_type === "limit" || leg.type === "limit",
   )
@@ -25,6 +28,29 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
   const tpIsFilled = tpLeg?.status === "filled"
   const slIsFilled = slLeg?.status === "filled"
   const anyLegFilled = tpIsFilled || slIsFilled
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)")
+    setIsMobile(mq.matches)
+
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+
+    if (mq.addEventListener) {
+      mq.addEventListener("change", handler)
+      return () => mq.removeEventListener("change", handler)
+    } else {
+      mq.addListener(handler)
+      return () => mq.removeListener(handler)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isMobile) return
+    const id = setInterval(() => {
+      setMobileFlipped((prev) => !prev)
+    }, 3000)
+    return () => clearInterval(id)
+  }, [isMobile])
 
   useEffect(() => {
     if (anyLegFilled) {
@@ -48,7 +74,6 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
         const data = await res.json()
         setCurrentPrice(data.price?.current_price ?? null)
       } catch {
-        // silently fail — price is non-critical
       } finally {
         setLoadingPrice(false)
       }
@@ -63,8 +88,8 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
       leg.filled_avg_price || leg.limit_price || leg.stop_price || "0",
     )
     return selectedTrade.trade_type === "sell"
-      ? (selectedTrade.price - legPrice) * legQty // short: profit when exit < entry
-      : (legPrice - selectedTrade.price) * legQty // long: profit when exit > entry
+      ? (selectedTrade.price - legPrice) * legQty
+      : (legPrice - selectedTrade.price) * legQty
   }
 
   const filledLegs = selectedTrade.legs.filter(
@@ -182,7 +207,7 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
               </div>
             ) : currentPrice !== null ? (
               (() => {
-                const side = selectedTrade.trade_type // "buy" | "sell"
+                const side = selectedTrade.trade_type
                 const unrealizedPnl =
                   side === "sell"
                     ? (selectedTrade.price - currentPrice) *
@@ -190,29 +215,24 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                     : (currentPrice - selectedTrade.price) *
                       selectedTrade.quantity
                 const isPositive = unrealizedPnl >= 0
-                const tpPrice = parseFloat(
-                  tpLeg?.limit_price || tpLeg?.filled_avg_price || "0",
-                )
-                const slPrice = parseFloat(
-                  slLeg?.stop_price || slLeg?.filled_avg_price || "0",
-                )
-                const distToTP =
-                  tpPrice > 0 ? Math.abs(currentPrice - tpPrice) : Infinity
-                const distToSL =
-                  slPrice > 0 ? Math.abs(currentPrice - slPrice) : Infinity
                 const isWinning =
                   side === "sell"
-                    ? currentPrice < selectedTrade.price // short profits when price drops
-                    : currentPrice > selectedTrade.price // long profits when price rises
+                    ? currentPrice < selectedTrade.price
+                    : currentPrice > selectedTrade.price
+
+                const animateState = isMobile
+                  ? mobileFlipped
+                    ? "hovered"
+                    : "rest"
+                  : undefined
 
                 return (
                   <motion.div
                     initial="rest"
-                    animate="rest"
-                    whileHover="hovered"
+                    animate={isMobile ? animateState : "rest"}
+                    whileHover={isMobile ? undefined : "hovered"}
                     className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 cursor-default"
                   >
-                    {/* Ping dot */}
                     <span className="relative flex h-2 w-2 flex-shrink-0">
                       <span
                         className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isWinning ? "bg-green-400" : "bg-red-400"} opacity-75`}
@@ -224,7 +244,6 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
 
                     <Activity className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
 
-                    {/* Label */}
                     <div className="relative h-4 overflow-hidden flex items-center">
                       <motion.span
                         className="text-xs text-muted-foreground absolute whitespace-nowrap"
@@ -251,9 +270,7 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                       </span>
                     </div>
 
-                    {/* Value */}
                     <div className="relative h-4 overflow-hidden flex items-center">
-                      {/* Grid container — sizes to the wider of the two values */}
                       <div
                         className="relative grid items-center"
                         style={{ gridTemplateAreas: '"stack"' }}
