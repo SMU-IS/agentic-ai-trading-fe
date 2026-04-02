@@ -95,10 +95,12 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const wsUrl = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}/ws/notifications`
 
   const loadMoreRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
   const isLoadMoreInView = useInView(loadMoreRef, {
-    // root: the scrollable list container — fires when sentinel is 100px away from the bottom edge
+    root: listRef,
     margin: "0px 0px 0px 0px",
-    amount: 1,
+    amount: 0.1,
   })
 
   const fetchMarketNews = async (newsCategory: string) => {
@@ -266,7 +268,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
       fetchAgentNews(nextOffset)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoadMoreInView, hasMore])
+  }, [isLoadMoreInView])
 
   const filteredAgentNews = agentNews.filter((item) =>
     item.topic_id.toLowerCase().startsWith(agentSubTab),
@@ -392,7 +394,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
 
       {/* Agent News List */}
       {!loading && !error && selectedCategory === "agent" && (
-        <div className="max-h-[320px] space-y-3 overflow-y-auto pr-2">
+        <div ref={listRef} className="max-h-[320px] space-y-3 overflow-y-auto">
           {filteredAgentNews.length === 0 ? (
             <div className="rounded-lg border border-border p-8 text-center">
               <p className="text-sm text-muted-foreground">
