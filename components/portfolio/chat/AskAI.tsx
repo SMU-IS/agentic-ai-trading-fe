@@ -890,15 +890,15 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                 </div>
 
                 {/* Input */}
-                <div className="flex-shrink-0 flex items-center gap-2 border-t border-border px-4 py-3">
-                  <div className="flex flex-1 items-center gap-2">
+                <div className="flex-shrink-0 border-t border-border px-4 py-3">
+                  <div className="flex items-center gap-2 rounded-xl border border-border bg-border px-3 py-1.5 focus-within:border-gray-600 focus-within:ring-2 focus-within:ring-gray-600 transition-all">
                     <input
-                      className="flex-1 rounded-xl border-border bg-border px-4 py-3 text-base sm:text-sm outline-none transition-all focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
+                      className="flex-1 bg-transparent py-1.5 text-base sm:text-sm outline-none placeholder:text-muted-foreground"
                       placeholder={
                         isListening
                           ? "Listening... speak now"
                           : "Ask anything about your portfolio..."
-                      }                    
+                      }
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -910,48 +910,45 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       disabled={loading || isResetting}
                     />
 
-                      {/* Mic Button */}
-                      <Button
-                        size="icon"
-                        type="button"
-                        variant="ghost"
-                        className={`rounded-xl transition-transform hover:scale-110 active:scale-95 ${
-                          isListening
-                            ? "text-red-400 hover:text-red-300 animate-pulse"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                        onClick={handleVoiceInput}
-                        disabled={loading || isResetting}
-                        aria-label={isListening ? "Stop listening" : "Start voice input"}
-                      >
-                        {isListening ? (
-                          <MicOff className="h-4 w-4" />
-                        ) : (
-                          <Mic className="h-4 w-4" />
-                        )}
-                      </Button>
+                    {/* Mic Button — inside the field */}
+                    <button
+                      type="button"
+                      onClick={handleVoiceInput}
+                      disabled={loading || isResetting}
+                      aria-label={isListening ? "Stop listening" : "Start voice input"}
+                      className={`flex-shrink-0 rounded-lg p-1.5 transition-colors ${
+                        isListening
+                          ? "text-red-400 hover:text-red-300 animate-pulse"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {isListening ? (
+                        <MicOff className="h-4 w-4" />
+                      ) : (
+                        <Mic className="h-4 w-4" />
+                      )}
+                    </button>
 
-
+                    {/* Send / Stop Button — inside the field */}
                     {loading ? (
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="rounded-xl transition-transform hover:scale-110 active:scale-95 bg-muted"
+                      <button
+                        type="button"
                         onClick={handleStop}
                         aria-label="Stop streaming"
+                        className="flex-shrink-0 rounded-lg p-1.5 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Square className="h-4 w-4" fill="currentColor" />
-                      </Button>
+                      </button>
                     ) : (
-                      <Button
-                        size="icon"
-                        className="rounded-xl transition-transform hover:scale-110 active:scale-95"
+                      <button
+                        type="button"
                         onClick={handleSend}
                         disabled={!input.trim() || isResetting}
                         aria-label="Send message"
+                        className="flex-shrink-0 rounded-lg p-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <ArrowUp className="h-4 w-4" />
-                      </Button>
+                      </button>
                     )}
                   </div>
                 </div>
