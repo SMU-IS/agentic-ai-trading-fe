@@ -15,7 +15,7 @@ const testimonials = [
   {
     quote:
       "Agent M only acts within the risk limits I set. It trades aggressively when I want it to, or conservatively when I dial it back.",
-    name: "Tim C",
+    name: "Tim C.",
     company: "Independent Trader",
     avatar:
       "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?q=80&w=1065&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -58,7 +58,7 @@ const testimonials = [
       "I was skeptical on social media news and it would hallucinate and make bad trades. But I'm amazed at how it fact-checks claims and only acts on credibility-weighted sentiment, it's held off on trades when news turned out to be unreliable.",
     name: "Bryan C.",
     company: "Student",
-    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Bryan.jpeg",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Bryan.png",
     type: "large-light",
   },
 ]
