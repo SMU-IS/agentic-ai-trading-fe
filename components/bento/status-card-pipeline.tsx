@@ -103,13 +103,13 @@ export function StatusCardPipeline() {
                 Pipeline Yield (Orders Placed / News Scraped)
               </span>
               <span className="text-[9px] font-mono text-foreground">
-                {Math.round((data.order_placed / data.scraped) * 100)}%
+                {data.scraped > 0 ? Math.min(100, Math.round((data.order_placed / data.scraped) * 100)) : 0}%
               </span>
             </div>
             <div className="h-2 w-full border border-foreground">
               <div
                 className="h-full bg-foreground transition-all duration-500"
-                style={{ width: `${Math.round((data.vectorised / data.scraped) * 100)}%` }}
+                style={{ width: `${Math.round((data.order_placed / data.scraped) * 100)}%` }}
               />
             </div>
           </div>
