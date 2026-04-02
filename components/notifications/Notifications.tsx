@@ -640,21 +640,25 @@ export default function NotificationsDropdown() {
         <Newspaper className="h-5 w-5 text-blue-500" />
       </div>
       <div className="flex-1 space-y-2">
+        {/* News Headline */}
         <p className="text-sm font-semibold text-foreground line-clamp-2">
           {notification.headline}
         </p>
 
         {/* Source pill + tickers row */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* ── Source pill derived from topic_id ── */}
-          {getSourcePill(notification.id)}
-
           {/* Ticker badges */}
           {notification.tickers?.length > 0 &&
             notification.tickers.map((ticker, idx) => (
               <div key={idx} className="flex items-center gap-1">
                 <span className="text-xs font-medium text-foreground">
+                  <span
+                    className={cn(
+                      "bg-muted rounded-full px-2 py-0.5 text-[10px] font-medium",
+                    )}
+                  >
                   {ticker.symbol || "N/A"}
+                  </span>
                 </span>
                 {ticker.event_type && (
                   <span
@@ -678,6 +682,8 @@ export default function NotificationsDropdown() {
                 )}
               </div>
             ))}
+          {/* ── Source pill derived from topic_id ── */}
+          {getSourcePill(notification.id)}
         </div>
 
         {notification.event_description && (
