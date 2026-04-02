@@ -383,7 +383,9 @@ function AgentFlowContent({
   const originalEdgesRef = useRef(initialEdges)
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const [containerWidth, setContainerWidth] = useState(0)
+  const [containerWidth, setContainerWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 0
+  )
 
   const { setViewport, fitView } = useReactFlow()
   const [isPlaying, setIsPlaying] = useState(false)
@@ -414,6 +416,18 @@ function AgentFlowContent({
     const timer = setTimeout(() => setIsShimmering(false), 800)
     return () => clearTimeout(timer)
   }, [isDeveloperMode, setNodes, healthStatuses])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const observer = new ResizeObserver(([entry]) => {
+      setContainerWidth(entry.contentRect.width)
+    })
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     setEdges((eds) =>
@@ -457,7 +471,7 @@ function AgentFlowContent({
   }
 
   const focusOnNode = (nodeId: string) => {
-    const { x: absoluteX, y: absoluteY } = getAbsolutePosition(nodeId) // ✅
+    const { x: absoluteX, y: absoluteY } = getAbsolutePosition(nodeId)
 
     setActiveNodeId(nodeId)
     setNodes((nds) =>
@@ -467,21 +481,8 @@ function AgentFlowContent({
       })),
     )
 
-
-    useEffect(() => {
-      const el = containerRef.current
-      if (!el) return
-
-      const observer = new ResizeObserver(([entry]) => {
-        setContainerWidth(entry.contentRect.width)
-      })
-
-      observer.observe(el)
-      return () => observer.disconnect()
-    }, [])
-
     const isMobile = window.innerWidth < 768
-    const isLanding = containerWidth < 768
+    const isLanding = containerWidth < 768   // ← reads from state, set by ResizeObserver
     const zoom = isMobile ? 0.4 : isLanding ? 0.7 : 1
     const x = window.innerWidth / 2 - absoluteX * zoom - 110
     const y = (window.innerHeight * 0.7) / 2 - absoluteY * zoom - 150
