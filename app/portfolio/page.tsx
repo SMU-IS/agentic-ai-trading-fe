@@ -1,24 +1,18 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
-import { Button } from "@/components/ui/button"
-import {
-  LogOut,
-  DatabaseZapIcon,
-  Sparkles,
-  Menu,
-  X,
-} from "lucide-react"
-import PortfolioTab from "@/components/portfolio/PortfolioTab"
-import { ModeToggle } from "@/components/mode-toggle"
-import TradesTab from "@/components/trades/TradesTab"
-import NotificationsDropdown from "@/components/notifications/Notifications"
-import AnimatedBackground from "./AnimatedBackground"
-import { motion, AnimatePresence } from "framer-motion"
 import AgentFlowTab from "@/components/agentflow/AgentFlow"
+import { ModeToggle } from "@/components/mode-toggle"
+import NotificationsDropdown from "@/components/notifications/Notifications"
 import AskAI from "@/components/portfolio/chat/AskAI"
+import PortfolioTab from "@/components/portfolio/PortfolioTab"
+import TradesTab from "@/components/trades/TradesTab"
+import { Button } from "@/components/ui/button"
+import { useAuth } from "@/lib/auth-context"
+import { AnimatePresence, motion } from "framer-motion"
+import { DatabaseZapIcon, LogOut, Menu, Sparkles, X } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Suspense, useEffect, useState } from "react"
+import AnimatedBackground from "./AnimatedBackground"
 
 // Loading component
 function LoadingScreen() {
@@ -65,7 +59,7 @@ function PortfolioContent() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   const [activeTab, setActiveTab] = useState<Tab>(
-    (searchParams.get("tab") as Tab) || "portfolio"
+    (searchParams.get("tab") as Tab) || "portfolio",
   )
 
   useEffect(() => {
@@ -93,7 +87,7 @@ function PortfolioContent() {
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           {/* Logo */}
-          <span className="font-geist font-thin text-xl font-semibold text-foreground">
+          <span className="font-geist font-thin text-xl text-foreground">
             Agent M
           </span>
 

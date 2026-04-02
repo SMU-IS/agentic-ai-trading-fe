@@ -7,57 +7,58 @@ const testimonials = [
   {
     quote:
       "Agent M reads the news, weighs the sentiment, and just executes the trade — I check my dashboard in the morning and see exactly what it did and why. I don't have time to monitor markets all day so this is great.",
-    name: "Marcus T.",
+    name: "Shawn N.",
     company: "Retail Investor",
-    avatar: "",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Shawn.jpeg",
     type: "large-teal",
   },
   {
     quote:
       "Agent M only acts within the risk limits I set. It trades aggressively when I want it to, or conservatively when I dial it back.",
-    name: "Priya S.",
+    name: "Tim C.",
     company: "Independent Trader",
-    avatar: "",
+    avatar:
+      "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?q=80&w=1065&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     type: "small-dark",
   },
   {
     quote:
       "I used to spend hours reading financial news and Reddit threads. Now Agent M scrapes all of that and I only get pinged when something actually affects my holdings.",
-    name: "J L.",
+    name: "Joshua A.",
     company: "Retail Trader",
-    avatar: "",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Josh.png",
     type: "small-dark",
   },
   {
     quote:
       "The moment breaking news drops that's relevant to my stocks, I get a notification instantly, not 20 minutes later. And right after, another alert confirms the trade was executed. The speed is the whole point.",
-    name: "Rachel K.",
+    name: "Z Y.",
     company: "Swing Trader",
-    avatar: "",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/ZY.jpeg",
     type: "small-dark",
   },
   {
     quote:
       "I connected my existing account from Alpaca and Agent M immediately connected and got to work. The process was so seamless.",
-    name: "David N.",
+    name: "Derrick L.",
     company: "Long-term Investor",
-    avatar: "",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Derrick.jpeg",
     type: "small-dark",
   },
   {
     quote:
       "I'll type 'Why did you sell NVDA yesterday?' and it explains the exact news event and sentiment score that triggered it. It's crazy transparent for a retail investor.",
-    name: "Sofia R.",
+    name: "J Y.",
     company: "Quantitative Analyst",
-    avatar: "",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/JY.jpeg",
     type: "small-dark",
   },
   {
     quote:
       "I was skeptical on social media news and it would hallucinate and make bad trades. But I'm amazed at how it fact-checks claims and only acts on credibility-weighted sentiment, it's held off on trades when news turned out to be unreliable.",
-    name: "Wei C.",
+    name: "Bryan C.",
     company: "Student",
-    avatar: "",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Bryan.png",
     type: "large-light",
   },
 ]
@@ -78,7 +79,9 @@ const TestimonialCard = ({
 }) => {
   const isLargeCard = type.startsWith("large")
   const avatarSize = isLargeCard ? 48 : 36
-  const avatarBorderRadius = isLargeCard ? "rounded-[41px]" : "rounded-[30.75px]"
+  const avatarBorderRadius = isLargeCard
+    ? "rounded-[41px]"
+    : "rounded-[30.75px]"
   const padding = isLargeCard ? "p-6" : "p-[30px]"
 
   let cardClasses = `flex flex-col justify-between items-start overflow-hidden rounded-[10px] shadow-[0px_2px_4px_rgba(0,0,0,0.08)] relative ${padding}`
@@ -99,11 +102,15 @@ const TestimonialCard = ({
     cardClasses += " bg-primary"
     quoteClasses += " text-primary-foreground text-xl font-medium leading-8"
     nameClasses += " text-primary-foreground text-base font-normal leading-6"
-    companyClasses += " text-primary-foreground/60 text-base font-normal leading-6"
+    companyClasses +=
+      " text-primary-foreground/60 text-base font-normal leading-6"
     backgroundElements = (
       <div
         className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/large-card-background.svg')", zIndex: 0 }}
+        style={{
+          backgroundImage: "url('/images/large-card-background.svg')",
+          zIndex: 0,
+        }}
       />
     )
   } else if (type === "large-light") {
@@ -114,14 +121,19 @@ const TestimonialCard = ({
     backgroundElements = (
       <div
         className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat opacity-20"
-        style={{ backgroundImage: "url('/images/large-card-background.svg')", zIndex: 0 }}
+        style={{
+          backgroundImage: "url('/images/large-card-background.svg')",
+          zIndex: 0,
+        }}
       />
     )
   } else {
-    cardClasses += " bg-card outline outline-1 outline-border outline-offset-[-1px] gap-4"
+    cardClasses +=
+      " bg-card outline outline-1 outline-border outline-offset-[-1px] gap-4"
     quoteClasses += " text-foreground/80 text-[17px] font-normal leading-6"
     nameClasses += " text-foreground text-sm font-normal leading-[22px]"
-    companyClasses += " text-muted-foreground text-sm font-normal leading-[22px]"
+    companyClasses +=
+      " text-muted-foreground text-sm font-normal leading-[22px]"
   }
 
   return (
@@ -173,8 +185,12 @@ function MobileCarousel() {
 
     rafRef.current = requestAnimationFrame(tick)
 
-    const pause = () => { isPausedRef.current = true }
-    const resume = () => { isPausedRef.current = false }
+    const pause = () => {
+      isPausedRef.current = true
+    }
+    const resume = () => {
+      isPausedRef.current = false
+    }
     track.addEventListener("touchstart", pause, { passive: true })
     track.addEventListener("touchend", resume, { passive: true })
 
@@ -224,7 +240,9 @@ export function TestimonialGridSection() {
             Trading made effortless
           </h2>
           <p className="self-stretch text-center text-sm font-medium leading-[18.20px] text-muted-foreground md:text-sm md:leading-relaxed lg:text-base lg:leading-relaxed">
-            {"We are on beta, but here's what our users are saying about Agent M"}
+            {
+              "We are on beta, but here's what our users are saying about Agent M"
+            }
           </p>
         </div>
       </div>
