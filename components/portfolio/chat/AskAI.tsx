@@ -4,11 +4,18 @@ import ChatLibrary from "@/components/portfolio/chat/ChatLibrary"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
-import { ArrowUp, PanelLeft, Square, SquarePen, X } from "lucide-react"
+import { ArrowUp, Mic, MicOff, PanelLeft, Square, SquarePen, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import Cookies from "js-cookie"
 
 const getToken = () => Cookies.get("jwt") ?? ""
+
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition
+    webkitSpeechRecognition: typeof SpeechRecognition
+  }
+}
 
 function MarkdownStreamingContent({
   content,
@@ -232,6 +239,9 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   const [isResetting, setIsResetting] = useState(false)
   const [newChatKey, setNewChatKey] = useState(0)
 
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
+
   const CHAT_URL = `${process.env.NEXT_PUBLIC_CHAT_API_URL}`
   const threadId = crypto.randomUUID()
   const userId = sessionStorage.getItem("userId")
@@ -266,6 +276,11 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     if (!open) {
       hasAutoSentRef.current = false
       if (abortControllerRef.current) abortControllerRef.current.abort()
+      if (recognitionRef.current) {         
+      recognitionRef.current.stop()        
+      recognitionRef.current = null   
+      }     
+      setIsListening(false)                  
       setShowLibrary(false)
       setMessages([])
       setError(null)
@@ -422,6 +437,64 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       }
     }
   }
+
+  const handleVoiceInput = () => {
+  const SpeechRecognition =
+    window.SpeechRecognition || (window as any).webkitSpeechRecognition
+
+  if (!SpeechRecognition) {
+    setError("Voice input is not supported in this browser. Try Chrome or Edge.")
+    return
+  }
+
+  // If already listening, stop it
+  if (isListening && recognitionRef.current) {
+    recognitionRef.current.stop()
+    return
+  }
+
+  const recognition = new SpeechRecognition()
+  recognitionRef.current = recognition
+  recognition.lang = "en-US"
+  recognition.interimResults = true   // shows live partial results in the input
+  recognition.continuous = false      // stops after a natural pause
+
+  recognition.onstart = () => setIsListening(true)
+
+  recognition.onresult = (event: SpeechRecognitionEvent) => {
+    let interimTranscript = ""
+    let finalTranscript = ""
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript
+      if (event.results[i].isFinal) {
+        finalTranscript += transcript
+      } else {
+        interimTranscript += transcript
+      }
+    }
+
+    // Show interim results live in the input box
+    setInput(finalTranscript || interimTranscript)
+  }
+
+  recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    if (event.error !== "aborted") {
+      setError(`Voice error: ${event.error}`)
+    }
+    setIsListening(false)
+  }
+
+  recognition.onend = () => {
+    setIsListening(false)
+    recognitionRef.current = null
+    // Auto-send if something was captured
+    // (optional — remove the line below if you prefer the user presses Send manually)
+    // handleSendMessage(undefined, false)
+  }
+
+  recognition.start()
+}
 
   const handleSendMessage = async (
     messageText?: string,
@@ -821,7 +894,11 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   <div className="flex flex-1 items-center gap-2">
                     <input
                       className="flex-1 rounded-xl border-border bg-border px-4 py-3 text-base sm:text-sm outline-none transition-all focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
-                      placeholder="Ask anything about your portfolio..."
+                      placeholder={
+                        isListening
+                          ? "Listening... speak now"
+                          : "Ask anything about your portfolio..."
+                      }                    
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -832,6 +909,29 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       }}
                       disabled={loading || isResetting}
                     />
+
+                      {/* Mic Button */}
+                      <Button
+                        size="icon"
+                        type="button"
+                        variant="ghost"
+                        className={`rounded-xl transition-transform hover:scale-110 active:scale-95 ${
+                          isListening
+                            ? "text-red-400 hover:text-red-300 animate-pulse"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                        onClick={handleVoiceInput}
+                        disabled={loading || isResetting}
+                        aria-label={isListening ? "Stop listening" : "Start voice input"}
+                      >
+                        {isListening ? (
+                          <MicOff className="h-4 w-4" />
+                        ) : (
+                          <Mic className="h-4 w-4" />
+                        )}
+                      </Button>
+
+
                     {loading ? (
                       <Button
                         size="icon"
