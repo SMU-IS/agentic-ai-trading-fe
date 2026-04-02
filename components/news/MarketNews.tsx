@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { ExternalLink, RefreshCw } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import Cookies from "js-cookie"
+import { motion, useInView } from "framer-motion"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -79,7 +80,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const [news, setNews] = useState<NewsArticle[]>([])
   const [agentNews, setAgentNews] = useState<AgentNewsItem[]>([])
   const [loading, setLoading] = useState(false)
-  const [loadingMore, setLoadingMore] = useState(false)  // ← separate spinner for "load more"
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState(category)
   const [agentSubTab, setAgentSubTab] = useState<AgentSubTab>("reddit")
@@ -92,6 +93,13 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
 
   const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY
   const wsUrl = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}/ws/notifications`
+
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const isLoadMoreInView = useInView(loadMoreRef, {
+    // root: the scrollable list container — fires when sentinel is 100px away from the bottom edge
+    margin: "0px 0px 0px 0px",
+    amount: 1,
+  })
 
   const fetchMarketNews = async (newsCategory: string) => {
     setLoading(true)
@@ -172,7 +180,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     setNextOffset(null)
     setHasMore(false)
     fetchAgentNews()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentSubTab])
 
   useEffect(() => {
@@ -253,6 +260,13 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory])
+
+  useEffect(() => {
+    if (isLoadMoreInView && hasMore && !loadingMore && nextOffset) {
+      fetchAgentNews(nextOffset)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoadMoreInView, hasMore])
 
   const filteredAgentNews = agentNews.filter((item) =>
     item.topic_id.toLowerCase().startsWith(agentSubTab),
@@ -465,26 +479,27 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
               })}
 
               {/* ── Load More button ─────────────────────────────────────── */}
+              {/* ── Auto load-more sentinel ──────────────────────────────── */}
               {hasMore && (
-                <div className="pt-1 pb-2 flex justify-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                    disabled={loadingMore}
-                    onClick={() => {
-                      if (nextOffset) fetchAgentNews(nextOffset)
-                    }}
+                <div ref={loadMoreRef} className="flex justify-center py-3">
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={loadingMore ? { opacity: 1, y: 0 } : { opacity: 0.4, y: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="flex items-center gap-2 text-xs text-muted-foreground"
                   >
-                    {loadingMore ? (
-                      <>
-                        <RefreshCw className="mr-1.5 h-3 w-3 animate-spin" />
-                        Loading…
-                      </>
-                    ) : (
-                      "Load more"
-                    )}
-                  </Button>
+                    <motion.div
+                      animate={loadingMore ? { rotate: 360 } : { rotate: 0 }}
+                      transition={
+                        loadingMore
+                          ? { repeat: Infinity, duration: 0.8, ease: "linear" }
+                          : { duration: 0 }
+                      }
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                    </motion.div>
+                    <span>{loadingMore ? "Loading more…" : "Scroll for more"}</span>
+                  </motion.div>
                 </div>
               )}
             </>
