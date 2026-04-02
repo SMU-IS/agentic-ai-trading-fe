@@ -88,7 +88,7 @@ function PortfolioContent() {
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           {/* Logo */}
-          <Link href="/portfolio">
+          <Link href="/portfolio?tab=portfolio">
             <span className="font-geist font-thin text-xl text-foreground">
               Agent M
             </span>
