@@ -382,6 +382,9 @@ function AgentFlowContent({
   const [isShimmering, setIsShimmering] = useState(false)
   const originalEdgesRef = useRef(initialEdges)
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState(0)
+
   const { setViewport, fitView } = useReactFlow()
   const [isPlaying, setIsPlaying] = useState(false)
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
@@ -464,8 +467,21 @@ function AgentFlowContent({
       })),
     )
 
+
+    useEffect(() => {
+      const el = containerRef.current
+      if (!el) return
+
+      const observer = new ResizeObserver(([entry]) => {
+        setContainerWidth(entry.contentRect.width)
+      })
+
+      observer.observe(el)
+      return () => observer.disconnect()
+    }, [])
+
     const isMobile = window.innerWidth < 768
-    const isLanding = window.innerWidth < 1024
+    const isLanding = containerWidth < 768
     const zoom = isMobile ? 0.4 : isLanding ? 0.7 : 1
     const x = window.innerWidth / 2 - absoluteX * zoom - 110
     const y = (window.innerHeight * 0.7) / 2 - absoluteY * zoom - 150
@@ -688,6 +704,7 @@ function AgentFlowContent({
 
       <motion.div className="relative">
         <Card
+          ref={containerRef}
           className="border-foreground/10 bg-card/50 backdrop-blur-sm relative overflow-hidden"
           style={{ height: "70vh" }}
         >
