@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 import { AnimatePresence, motion } from "framer-motion"
 import { DatabaseZapIcon, LogOut, Menu, Sparkles, X } from "lucide-react"
-import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
 import AnimatedBackground from "./AnimatedBackground"
@@ -88,11 +87,9 @@ function PortfolioContent() {
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           {/* Logo */}
-          <Link href="/portfolio?tab=portfolio">
-            <span className="font-geist font-thin text-xl text-foreground">
-              Agent M
-            </span>
-          </Link>
+          <span className="font-geist font-thin text-xl text-foreground">
+            Agent M
+          </span>
 
           {/* ── Desktop nav (hidden on mobile) ── */}
           <div className="hidden md:absolute md:left-1/2 md:-translate-x-1/2 md:flex items-center gap-2">
