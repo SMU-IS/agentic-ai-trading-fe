@@ -87,8 +87,8 @@ export function MetricsCard() {
       </div>
       <div className="flex-1 flex flex-col justify-center gap-6 p-6">
         {/* ── Live from /metrics/cluster ── */}
-        <ScrambleNumber target={avgLatency} label="Avg Latency" delay={500} />
-        <ScrambleNumber target="600+" label="News Analysed / day" delay={800} />
+        <ScrambleNumber target="1400+" label="News Analysed / day" delay={500} />
+        <ScrambleNumber target={avgLatency} label="Avg Latency (News Analysis)" delay={800} />
         <ScrambleNumber target={uptime} label="Uptime" delay={1100} />
         {/* ── Static ── */}
         <ScrambleNumber target="Yahoo Finance, TradingView, Reddit" label="News Sources" delay={1400} />
