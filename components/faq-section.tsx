@@ -46,7 +46,7 @@ const FAQItem = ({ question, answer, isOpen, onToggle }: FAQItemProps) => {
   }
   return (
     <div
-      className={`w-full cursor-pointer overflow-hidden rounded-[10px] bg-[rgba(231,236,235,0.08)] shadow-[0px_2px_4px_rgba(0,0,0,0.16)] outline outline-1 outline-offset-[-1px] outline-border transition-all duration-500 ease-out`}
+      className={`w-full cursor-pointer overflow-hidden rounded-[10px] bg-card shadow-[0px_2px_4px_rgba(0,0,0,0.16)] outline outline-1 outline-offset-[-1px] outline-border transition-all duration-500 ease-out`}
       onClick={handleClick}
     >
       <div className="flex w-full items-center justify-between gap-5 px-5 py-[18px] pr-4 text-left transition-all duration-300 ease-out">
