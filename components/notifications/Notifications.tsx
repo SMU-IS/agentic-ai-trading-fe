@@ -215,7 +215,7 @@ export default function NotificationsDropdown() {
       if (activeTab === "orders") return n.type === "order"
       return false
     })
-    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()) 
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
 
   // ─── 1. Fetch historical NEWS ─────────────────────────────────────────────
   useEffect(() => {
@@ -657,7 +657,7 @@ export default function NotificationsDropdown() {
                       "bg-muted rounded-full px-2 py-0.5 text-[10px] font-medium",
                     )}
                   >
-                  {ticker.symbol || "N/A"}
+                    {ticker.symbol || "N/A"}
                   </span>
                 </span>
                 {ticker.event_type && (
@@ -862,7 +862,7 @@ export default function NotificationsDropdown() {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] p-0">
+      <DropdownMenuContent align="end" className="w-[calc(100vw)] p-0 sm:w-[440px]">
         {/* Header */}
         <div className="flex items-center justify-between border-b px-4 py-3">
           <div className="flex items-center gap-2">
