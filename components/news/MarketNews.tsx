@@ -47,7 +47,7 @@ interface AgentNewsItem {
 interface AgentNewsResponse {
   status: string
   count: number
-  next_offset: string
+  next_offset: string | null  // ← null means end of results
   data: AgentNewsItem[]
 }
 
@@ -73,17 +73,21 @@ function avgSentimentScore(tickers: TickerMetadata[]): number | null {
   return sum / tickers.length
 }
 
-// ── Agent sub-tab type ────────────────────────────────────────────────────────
 type AgentSubTab = "reddit" | "tradingview"
 
 export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const [news, setNews] = useState<NewsArticle[]>([])
   const [agentNews, setAgentNews] = useState<AgentNewsItem[]>([])
   const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)  // ← separate spinner for "load more"
   const [error, setError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState(category)
-  // ── Sub-tab state, only active when selectedCategory === "agent" ───────────
   const [agentSubTab, setAgentSubTab] = useState<AgentSubTab>("reddit")
+
+  // ── Pagination state ────────────────────────────────────────────────────────
+  const [nextOffset, setNextOffset] = useState<string | null>(null)
+  const [hasMore, setHasMore] = useState(false)
+
   const wsRef = useRef<WebSocket | null>(null)
 
   const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY
@@ -106,45 +110,79 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     }
   }
 
-  const fetchAgentNews = async () => {
+  /**
+   * Fetches agent news.
+   * - offset = undefined  → fresh load (replaces list, resets pagination)
+   * - offset = UUID string → "load more" (appends to list)
+   */
+  const fetchAgentNews = async (offset?: string) => {
     const token = getToken()
-    setLoading(true)
+    const isLoadMore = offset !== undefined
+
+    isLoadMore ? setLoadingMore(true) : setLoading(true)
     setError(null)
+
     try {
-      const response = await fetch(
+      // Build URL — only append offset param when paginating
+      const url = new URL(
         `${process.env.NEXT_PUBLIC_BASE_API_URL}/qdrant/news`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-        },
       )
+      url.searchParams.set("limit", "10")
+      if (offset) url.searchParams.set("offset", offset)
+
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      })
+
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+
       const data: AgentNewsResponse = await response.json()
+
       if (data.status === "success") {
-        setAgentNews(data.data)
+        // Append on "load more", replace on fresh fetch
+        setAgentNews((prev) =>
+          isLoadMore ? [...prev, ...data.data] : data.data,
+        )
+
+        // Update cursor — null means no more pages
+        setNextOffset(data.next_offset ?? null)
+        setHasMore(!!data.next_offset)
       } else {
         throw new Error("Failed to fetch agent news")
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to fetch agent news")
     } finally {
-      setLoading(false)
+      isLoadMore ? setLoadingMore(false) : setLoading(false)
     }
   }
 
+  // ── Reset & re-fetch whenever sub-tab changes (only in agent mode) ──────────
+  useEffect(() => {
+    if (selectedCategory !== "agent") return
+    setAgentNews([])
+    setNextOffset(null)
+    setHasMore(false)
+    fetchAgentNews()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentSubTab])
+
   useEffect(() => {
     if (selectedCategory === "agent") {
+      // Initial fetch
+      setAgentNews([])
+      setNextOffset(null)
+      setHasMore(false)
       fetchAgentNews()
-
 
       const token = getToken()
       if (!token) return
 
-      // Decode user_id from JWT payload (base64 segment)
       let userId: string
       try {
         const payload = JSON.parse(atob(token.split(".")[1]))
@@ -206,11 +244,11 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
       wsRef.current = null
       fetchMarketNews(selectedCategory)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory])
 
-  // ── Filter agentNews by active sub-tab using topic_id prefix ─────────────
   const filteredAgentNews = agentNews.filter((item) =>
-    item.topic_id.toLowerCase().startsWith(agentSubTab)
+    item.topic_id.toLowerCase().startsWith(agentSubTab),
   )
 
   const formatDate = (timestamp: number) => {
@@ -237,7 +275,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
   }
 
-  // ── Crypto removed ────────────────────────────────────────────────────────
   const categories = [
     { value: "general", label: "General" },
     { value: "agent",   label: "Agent"   },
@@ -272,9 +309,17 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
         <Button
           size="icon"
           variant="ghost"
-          onClick={() =>
-            selectedCategory === "agent" ? fetchAgentNews() : fetchMarketNews(selectedCategory)
-          }
+          onClick={() => {
+            if (selectedCategory === "agent") {
+              // Hard refresh: clear list & cursor, fetch from start
+              setAgentNews([])
+              setNextOffset(null)
+              setHasMore(false)
+              fetchAgentNews()
+            } else {
+              fetchMarketNews(selectedCategory)
+            }
+          }}
           disabled={loading}
           className="h-8 w-8"
         >
@@ -282,7 +327,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
         </Button>
       </div>
 
-      {/* ── Agent sub-tabs (Reddit / TradingView) — only shown in Agent mode ── */}
+      {/* Agent sub-tabs */}
       {selectedCategory === "agent" && (
         <div className="mb-3 flex items-center gap-1 border-b border-border pb-2">
           {agentSubTabs.map((sub) => (
@@ -308,7 +353,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
         </div>
       )}
 
-      {/* Loading */}
+      {/* Loading skeleton (initial load only) */}
       {loading && (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
@@ -336,83 +381,109 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
               </p>
             </div>
           ) : (
-            filteredAgentNews.map((article) => {
-              const sentScore = avgSentimentScore(article.metadata.tickers_metadata)
+            <>
+              {filteredAgentNews.map((article) => {
+                const sentScore = avgSentimentScore(article.metadata.tickers_metadata)
 
-              return (
-                <div
-                  key={article.topic_id}
-                  className="group w-full min-w-0 overflow-hidden cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
-                  onClick={() =>
-                    article.metadata.url ? window.open(article.metadata.url, "_blank") : null
-                  }
-                >
-                  {/* Headline + external link */}
-                  <div className="flex min-w-0 items-start justify-between gap-2">
-                    <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
-                      {article.metadata.headline}
-                    </h3>
-                    {article.metadata.url && (
-                      <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                    )}
-                  </div>
+                return (
+                  <div
+                    key={article.topic_id}
+                    className="group w-full min-w-0 overflow-hidden cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
+                    onClick={() =>
+                      article.metadata.url ? window.open(article.metadata.url, "_blank") : null
+                    }
+                  >
+                    {/* Headline + external link */}
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
+                        {article.metadata.headline}
+                      </h3>
+                      {article.metadata.url && (
+                        <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                      )}
+                    </div>
 
-                  {/* Summary */}
-                  <p className="mt-1 min-w-0 line-clamp-2 text-xs text-muted-foreground">
-                    {article.metadata.text_content}
-                  </p>
+                    {/* Summary */}
+                    <p className="mt-1 min-w-0 line-clamp-2 text-xs text-muted-foreground">
+                      {article.metadata.text_content}
+                    </p>
 
-                  {/* Ticker badges */}
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {article.metadata.tickers_metadata.map((ticker) => (
-                      <span
-                        key={ticker.ticker}
-                        className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium ${
-                          SENTIMENT_COLORS[ticker.sentiment_label] ?? SENTIMENT_COLORS.neutral
-                        }`}
-                      >
-                        <span className="font-bold">{ticker.ticker}</span>
-                        {ticker.event_type && (
-                          <span className="opacity-70">{ticker.event_type}</span>
-                        )}
-                        <span>
-                          {ticker.sentiment_label.charAt(0).toUpperCase() +
-                            ticker.sentiment_label.slice(1)}
-                        </span>
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
-                    <span className="min-w-0 truncate font-medium">
-                      {article.metadata.source_domain}
-                    </span>
-                    {article.metadata.author && (
-                      <>
-                        <span className="flex-shrink-0">•</span>
-                        <span className="min-w-0 truncate">{article.metadata.author}</span>
-                      </>
-                    )}
-                    <span className="flex-shrink-0">•</span>
-                    <span className="flex-shrink-0">
-                      {formatAgentDate(article.metadata.timestamp)}
-                    </span>
-                    {sentScore !== null && (
-                      <>
-                        <span className="flex-shrink-0">•</span>
+                    {/* Ticker badges */}
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {article.metadata.tickers_metadata.map((ticker) => (
                         <span
-                          className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
+                          key={ticker.ticker}
+                          className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium ${
+                            SENTIMENT_COLORS[ticker.sentiment_label] ?? SENTIMENT_COLORS.neutral
+                          }`}
                         >
-                          {sentScore > 0 ? "+" : ""}
-                          {sentScore.toFixed(2)} sentiment
+                          <span className="font-bold">{ticker.ticker}</span>
+                          {ticker.event_type && (
+                            <span className="opacity-70">{ticker.event_type}</span>
+                          )}
+                          <span>
+                            {ticker.sentiment_label.charAt(0).toUpperCase() +
+                              ticker.sentiment_label.slice(1)}
+                          </span>
                         </span>
-                      </>
-                    )}
+                      ))}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
+                      <span className="min-w-0 truncate font-medium">
+                        {article.metadata.source_domain}
+                      </span>
+                      {article.metadata.author && (
+                        <>
+                          <span className="flex-shrink-0">•</span>
+                          <span className="min-w-0 truncate">{article.metadata.author}</span>
+                        </>
+                      )}
+                      <span className="flex-shrink-0">•</span>
+                      <span className="flex-shrink-0">
+                        {formatAgentDate(article.metadata.timestamp)}
+                      </span>
+                      {sentScore !== null && (
+                        <>
+                          <span className="flex-shrink-0">•</span>
+                          <span
+                            className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
+                          >
+                            {sentScore > 0 ? "+" : ""}
+                            {sentScore.toFixed(2)} sentiment
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
+                )
+              })}
+
+              {/* ── Load More button ─────────────────────────────────────── */}
+              {hasMore && (
+                <div className="pt-1 pb-2 flex justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    disabled={loadingMore}
+                    onClick={() => {
+                      if (nextOffset) fetchAgentNews(nextOffset)
+                    }}
+                  >
+                    {loadingMore ? (
+                      <>
+                        <RefreshCw className="mr-1.5 h-3 w-3 animate-spin" />
+                        Loading…
+                      </>
+                    ) : (
+                      "Load more"
+                    )}
+                  </Button>
                 </div>
-              )
-            })
+              )}
+            </>
           )}
         </div>
       )}
