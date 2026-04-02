@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { useServiceMetrics } from "@/hooks/use-agent-metrics"
+import { motion } from "framer-motion"
+
+const ease = [0.22, 1, 0.36, 1] as const
 
 // Maps each display row to its key in service_avg_latency
 const SERVICE_MAP = [
@@ -68,6 +71,20 @@ export function StatusCard() {
            <BlinkDot />
 
         </span>
+      </div>
+
+      <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2">
+        <motion.h2
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-30px" }}
+          transition={{ duration: 0.5, delay: 0.2, ease }}
+          className="text-2xl lg:text-3xl font-mono font-bold tracking-tight uppercase text-balance"
+        >
+          Stop reading news
+          <br />
+          <span className="text-primary">we do it for you</span>
+        </motion.h2>
       </div>
 
       <div className="flex-1 flex flex-col p-4 gap-0">

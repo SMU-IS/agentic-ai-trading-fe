@@ -210,9 +210,9 @@ export function AboutSection() {
                 transition={{ duration: 0.5, delay: 0.2, ease }}
                 className="text-2xl lg:text-3xl font-mono font-bold tracking-tight uppercase text-balance"
               >
-                Stop reading news
+                Full Transparency
                 <br />
-                <span className="text-primary">we do it for you</span>
+                <span className="text-primary">watch your agents work</span>
               </motion.h2>
 
               <motion.div
