@@ -8,7 +8,7 @@
   <img width="250" height="250" alt="Agent-M" src="https://github.com/user-attachments/assets/e5a2b7ac-b397-4db6-88b1-4b61101ab62b" />
 </p>
 
-<h1 align="center">🤖 Agent M | Agentic AI Trading Portfolio Backend</h1>
+<h1 align="center">🤖 Agent M - Agentic AI Trading Portfolio Backend</h1>
 
 <div align="center">
 
@@ -28,11 +28,12 @@
   <a href="https://agentic-m.com"><strong>🚀 Check out the Live App</strong></a>
 </p>
 
+---
 
 ## ✨ Key Features
 
 <p align="center">
-<img width="1920" height="1080" alt="Features" src="https://github.com/user-attachments/assets/5c84244c-a59f-4127-b668-d16c58509439" />
+    <img width="927" height="519" alt="agent-m-features" src="https://github.com/user-attachments/assets/6ed543c4-178e-404d-97c6-62c68b283881" />
 </p>
 
 - **Dashboard**: A comprehensive overview of your portfolio, including summary cards and performance charts.
@@ -93,22 +94,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - **Forms**: [React Hook Form](https://react-hook-form.com/) & [Zod](https://zod.dev/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
-
-## 📁 Project Structure
-
-```
-/
-├── app/                  # Main application routes
-│   ├── login/
-│   └── portfolio/
-├── components/           # Reusable components
-│   ├── portfolio/        # Components specific to the portfolio feature
-│   ├── ui/               # Base UI components (from shadcn/ui)
-│   └── ...
-├── lib/                  # Utility functions, data, and type definitions
-├── public/               # Static assets
-└── ...
-```
 
 ## 🤝 Contributing
 
