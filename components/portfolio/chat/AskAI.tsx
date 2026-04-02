@@ -891,23 +891,29 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
                 {/* Input */}
                 <div className="flex-shrink-0 border-t border-border px-4 py-3">
-                  <div className="flex items-center gap-2 rounded-xl border border-border bg-border px-3 py-1.5 focus-within:border-gray-600 focus-within:ring-2 focus-within:ring-gray-600 transition-all">
-                    <input
-                      className="flex-1 bg-transparent py-1.5 text-base sm:text-sm outline-none placeholder:text-muted-foreground"
+                  <div className="flex items-end gap-2 rounded-xl border border-border bg-border px-3 py-1.5 focus-within:border-gray-600 focus-within:ring-2 focus-within:ring-gray-600 transition-all">                    <textarea
+                      rows={1}
+                      className="flex-1 bg-transparent py-1.5 text-base sm:text-sm outline-none placeholder:text-muted-foreground resize-none leading-relaxed"
                       placeholder={
                         isListening
                           ? "Listening... speak now"
                           : "Ask anything about your portfolio..."
                       }
                       value={input}
-                      onChange={(e) => setInput(e.target.value)}
+                      onChange={(e) => {
+                        setInput(e.target.value)
+                        // Auto-grow: reset then set to scrollHeight
+                        e.target.style.height = "auto"
+                        e.target.style.height = `${e.target.scrollHeight}px`
+                      }}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" && !loading) {
+                        if (e.key === "Enter" && !e.shiftKey && !loading) {
                           e.preventDefault()
                           handleSend()
                         }
                       }}
                       disabled={loading || isResetting}
+                      style={{ maxHeight: "120px", overflowY: "auto" }}
                     />
 
                     {/* Mic Button — inside the field */}
@@ -945,7 +951,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                         onClick={handleSend}
                         disabled={!input.trim() || isResetting}
                         aria-label="Send message"
-                        className="flex-shrink-0 rounded-lg p-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="bg-primary/70 text-primary-foreground hover:bg-primary/90 flex-shrink-0 rounded-lg p-1.5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <ArrowUp className="h-4 w-4" />
                       </button>
