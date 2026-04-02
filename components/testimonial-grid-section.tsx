@@ -7,24 +7,24 @@ const testimonials = [
   {
     quote:
       "Agent M reads the news, weighs the sentiment, and just executes the trade — I check my dashboard in the morning and see exactly what it did and why. I don't have time to monitor markets all day so this is great.",
-    name: "Marcus T.",
+    name: "Shawn N.",
     company: "Retail Investor",
-    avatar:
-      "https://github.com/user-attachments/assets/6bd4f3a7-6784-402a-b891-03d91e15d705",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Shawn.jpeg",
     type: "large-teal",
   },
   {
     quote:
       "Agent M only acts within the risk limits I set. It trades aggressively when I want it to, or conservatively when I dial it back.",
-    name: "Priya S.",
+    name: "Tim C",
     company: "Independent Trader",
-    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Josh.png",
+    avatar:
+      "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?q=80&w=1065&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     type: "small-dark",
   },
   {
     quote:
       "I used to spend hours reading financial news and Reddit threads. Now Agent M scrapes all of that and I only get pinged when something actually affects my holdings.",
-    name: "J A.",
+    name: "Joshua A.",
     company: "Retail Trader",
     avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Josh.png",
     type: "small-dark",
@@ -32,26 +32,25 @@ const testimonials = [
   {
     quote:
       "The moment breaking news drops that's relevant to my stocks, I get a notification instantly, not 20 minutes later. And right after, another alert confirms the trade was executed. The speed is the whole point.",
-    name: "Rachel K.",
+    name: "Z Y.",
     company: "Swing Trader",
-    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Josh.png",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/ZY.jpeg",
     type: "small-dark",
   },
   {
     quote:
       "I connected my existing account from Alpaca and Agent M immediately connected and got to work. The process was so seamless.",
-    name: "David N.",
+    name: "Derrick L.",
     company: "Long-term Investor",
-    avatar:
-      "https://github.com/user-attachments/assets/2db4b711-b7d0-4368-8d12-6449c3fa2aa2",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Derrick.jpeg",
     type: "small-dark",
   },
   {
     quote:
       "I'll type 'Why did you sell NVDA yesterday?' and it explains the exact news event and sentiment score that triggered it. It's crazy transparent for a retail investor.",
-    name: "Sofia R.",
+    name: "J Y.",
     company: "Quantitative Analyst",
-    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Josh.png",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/JY.jpeg",
     type: "small-dark",
   },
   {
@@ -59,8 +58,7 @@ const testimonials = [
       "I was skeptical on social media news and it would hallucinate and make bad trades. But I'm amazed at how it fact-checks claims and only acts on credibility-weighted sentiment, it's held off on trades when news turned out to be unreliable.",
     name: "Bryan C.",
     company: "Student",
-    avatar:
-      "https://github.com/user-attachments/assets/cc1782b1-e71f-410a-97a4-cfec08bccead",
+    avatar: "https://agent-m-fe-assets.s3.us-east-1.amazonaws.com/Bryan.jpeg",
     type: "large-light",
   },
 ]
