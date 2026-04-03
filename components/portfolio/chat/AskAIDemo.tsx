@@ -420,7 +420,7 @@ export default function AskAIDemo() {
   // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
-    <section className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12 bg-background">
+    <section className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-8 bg-none">
 
       {/* Hero text */}
       <div className="text-center">
@@ -561,7 +561,7 @@ export default function AskAIDemo() {
               <textarea
                 ref={textareaRef}
                 rows={1}
-                className="min-h-[36px] flex-1 resize-none bg-transparent py-1.5 text-sm
+                className="min-h-[10vh] flex-1 resize-none bg-transparent py-1.5 text-sm
                   leading-relaxed outline-none placeholder:text-muted-foreground"
                 placeholder={isListening ? "Listening… speak now" : "Ask about Agent M…"}
                 value={input}
