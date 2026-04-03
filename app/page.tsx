@@ -5,8 +5,8 @@ import { Footer } from "@/components/footer"
 import { GlitchMarquee } from "@/components/glitch-marquee"
 import { HeroSection } from "@/components/hero-section"
 import { Navbar } from "@/components/navbar"
-import AskAIDemo from "@/components/portfolio/chat/AskAIDemo"
 import { TestimonialGridSection } from "@/components/testimonial-grid-section"
+import AgentMFeatures from "@/components/ui/AgentMFeatures"
 import { Banner } from "@/components/ui/banner"
 
 export default function Page() {
@@ -26,7 +26,7 @@ export default function Page() {
       <main>
         <HeroSection />
         <GlitchMarquee />
-        <AskAIDemo />
+        <AgentMFeatures />
         <FeatureGrid />
         <AboutSection />
         <TestimonialGridSection />
