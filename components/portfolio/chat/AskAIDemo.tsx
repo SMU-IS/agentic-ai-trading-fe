@@ -425,7 +425,7 @@ export default function AskAIDemo() {
       {/* Hero text */}
       <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Your Autonomous AI Analyst
+          Your Personalised AI Trading Assistant
         </h1>
         <p className="mt-3 max-w-[44ch] text-sm leading-relaxed text-muted-foreground mx-auto">
           We built AskAI, a RAG agent to answer questions about your trades and the markets.
