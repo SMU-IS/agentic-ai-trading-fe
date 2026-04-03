@@ -422,24 +422,14 @@ export default function AskAIDemo() {
   return (
     <section className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12 bg-background">
 
-      {/* Logo + brand */}
-      <div className="flex flex-col items-center gap-3">
-        <div className="text-primary">
-          <AgentMLogo size={44} />
-        </div>
-        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Agent M
-        </span>
-      </div>
-
       {/* Hero text */}
       <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
           Your Autonomous AI Analyst
         </h1>
         <p className="mt-3 max-w-[44ch] text-sm leading-relaxed text-muted-foreground mx-auto">
-          Agent M monitors markets, reasons through data, and executes trades on your behalf.
-          Ask anything below to see it in action.
+          We built AskAI, a RAG agent to answer questions about your trades and the markets.
+          Try out our demo below to see it in action.
         </p>
       </div>
 
@@ -471,7 +461,7 @@ export default function AskAIDemo() {
 
         <div
           className="relative flex flex-col overflow-hidden rounded-[calc(1rem-2px)] border-0 bg-card shadow-2xl"
-          style={{ minHeight: "30vh", maxHeight: "60vh" }}
+          style={{ minHeight: "40vh", maxHeight: "50vh" }}
         >
           {/* Header */}
           <div className="flex flex-shrink-0 items-center justify-between border-b border-border px-4 pb-2 pt-3">
