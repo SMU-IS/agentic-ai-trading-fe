@@ -267,7 +267,7 @@ export default function AgentMFeatures() {
 
   return (
     <section className="w-full py-20 px-4">
-      <div className="mx-auto max-w-5xl space-y-12">
+      <div className="mx-auto max-w-6xl space-y-12">
 
         {/* Section header */}
         <div className="text-center space-y-3">
@@ -275,10 +275,10 @@ export default function AgentMFeatures() {
             What Agent M can do
           </p>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Your personalised AI trading assistant
+            Let it cook.
           </h2>
           <p className="mx-auto max-w-[52ch] text-sm leading-relaxed text-muted-foreground">
-            From news ingestion to trade execution, Agent M handles the entire investment workflow —
+            From news ingestion to trade execution, Agent M orchestrates the entire trading workflow —
             autonomously, within your guardrails.
           </p>
         </div>
@@ -351,7 +351,7 @@ export default function AgentMFeatures() {
         </AnimatePresence>
 
         {/* Live demo chat */}
-        <div className="space-y-4">
+        {/* <div className="space-y-4">
           <div className="text-center space-y-2">
             <h3 className="text-xl font-semibold tracking-tight">Try it yourself</h3>
             <p className="text-sm text-muted-foreground">
@@ -359,7 +359,7 @@ export default function AgentMFeatures() {
             </p>
           </div>
           <AskAIDemo />
-        </div>
+        </div> */}
 
       </div>
     </section>

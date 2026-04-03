@@ -423,7 +423,7 @@ export default function AskAIDemo() {
     <section className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-8 bg-none">
 
       {/* Hero text */}
-      <div className="text-center">
+      {/* <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
           Your Personalised AI Trading Assistant
         </h1>
@@ -431,7 +431,7 @@ export default function AskAIDemo() {
           We built AskAI, a RAG agent to answer questions about your trades and the markets.
           Try out our demo below to see it in action.
         </p>
-      </div>
+      </div> */}
 
       {/* Suggested prompts */}
       <div className="flex flex-wrap justify-center gap-2">
