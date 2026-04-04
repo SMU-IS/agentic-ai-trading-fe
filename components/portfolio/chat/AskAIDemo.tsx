@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { ArrowUp, Mic, MicOff, Square, SquarePen } from "lucide-react"
+import { ArrowUp, Mic, MicOff, Square, SquarePen, X } from "lucide-react"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,7 +68,10 @@ function MarkdownStreamingContent({
       if (lastUpdateRef.current === 0) lastUpdateRef.current = timestamp
       const elapsed = timestamp - lastUpdateRef.current
 
-      if (elapsed >= speed && currentIndexRef.current < contentRef.current.length) {
+      if (
+        elapsed >= speed &&
+        currentIndexRef.current < contentRef.current.length
+      ) {
         currentIndexRef.current += 1
         setDisplayedText(contentRef.current.slice(0, currentIndexRef.current))
         lastUpdateRef.current = timestamp
@@ -83,7 +86,7 @@ function MarkdownStreamingContent({
     }
 
     animFrameRef.current = requestAnimationFrame(animate)
-    return () => { }
+    return () => {}
   }, [content, isStreaming])
 
   const parseMarkdown = (text: string): JSX.Element[] => {
@@ -93,34 +96,104 @@ function MarkdownStreamingContent({
 
     while (i < text.length) {
       if (text[i] === "*" && text[i + 1] === "*") {
-        if (buffer) { parts.push(<span key={`t-${parts.length}`}>{buffer}</span>); buffer = "" }
-        let j = i + 2, boldText = "", found = false
+        if (buffer) {
+          parts.push(<span key={`t-${parts.length}`}>{buffer}</span>)
+          buffer = ""
+        }
+        let j = i + 2,
+          boldText = "",
+          found = false
         while (j < text.length - 1) {
-          if (text[j] === "*" && text[j + 1] === "*") { boldText = text.slice(i + 2, j); found = true; j += 2; break }
+          if (text[j] === "*" && text[j + 1] === "*") {
+            boldText = text.slice(i + 2, j)
+            found = true
+            j += 2
+            break
+          }
           j++
         }
-        if (found) { parts.push(<strong key={`b-${parts.length}`} className="font-semibold">{boldText}</strong>); i = j }
-        else { buffer += text.slice(i, j); i = j }
-      } else if (text[i] === "*" && text[i + 1] !== "*" && (i === 0 || text[i - 1] !== "*")) {
-        if (buffer) { parts.push(<span key={`t-${parts.length}`}>{buffer}</span>); buffer = "" }
-        let j = i + 1, italicText = "", found = false
+        if (found) {
+          parts.push(
+            <strong key={`b-${parts.length}`} className="font-semibold">
+              {boldText}
+            </strong>,
+          )
+          i = j
+        } else {
+          buffer += text.slice(i, j)
+          i = j
+        }
+      } else if (
+        text[i] === "*" &&
+        text[i + 1] !== "*" &&
+        (i === 0 || text[i - 1] !== "*")
+      ) {
+        if (buffer) {
+          parts.push(<span key={`t-${parts.length}`}>{buffer}</span>)
+          buffer = ""
+        }
+        let j = i + 1,
+          italicText = "",
+          found = false
         while (j < text.length) {
-          if (text[j] === "*" && (j === text.length - 1 || text[j + 1] !== "*")) { italicText = text.slice(i + 1, j); found = true; j += 1; break }
+          if (
+            text[j] === "*" &&
+            (j === text.length - 1 || text[j + 1] !== "*")
+          ) {
+            italicText = text.slice(i + 1, j)
+            found = true
+            j += 1
+            break
+          }
           j++
         }
-        if (found) { parts.push(<em key={`i-${parts.length}`} className="italic">{italicText}</em>); i = j }
-        else { buffer += text.slice(i, j); i = j }
+        if (found) {
+          parts.push(
+            <em key={`i-${parts.length}`} className="italic">
+              {italicText}
+            </em>,
+          )
+          i = j
+        } else {
+          buffer += text.slice(i, j)
+          i = j
+        }
       } else if (text[i] === "`") {
-        if (buffer) { parts.push(<span key={`t-${parts.length}`}>{buffer}</span>); buffer = "" }
-        let j = i + 1, codeText = "", found = false
+        if (buffer) {
+          parts.push(<span key={`t-${parts.length}`}>{buffer}</span>)
+          buffer = ""
+        }
+        let j = i + 1,
+          codeText = "",
+          found = false
         while (j < text.length) {
-          if (text[j] === "`") { codeText = text.slice(i + 1, j); found = true; j += 1; break }
+          if (text[j] === "`") {
+            codeText = text.slice(i + 1, j)
+            found = true
+            j += 1
+            break
+          }
           j++
         }
-        if (found) { parts.push(<code key={`c-${parts.length}`} className="rounded bg-muted px-1 py-0.5 font-mono text-xs">{codeText}</code>); i = j }
-        else { buffer += text.slice(i, j); i = j }
+        if (found) {
+          parts.push(
+            <code
+              key={`c-${parts.length}`}
+              className="rounded bg-muted px-1 py-0.5 font-mono text-xs"
+            >
+              {codeText}
+            </code>,
+          )
+          i = j
+        } else {
+          buffer += text.slice(i, j)
+          i = j
+        }
       } else if (text[i] === "\n") {
-        if (buffer) { parts.push(<span key={`t-${parts.length}`}>{buffer}</span>); buffer = "" }
+        if (buffer) {
+          parts.push(<span key={`t-${parts.length}`}>{buffer}</span>)
+          buffer = ""
+        }
         parts.push(<br key={`br-${parts.length}`} />)
         i++
       } else {
@@ -153,7 +226,14 @@ function AgentMLogo({ size = 40 }: { size?: number }) {
       aria-label="Agent M"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <circle cx="24" cy="24" r="22" stroke="currentColor" strokeWidth="1.5" opacity="0.35" />
+      <circle
+        cx="24"
+        cy="24"
+        r="22"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        opacity="0.35"
+      />
       <path
         d="M12 32V16L24 26L36 16V32"
         stroke="currentColor"
@@ -162,9 +242,33 @@ function AgentMLogo({ size = 40 }: { size?: number }) {
         strokeLinejoin="round"
       />
       <circle cx="24" cy="24" r="2.5" fill="currentColor" />
-      <line x1="24" y1="8" x2="24" y2="21.5" stroke="currentColor" strokeWidth="1" opacity="0.45" />
-      <line x1="12" y1="16" x2="21.5" y2="23" stroke="currentColor" strokeWidth="1" opacity="0.45" />
-      <line x1="36" y1="16" x2="26.5" y2="23" stroke="currentColor" strokeWidth="1" opacity="0.45" />
+      <line
+        x1="24"
+        y1="8"
+        x2="24"
+        y2="21.5"
+        stroke="currentColor"
+        strokeWidth="1"
+        opacity="0.45"
+      />
+      <line
+        x1="12"
+        y1="16"
+        x2="21.5"
+        y2="23"
+        stroke="currentColor"
+        strokeWidth="1"
+        opacity="0.45"
+      />
+      <line
+        x1="36"
+        y1="16"
+        x2="26.5"
+        y2="23"
+        stroke="currentColor"
+        strokeWidth="1"
+        opacity="0.45"
+      />
     </svg>
   )
 }
@@ -178,7 +282,12 @@ declare global {
   }
 }
 
-export default function AskAIDemo() {
+interface AskAIDemoProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
+export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
@@ -196,21 +305,39 @@ export default function AskAIDemo() {
 
   // ── Scroll ──────────────────────────────────────────────────────────────────
 
+  useEffect(() => {
+    if (!open) {
+      abortControllerRef.current?.abort()
+      recognitionRef.current?.stop()
+      setMessages([])
+      setInput("")
+      setError(null)
+      setLoading(false)
+      setIsListening(false)
+      sessionIdRef.current = crypto.randomUUID()
+    }
+  }, [open])
+
   const scrollToBottom = () => {
     const scroll = () => {
       if (scrollContainerRef.current)
-        scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+        scrollContainerRef.current.scrollTop =
+          scrollContainerRef.current.scrollHeight
     }
     scroll()
-    if (scrollAnimFrameRef.current) cancelAnimationFrame(scrollAnimFrameRef.current)
+    if (scrollAnimFrameRef.current)
+      cancelAnimationFrame(scrollAnimFrameRef.current)
     scrollAnimFrameRef.current = requestAnimationFrame(scroll)
   }
 
-  useEffect(() => { scrollToBottom() }, [messages])
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   useEffect(() => {
     return () => {
-      if (scrollAnimFrameRef.current) cancelAnimationFrame(scrollAnimFrameRef.current)
+      if (scrollAnimFrameRef.current)
+        cancelAnimationFrame(scrollAnimFrameRef.current)
     }
   }, [])
 
@@ -275,19 +402,33 @@ export default function AskAIDemo() {
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === assistantMessageId
-                    ? { ...msg, content: accumulatedContent, isStreaming: true, isThinking: false }
+                    ? {
+                        ...msg,
+                        content: accumulatedContent,
+                        isStreaming: true,
+                        isThinking: false,
+                      }
                     : msg,
                 ),
               )
               scrollToBottom()
             }
           } catch {
-            if (data.trim() && data.trim() !== "[DONE]" && !data.includes("{")) {
+            if (
+              data.trim() &&
+              data.trim() !== "[DONE]" &&
+              !data.includes("{")
+            ) {
               accumulatedContent += data
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === assistantMessageId
-                    ? { ...msg, content: accumulatedContent, isStreaming: true, isThinking: false }
+                    ? {
+                        ...msg,
+                        content: accumulatedContent,
+                        isStreaming: true,
+                        isThinking: false,
+                      }
                     : msg,
                 ),
               )
@@ -323,14 +464,26 @@ export default function AskAIDemo() {
 
     setMessages((prev) => [
       ...prev,
-      { id: assistantMessageId, role: "assistant", content: "", isStreaming: true, isThinking: true },
+      {
+        id: assistantMessageId,
+        role: "assistant",
+        content: "",
+        isStreaming: true,
+        isThinking: true,
+      },
     ])
 
     try {
-      await streamResponse(textToSend, assistantMessageId, abortControllerRef.current.signal)
+      await streamResponse(
+        textToSend,
+        assistantMessageId,
+        abortControllerRef.current.signal,
+      )
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === assistantMessageId ? { ...msg, isStreaming: false, isThinking: false } : msg,
+          msg.id === assistantMessageId
+            ? { ...msg, isStreaming: false, isThinking: false }
+            : msg,
         ),
       )
     } catch (e: unknown) {
@@ -338,12 +491,16 @@ export default function AskAIDemo() {
       if (err.name === "AbortError" || err.message === "AbortError") {
         setMessages((prev) =>
           prev.map((msg) =>
-            msg.id === assistantMessageId ? { ...msg, isStreaming: false, isThinking: false } : msg,
+            msg.id === assistantMessageId
+              ? { ...msg, isStreaming: false, isThinking: false }
+              : msg,
           ),
         )
       } else {
         setError(err instanceof Error ? err.message : "Unexpected error")
-        setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId))
+        setMessages((prev) =>
+          prev.filter((msg) => msg.id !== assistantMessageId),
+        )
       }
     } finally {
       setLoading(false)
@@ -376,7 +533,8 @@ export default function AskAIDemo() {
   // ── Voice ────────────────────────────────────────────────────────────────────
 
   const handleVoiceInput = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRecognition) {
       setError("Voice input not supported in this browser. Try Chrome or Edge.")
       return
@@ -396,7 +554,8 @@ export default function AskAIDemo() {
     recognition.onstart = () => setIsListening(true)
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interim = "", final = ""
+      let interim = "",
+        final = ""
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const t = event.results[i][0].transcript
         event.results[i].isFinal ? (final += t) : (interim += t)
@@ -420,207 +579,266 @@ export default function AskAIDemo() {
   // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
-    <section className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-8 bg-none">
+    <>
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 z-40 bg-background/40 backdrop-blur-sm transition-opacity duration-300 ease-out ${
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => onOpenChange?.(false)}
+      />
 
-      {/* Hero text */}
-      {/* <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Your Personalised AI Trading Assistant
-        </h1>
-        <p className="mt-3 max-w-[44ch] text-sm leading-relaxed text-muted-foreground mx-auto">
-          We built AskAI, a RAG agent to answer questions about your trades and the markets.
-          Try out our demo below to see it in action.
-        </p>
-      </div> */}
-
-      {/* Suggested prompts */}
-      <div className="flex flex-wrap justify-center gap-2">
-        {SUGGESTED_PROMPTS.map((prompt) => (
-          <button
-            key={prompt}
-            onClick={() => handleSendMessage(prompt)}
-            disabled={loading || isResetting}
-            className="rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground
-              transition-colors hover:border-primary/60 hover:bg-primary/5 hover:text-foreground
-              disabled:pointer-events-none disabled:opacity-40"
-          >
-            {prompt}
-          </button>
-        ))}
-      </div>
-
-      {/* Chat card */}
-      <div className="relative w-full max-w-2xl rounded-2xl p-[2px]">
-        {/* Spinning gradient border */}
-        <div className="absolute inset-0 overflow-hidden rounded-2xl">
-          <div
-            className="animate-spin-border bg-gradient-conic-smooth absolute inset-[-100%]"
-            style={{ willChange: "transform", backfaceVisibility: "hidden", transform: "translateZ(0)" }}
-          />
-        </div>
-
+      {/* Outer shell — pointer-events-none so backdrop clicks work around the panel */}
+      <div className="pointer-events-none fixed bottom-20 right-6 z-50 w-full max-w-lg px-4 sm:px-0">
+        {/* ↓ This div is the animated panel — re-enables pointer-events and drives open/close */}
         <div
-          className="relative flex flex-col overflow-hidden rounded-[calc(1rem-2px)] border-0 bg-card shadow-2xl"
-          style={{ minHeight: "40vh", maxHeight: "50vh" }}
+          className={`pointer-events-auto transform transition-all duration-500 ${
+            open
+              ? "translate-y-0 scale-100 opacity-100"
+              : "translate-y-[calc(100%+2rem)] scale-95 opacity-0"
+          }`}
+          style={{
+            transitionTimingFunction: open
+              ? "cubic-bezier(0.16, 1, 0.3, 1)"
+              : "cubic-bezier(0.7, 0, 0.84, 0)",
+          }}
         >
-          {/* Header */}
-          <div className="flex flex-shrink-0 items-center justify-between border-b border-border px-4 pb-2 pt-3">
-            <div className="flex items-center gap-2.5">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Ask Agent M.</p>
-                <p className="text-xs text-muted-foreground">Autonomous AI for your investments</p>
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {(messages.length > 0 || isResetting) && (
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: isResetting ? 0.5 : 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={handleNewChat}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border
-                    px-3 py-1.5 text-xs text-muted-foreground transition-colors
-                    hover:border-muted-foreground/40 hover:bg-muted hover:text-foreground"
-                  aria-label="New chat"
-                >
-                  <SquarePen className="h-3.5 w-3.5" />
-                  <span className="hidden sm:block">{isResetting ? "Clearing…" : "New Chat"}</span>
-                </motion.button>
-              )}
-            </AnimatePresence>
+          {/* Suggested prompts */}
+          <div className="mb-3 flex flex-wrap justify-end gap-2">
+            {SUGGESTED_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                onClick={() => handleSendMessage(prompt)}
+                disabled={loading || isResetting}
+                className="rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground
+                transition-colors hover:border-primary/60 hover:bg-primary/5 hover:text-foreground
+                disabled:pointer-events-none disabled:opacity-40"
+              >
+                {prompt}
+              </button>
+            ))}
           </div>
 
-          {/* Messages */}
-          <div
-            ref={scrollContainerRef}
-            className="flex-1 space-y-3 overflow-y-auto px-4 py-4 text-sm"
-            style={{ scrollBehavior: "auto" }}
-          >
-            {messages.length === 0 && !error && !loading && (
-              <p className="text-xs text-muted-foreground">
-                Ask me anything about Agent M, autonomous trading, or how AI manages investments.
-              </p>
-            )}
+          {/* Chat card */}
+          <div className="relative w-full rounded-2xl p-[2px]">
+            {/* Spinning gradient border */}
+            <div className="absolute inset-0 overflow-hidden rounded-2xl">
+              <div
+                className="animate-spin-border bg-gradient-conic-smooth absolute inset-[-100%]"
+                style={{
+                  willChange: "transform",
+                  backfaceVisibility: "hidden",
+                  transform: "translateZ(0)",
+                }}
+              />
+            </div>
 
-            {messages.map((m) => (
-              <motion.div
-                key={m.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25 }}
-                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+            <div
+              className="relative flex flex-col overflow-hidden rounded-[calc(1rem-2px)] border-0 bg-card shadow-2xl"
+              style={{ minHeight: "40vh", maxHeight: "50vh" }}
+            >
+              {/* Header */}
+              <div className="flex flex-shrink-0 items-center justify-between border-b border-border px-4 pb-2 pt-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      Ask about Agent M
+                    </p>
+                    <p className="text-[10px] text-muted-foreground ">
+                      Try out the RAG-powered agent that we use for trades
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <AnimatePresence>
+                    {(messages.length > 0 || isResetting) && (
+                      <motion.button
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: isResetting ? 0.5 : 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={handleNewChat}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border
+                        px-3 py-1.5 text-xs text-muted-foreground transition-colors
+                        hover:border-muted-foreground/40 hover:bg-muted hover:text-foreground"
+                        aria-label="New chat"
+                      >
+                        <SquarePen className="h-3.5 w-3.5" />
+                        <span className="hidden sm:block">
+                          {isResetting ? "Clearing…" : "New Chat"}
+                        </span>
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
+
+                  <button
+                    onClick={() => onOpenChange?.(false)}
+                    className="inline-flex items-center justify-center rounded-full border border-border
+                    p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    aria-label="Close"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div
+                ref={scrollContainerRef}
+                className="flex-1 space-y-3 overflow-y-auto px-4 py-4 text-sm"
+                style={{ scrollBehavior: "auto" }}
               >
-                <div
-                  className={`max-w-[82%] rounded-xl px-3 py-2 font-medium ${m.role === "user"
-                    ? "border-2 border-foreground/10 bg-primary/10 text-foreground"
-                    : "bg-transparent text-foreground"
-                    }`}
-                >
-                  {m.role === "assistant" && m.isThinking && !m.content ? (
-                    <div className="flex flex-row items-center gap-2">
-                      <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-                      <span className="animate-pulse text-xs text-muted-foreground">Thinking…</span>
+                {messages.length === 0 && !error && !loading && (
+                  <p className="text-xs text-muted-foreground">
+                    Ask me anything about Agent M, autonomous trading, or how AI
+                    manages investments.
+                  </p>
+                )}
+
+                {messages.map((m) => (
+                  <motion.div
+                    key={m.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[82%] rounded-xl px-3 py-2 font-medium ${
+                        m.role === "user"
+                          ? "border-2 border-foreground/10 bg-primary/10 text-foreground"
+                          : "bg-transparent text-foreground"
+                      }`}
+                    >
+                      {m.role === "assistant" && m.isThinking && !m.content ? (
+                        <div className="flex flex-row items-center gap-2">
+                          <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
+                          <span className="animate-pulse text-xs text-muted-foreground">
+                            Thinking…
+                          </span>
+                        </div>
+                      ) : m.role === "assistant" ? (
+                        <MarkdownStreamingContent
+                          key={m.id}
+                          content={m.content}
+                          isStreaming={m.isStreaming ?? false}
+                        />
+                      ) : (
+                        <span className="whitespace-pre-wrap text-sm">
+                          {m.content}
+                        </span>
+                      )}
                     </div>
-                  ) : m.role === "assistant" ? (
-                    <MarkdownStreamingContent
-                      key={m.id}
-                      content={m.content}
-                      isStreaming={m.isStreaming ?? false}
-                    />
+                  </motion.div>
+                ))}
+
+                {error && (
+                  <motion.p
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="text-xs text-destructive"
+                  >
+                    {error}
+                  </motion.p>
+                )}
+              </div>
+
+              {/* Input */}
+              <div className="flex-shrink-0 border-t border-border px-4 py-3">
+                <div
+                  className="flex items-end gap-2 rounded-xl border border-border bg-muted/40
+                  px-3 pb-3 pt-1.5 transition-all focus-within:border-primary/60
+                  focus-within:ring-2 focus-within:ring-primary/20"
+                >
+                  <textarea
+                    ref={textareaRef}
+                    rows={1}
+                    className="min-h-[10vh] flex-1 resize-none bg-transparent py-1.5 text-sm
+                    leading-relaxed outline-none placeholder:text-muted-foreground"
+                    placeholder={
+                      isListening
+                        ? "Listening… speak now"
+                        : "Ask about Agent M…"
+                    }
+                    value={input}
+                    onChange={(e) => {
+                      setInput(e.target.value)
+                      autoResize()
+                    }}
+                    onKeyDown={(e) => {
+                      const isMobile = window.matchMedia(
+                        "(hover: none) and (pointer: coarse)",
+                      ).matches
+                      if (
+                        e.key === "Enter" &&
+                        !e.shiftKey &&
+                        !loading &&
+                        !isMobile
+                      ) {
+                        e.preventDefault()
+                        handleSend()
+                      }
+                    }}
+                    disabled={loading || isResetting}
+                    style={{ maxHeight: "120px", overflowY: "auto" }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={handleVoiceInput}
+                    disabled={loading || isResetting}
+                    aria-label={
+                      isListening ? "Stop listening" : "Start voice input"
+                    }
+                    className={`flex-shrink-0 rounded-lg p-1.5 transition-colors ${
+                      isListening
+                        ? "animate-pulse text-destructive hover:text-destructive/80"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {isListening ? (
+                      <MicOff className="h-4 w-4" />
+                    ) : (
+                      <Mic className="h-4 w-4" />
+                    )}
+                  </button>
+
+                  {loading ? (
+                    <button
+                      type="button"
+                      onClick={handleStop}
+                      aria-label="Stop streaming"
+                      className="flex-shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      <Square className="h-4 w-4" fill="currentColor" />
+                    </button>
                   ) : (
-                    <span className="whitespace-pre-wrap text-sm">{m.content}</span>
+                    <button
+                      type="button"
+                      onClick={handleSend}
+                      disabled={!input.trim() || isResetting}
+                      aria-label="Send message"
+                      className="flex-shrink-0 rounded-lg bg-primary/80 p-1.5 text-primary-foreground
+                      transition-colors hover:bg-primary disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </button>
                   )}
                 </div>
-              </motion.div>
-            ))}
-
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-xs text-destructive"
-              >
-                {error}
-              </motion.p>
-            )}
-          </div>
-
-          {/* Input */}
-          <div className="flex-shrink-0 border-t border-border px-4 py-3">
-            <div
-              className="flex items-end gap-2 rounded-xl border border-border bg-muted/40
-                px-3 pb-3 pt-1.5 transition-all focus-within:border-primary/60
-                focus-within:ring-2 focus-within:ring-primary/20"
-            >
-              <textarea
-                ref={textareaRef}
-                rows={1}
-                className="min-h-[10vh] flex-1 resize-none bg-transparent py-1.5 text-sm
-                  leading-relaxed outline-none placeholder:text-muted-foreground"
-                placeholder={isListening ? "Listening… speak now" : "Ask about Agent M…"}
-                value={input}
-                onChange={(e) => { setInput(e.target.value); autoResize() }}
-                onKeyDown={(e) => {
-                  const isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches
-                  if (e.key === "Enter" && !e.shiftKey && !loading && !isMobile) {
-                    e.preventDefault()
-                    handleSend()
-                  }
-                }}
-                disabled={loading || isResetting}
-                style={{ maxHeight: "120px", overflowY: "auto" }}
-              />
-
-              {/* Mic */}
-              <button
-                type="button"
-                onClick={handleVoiceInput}
-                disabled={loading || isResetting}
-                aria-label={isListening ? "Stop listening" : "Start voice input"}
-                className={`flex-shrink-0 rounded-lg p-1.5 transition-colors ${isListening
-                  ? "animate-pulse text-destructive hover:text-destructive/80"
-                  : "text-muted-foreground hover:text-foreground"
-                  }`}
-              >
-                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-              </button>
-
-              {/* Send / Stop */}
-              {loading ? (
-                <button
-                  type="button"
-                  onClick={handleStop}
-                  aria-label="Stop streaming"
-                  className="flex-shrink-0 rounded-lg p-1.5 text-muted-foreground
-                    transition-colors hover:text-foreground"
-                >
-                  <Square className="h-4 w-4" fill="currentColor" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleSend}
-                  disabled={!input.trim() || isResetting}
-                  aria-label="Send message"
-                  className="flex-shrink-0 rounded-lg bg-primary/80 p-1.5 text-primary-foreground
-                    transition-colors hover:bg-primary disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <ArrowUp className="h-4 w-4" />
-                </button>
-              )}
+                <p className="mt-2 text-center text-[11px] text-muted-foreground/60">
+                  Enter to send &middot; Shift+Enter for new line
+                </p>
+              </div>
             </div>
-            <p className="mt-2 text-center text-[11px] text-muted-foreground/60">
-              Enter to send &middot; Shift+Enter for new line
-            </p>
           </div>
         </div>
+        {/* ← end animated div */}
       </div>
-    </section>
+    </>
   )
 }

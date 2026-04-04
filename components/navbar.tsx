@@ -8,6 +8,7 @@ import Link from "next/link"
 export function Navbar() {
   const navItems = [
     { name: "Partners", href: "#hero-section" },
+    { name: "FEATURES", href: "#features-section" },
     { name: "Tech", href: "#tech-section" },
     { name: "FAQ", href: "#faq-section" },
   ]

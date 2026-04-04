@@ -8,11 +8,12 @@ import { Navbar } from "@/components/navbar"
 import { TestimonialGridSection } from "@/components/testimonial-grid-section"
 import AgentMFeatures from "@/components/ui/AgentMFeatures"
 import { Banner } from "@/components/ui/banner"
+import AskAIDemoTrigger from "@/components/portfolio/chat/AskAIDemoTrigger"
 
 export default function Page() {
   return (
     <div className="min-h-screen dot-grid-bg w-[100vw] overflow-x-hidden">
-      {process.env.NEXT_PUBLIC_SHOW_BANNER == "true" && (
+      {process.env.NEXT_PUBLIC_SHOW_BANNER === "true" && (
         <Banner
           variant="default"
           sticky
@@ -33,6 +34,7 @@ export default function Page() {
         <FAQSection />
       </main>
       <Footer />
+      <AskAIDemoTrigger />
     </div>
   )
 }
