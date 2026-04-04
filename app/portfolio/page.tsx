@@ -127,7 +127,7 @@ function PortfolioContent() {
                 }}
               />
               <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline ml-1">Ask AI</span>
+              <span className="hidden sm:inline ml-1">AskAI</span>
             </Button>
 
             <ModeToggle />

@@ -306,6 +306,17 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
   // ── Scroll ──────────────────────────────────────────────────────────────────
 
   useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [open])
+
+  useEffect(() => {
     if (!open) {
       abortControllerRef.current?.abort()
       recognitionRef.current?.stop()
@@ -650,7 +661,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-foreground">
-                      Ask about Agent M
+                      AskAI
                     </p>
                     <p className="text-[10px] text-muted-foreground ">
                       Try out the RAG-powered agent that we use for trades
@@ -699,8 +710,8 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
               >
                 {messages.length === 0 && !error && !loading && (
                   <p className="text-xs text-muted-foreground">
-                    Ask me anything about Agent M, autonomous trading, or how AI
-                    manages investments.
+                    This rag agent is specific to queries on anything about
+                    Agent M, autonomous trading, or it's capabilities.
                   </p>
                 )}
 
