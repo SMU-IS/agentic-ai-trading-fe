@@ -589,7 +589,11 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
       />
 
       {/* Outer shell — pointer-events-none so backdrop clicks work around the panel */}
-      <div className="pointer-events-none fixed bottom-20 right-6 z-50 w-full max-w-lg px-4 sm:px-0">
+      <div
+        className="pointer-events-none fixed bottom-20 z-50 w-full px-4 sm:right-6 sm:w-auto sm:max-w-lg sm:px-0
+  left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0"
+      >
+        {" "}
         {/* ↓ This div is the animated panel — re-enables pointer-events and drives open/close */}
         <div
           className={`pointer-events-auto transform transition-all duration-500 ${
@@ -785,7 +789,11 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
                       }
                     }}
                     disabled={loading || isResetting}
-                    style={{ maxHeight: "120px", overflowY: "auto" }}
+                    style={{
+                      maxHeight: "120px",
+                      overflowY: "auto",
+                      fontSize: "16px",
+                    }}
                   />
 
                   <button
