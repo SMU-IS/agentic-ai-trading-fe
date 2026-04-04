@@ -272,10 +272,10 @@ export default function AgentMFeatures() {
         {/* Section header */}
         <div className="text-center space-y-3">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            What Agent M can do
+            let it cook
           </p>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Let it cook.
+            How you can use Agent M
           </h2>
           <p className="mx-auto max-w-[52ch] text-sm leading-relaxed text-muted-foreground">
             From news ingestion to trade execution, Agent M orchestrates the entire trading workflow —
