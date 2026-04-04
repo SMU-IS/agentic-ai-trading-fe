@@ -717,8 +717,8 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
               >
                 {messages.length === 0 && !error && !loading && (
                   <p className="text-xs text-muted-foreground">
-                    This q&a rag agent is specific to query on anything about
-                    Agent M, autonomous trading, or it's capabilities.
+                    This rag agent is specific to query on anything about Agent
+                    M, autonomous trading, or it's capabilities.
                   </p>
                 )}
 
