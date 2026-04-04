@@ -308,11 +308,15 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden"
+      // Prevent background scrolling on iOS/mobile
+      document.body.style.touchAction = "none"
     } else {
       document.body.style.overflow = ""
+      document.body.style.touchAction = ""
     }
     return () => {
       document.body.style.overflow = ""
+      document.body.style.touchAction = ""
     }
   }, [open])
 
@@ -593,7 +597,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-40 bg-background/40 backdrop-blur-sm transition-opacity duration-300 ease-out ${
+        className={`fixed inset-0 z-40 bg-background/40 backdrop-blur-sm transition-opacity duration-300 ease-out touch-none ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={() => onOpenChange?.(false)}
@@ -705,8 +709,11 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
               {/* Messages */}
               <div
                 ref={scrollContainerRef}
-                className="flex-1 space-y-3 overflow-y-auto px-4 py-4 text-sm"
-                style={{ scrollBehavior: "auto" }}
+                className="flex-1 space-y-3 overflow-y-auto overscroll-contain touch-pan-y px-4 py-4 text-sm"
+                style={{ 
+                  scrollBehavior: "auto",
+                  WebkitOverflowScrolling: "touch"
+                }}
               >
                 {messages.length === 0 && !error && !loading && (
                   <p className="text-xs text-muted-foreground">
@@ -774,7 +781,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
                     ref={textareaRef}
                     rows={1}
                     className="min-h-[10vh] flex-1 resize-none bg-transparent py-1.5 text-sm
-                    leading-relaxed outline-none placeholder:text-muted-foreground"
+                    leading-relaxed outline-none placeholder:text-muted-foreground overscroll-contain touch-pan-y"
                     placeholder={
                       isListening
                         ? "Listening… speak now"
