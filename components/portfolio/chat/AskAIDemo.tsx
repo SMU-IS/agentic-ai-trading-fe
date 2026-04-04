@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { ArrowUp, Mic, MicOff, Square, SquarePen, X } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -710,14 +710,14 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
               <div
                 ref={scrollContainerRef}
                 className="flex-1 space-y-3 overflow-y-auto overscroll-contain touch-pan-y px-4 py-4 text-sm"
-                style={{ 
+                style={{
                   scrollBehavior: "auto",
-                  WebkitOverflowScrolling: "touch"
+                  WebkitOverflowScrolling: "touch",
                 }}
               >
                 {messages.length === 0 && !error && !loading && (
                   <p className="text-xs text-muted-foreground">
-                    This rag agent is specific to queries on anything about
+                    This q&a rag agent is specific to query on anything about
                     Agent M, autonomous trading, or it's capabilities.
                   </p>
                 )}
