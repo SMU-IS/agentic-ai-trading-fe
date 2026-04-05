@@ -41,11 +41,10 @@ export default function SignalDataAccordion({
                 </span>
               </div>
               <span
-                className={`hidden md:block rounded border px-2 py-0.5 text-xs font-bold ${
-                  selectedTrade.signal_data.trade_signal === "BUY"
-                    ? "border-green-500/20 bg-green-500/10 text-green-500"
-                    : "border-red-500/20 bg-red-500/10 text-red-500"
-                }`}
+                className={`hidden md:block rounded border px-2 py-0.5 text-xs font-bold ${selectedTrade.signal_data.trade_signal === "BUY"
+                  ? "border-green-500/20 bg-green-500/10 text-green-500"
+                  : "border-red-500/20 bg-red-500/10 text-red-500"
+                  }`}
               >
                 {selectedTrade.signal_data.trade_signal}
               </span>
@@ -93,14 +92,14 @@ export default function SignalDataAccordion({
 
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-lg bg-background p-3">
-              <div className="text-xs text-muted-foreground mb-1">Target</div>
+              <div className="text-xs text-muted-foreground mb-1">Recommended Target</div>
               <div className="text-sm font-bold text-green-500">
                 +{selectedTrade.signal_data.target_pct}%
               </div>
             </div>
             <div className="rounded-lg bg-background p-3">
               <div className="text-xs text-muted-foreground mb-1">
-                Stop Loss
+                Recommended Stop Loss
               </div>
               <div className="text-sm font-bold text-red-500">
                 -{selectedTrade.signal_data.stop_loss_pct}%
@@ -108,7 +107,7 @@ export default function SignalDataAccordion({
             </div>
             <div className="rounded-lg bg-background p-3">
               <div className="text-xs text-muted-foreground mb-1">
-                Position Size
+                Recommended Position
               </div>
               <div className="text-sm font-bold">
                 {selectedTrade.signal_data.position_size_pct}%
