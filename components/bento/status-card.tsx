@@ -1,18 +1,18 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { useServiceMetrics } from "@/hooks/use-agent-metrics"
 import { motion } from "framer-motion"
+import { useEffect, useState } from "react"
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-// Maps each display row to its key in service_avg_latency
 const SERVICE_MAP = [
-  { name: "News Scraping",            serviceKey: "scraper:reddit" },
-  { name: "Pre-processing",           serviceKey: "preproc"        },
-  { name: "Ticker Identification",    serviceKey: "ticker"         },
-  { name: "Sentiment Analysis",       serviceKey: "sentiment"      },
-  { name: "Vectorisation & Embedding",serviceKey: "vectorisation"  },
+  { name: "News Scraping", serviceKey: "scraper:reddit" },
+  { name: "Pre-processing", serviceKey: "preproc" },
+  { name: "Ticker Identification", serviceKey: "ticker" },
+  { name: "Event Identification", serviceKey: "event" },
+  { name: "Sentiment Analysis", serviceKey: "sentiment" },
+  { name: "Vectorisation & Embedding", serviceKey: "vectorisation" },
 ] as const
 
 type ServiceKey = (typeof SERVICE_MAP)[number]["serviceKey"]
@@ -27,7 +27,9 @@ function formatLatency(latency_s: number | null | undefined): string {
   return `${latency_s.toFixed(2)}s`
 }
 
-function deriveStatus(entry: { avg_latency_s: number | null; processed?: number } | undefined): "ACTIVE" | "IDLE" {
+function deriveStatus(
+  entry: { avg_latency_s: number | null; processed?: number } | undefined,
+): "ACTIVE" | "IDLE" {
   if (!entry) return "IDLE"
   // A service is considered ONLINE if it has processed at least 1 item in the window
   return (entry.processed ?? 0) > 0 ? "ACTIVE" : "IDLE"
@@ -68,8 +70,7 @@ export function StatusCard() {
         </span>
         <span className="text-[10px] tracking-widest text-muted-foreground">
           {/* {`TICK:${String(tick).padStart(4, "0")}`} */}
-           <BlinkDot />
-
+          <BlinkDot />
         </span>
       </div>
 
@@ -105,18 +106,29 @@ export function StatusCard() {
 
         {/* Table header */}
         <div className="grid grid-cols-3 gap-2 border-b border-border pb-2 mb-2">
-          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">Process</span>
-          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">Status</span>
-          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground text-right">Real-Time Latency</span>
+          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">
+            Process
+          </span>
+          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">
+            Status
+          </span>
+          <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground text-right">
+            Real-Time Latency
+          </span>
         </div>
 
         {loading && !data ? (
           // Skeleton rows while first fetch is in flight
           SERVICE_MAP.map(({ name }) => (
-            <div key={name} className="grid grid-cols-3 gap-2 py-2 border-b border-border last:border-none animate-pulse">
+            <div
+              key={name}
+              className="grid grid-cols-3 gap-2 py-2 border-b border-border last:border-none animate-pulse"
+            >
               <span className="text-xs font-mono text-foreground">{name}</span>
               <span className="text-xs font-mono text-muted-foreground">—</span>
-              <span className="text-xs font-mono text-muted-foreground text-right">—</span>
+              <span className="text-xs font-mono text-muted-foreground text-right">
+                —
+              </span>
             </div>
           ))
         ) : error ? (
@@ -127,7 +139,9 @@ export function StatusCard() {
               key={region.name}
               className="grid grid-cols-3 gap-2 py-2 border-b border-border last:border-none"
             >
-              <span className="text-xs font-mono text-foreground">{region.name}</span>
+              <span className="text-xs font-mono text-foreground">
+                {region.name}
+              </span>
               <div className="flex items-center gap-2">
                 <span
                   className="inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full"
@@ -138,9 +152,13 @@ export function StatusCard() {
                         : "hsl(var(--muted-foreground))",
                   }}
                 />
-                <span className="text-xs font-mono text-muted-foreground">{region.status}</span>
+                <span className="text-xs font-mono text-muted-foreground">
+                  {region.status}
+                </span>
               </div>
-              <span className="text-xs font-mono text-foreground text-right">{region.latency}</span>
+              <span className="text-xs font-mono text-foreground text-right">
+                {region.latency}
+              </span>
             </div>
           ))
         )}
@@ -151,10 +169,15 @@ export function StatusCard() {
             <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">
               Global Throughput
             </span>
-            <span className="text-[9px] font-mono text-foreground">{throughput}%</span>
+            <span className="text-[9px] font-mono text-foreground">
+              {throughput}%
+            </span>
           </div>
           <div className="h-2 w-full border border-foreground">
-            <div className="h-full bg-foreground transition-all duration-500" style={{ width: `${throughput}%` }} />
+            <div
+              className="h-full bg-foreground transition-all duration-500"
+              style={{ width: `${throughput}%` }}
+            />
           </div>
         </div>
       </div>

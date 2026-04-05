@@ -1,30 +1,30 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
-import { Bot, Sparkles } from "lucide-react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import AskAI from "../../portfolio/chat/AskAI"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { TradeEvent } from "@/lib/types"
+import { Bot, Sparkles } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import AskAI from "../../portfolio/chat/AskAI"
 
-import EmptyState from "./EmptyState"
-import TradeHeader from "./TradeHeader"
-import PnLSection, { PnlData } from "./PnLSection"
-import TpSlSection from "./TpSlSection"
-import SignalDataAccordion from "./SignalDataAccordion"
 import AgentReasoningAccordion from "./AgentReasoningAccordion"
+import EmptyState from "./EmptyState"
 import OrderDetails from "./OrderDetails"
+import PnLSection from "./PnLSection"
+import SignalDataAccordion from "./SignalDataAccordion"
+import TpSlSection from "./TpSlSection"
+import TradeHeader from "./TradeHeader"
 
-console.log("Component check:", {
-  AskAI,
-  EmptyState,
-  TradeHeader,
-  PnLSection,
-  TpSlSection,
-  SignalDataAccordion,
-  AgentReasoningAccordion,
-  OrderDetails,
-})
+// console.log("Component check:", {
+//   AskAI,
+//   EmptyState,
+//   TradeHeader,
+//   PnLSection,
+//   TpSlSection,
+//   SignalDataAccordion,
+//   AgentReasoningAccordion,
+//   OrderDetails,
+// })
 
 interface HoldingInfo {
   avg_entry_price: number
