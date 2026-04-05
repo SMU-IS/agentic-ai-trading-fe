@@ -9,6 +9,11 @@ export const REDDIT_SUBREDDITS = [
   "r/stocks",
   "r/options",
   "r/stockmarket",
+  "r/stocks_picks",
+  "r/shortsqueeze",
+  "r/ValueInvesting",
+  "r/pennystocks",
+  "r/stockstobuytoday",
 ] as const
 
 export type Subreddit = (typeof REDDIT_SUBREDDITS)[number]
@@ -46,9 +51,9 @@ function fromApiSubreddit(s: string): Subreddit {
 }
 
 // ─── API ───────────────────────────────────────────────────────────────────────
-
-const USER_ID = "c7a62795-48eb-4892-9b51-cf87d78e0415"
-const AGENT_SETTINGS_URL = `http://localhost:5007/api/v1/trading/decisions/agent-settings/${USER_ID}`
+const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`
+const userId = sessionStorage.getItem("userId")
+const AGENT_SETTINGS_URL = `${BASE_URL}/trading/decisions/agent-settings/${userId}`
 
 interface AgentSettings {
   user_id: string
