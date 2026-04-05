@@ -1,4 +1,5 @@
 import { useEffect, useState, KeyboardEvent } from "react"
+import Cookies from "js-cookie"
 
 export type Source = "reddit" | "tradingview"
 export type RiskMode = "aggressive" | "conservative"
@@ -54,6 +55,10 @@ function fromApiSubreddit(s: string): Subreddit {
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL ?? ""
 
+function getToken(): string {
+  return Cookies.get("jwt") ?? ""
+}
+
 function getAgentSettingsUrl(): string {
   const userId = sessionStorage.getItem("userId")
   return `${BASE_URL}/trading/decisions/agent-settings/${userId}`
@@ -68,7 +73,12 @@ interface AgentSettings {
 }
 
 async function fetchAgentSettings(): Promise<AgentSettings | null> {
-  const res = await fetch(getAgentSettingsUrl())
+  const token = getToken()
+  if (!token) return null
+
+  const res = await fetch(getAgentSettingsUrl(), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
   if (!res.ok) return null
   return res.json()
 }
@@ -78,7 +88,10 @@ async function postAgentSettings(
 ): Promise<AgentSettings | null> {
   const res = await fetch(getAgentSettingsUrl(), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
     body: JSON.stringify(payload),
   })
   if (!res.ok) return null
