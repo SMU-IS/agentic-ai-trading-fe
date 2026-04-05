@@ -285,7 +285,7 @@ const FEATURES: Feature[] = [
     icon: icons.news,
     headline: "Sentiment-weighted news, in real time",
     description:
-      "Agent M scrapes Reddit, Yahoo Finance, Bloomberg, and more — then scores each article for sentiment and credibility so only the most reliable signals drive decisions.",
+      "Agent M scrapes Reddit, Yahoo Finance, TradingView, and more — then scores each article for sentiment and credibility so only the most reliable signals drive decisions.",
     response: <NewsResponse />,
     accentColor: "text-violet-400",
     bgClass: "from-violet-900/20 to-transparent",
@@ -296,7 +296,7 @@ const FEATURES: Feature[] = [
     icon: icons.notify,
     headline: "The right alert, at the right moment",
     description:
-      "Get notified the instant breaking news directly impacts a stock you hold — and receive trade confirmations the moment Agent M acts on your behalf.",
+      "Get notified the instant breaking news directly impacts your portfolio — and receive trade confirmations the moment Agent M acts on your behalf.",
     response: <NotifyResponse />,
     prompt: "Alert me when high-credibility news hits any of my holdings",
     accentColor: "text-amber-400",
@@ -326,7 +326,7 @@ export default function AgentMFeatures() {
 
   // For the trade tab, the right panel takes the full card height with its own scroll
   const isTradeTab =
-    activeId === "trade" || activeId === "news" || activeId === "notify"
+    activeId === "trade" || activeId === "news" || activeId === "notify" || activeId === "risk"
 
   return (
     <section id="features-section" className="w-full py-16 px-6 lg:px-12">
@@ -354,11 +354,10 @@ export default function AgentMFeatures() {
                 key={f.id}
                 onClick={() => setActiveId(f.id)}
                 className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-medium transition-all duration-200
-          ${
-            activeId === f.id
-              ? "bg-primary/10 text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
+          ${activeId === f.id
+                    ? "bg-primary/10 text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
               >
                 <span className={activeId === f.id ? active.accentColor : ""}>
                   {f.icon}
@@ -378,11 +377,10 @@ export default function AgentMFeatures() {
                   setShowMore(false)
                 }}
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs text-left font-medium transition-all duration-200
-          ${
-            activeId === f.id
-              ? "bg-primary/10 text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
+          ${activeId === f.id
+                    ? "bg-primary/10 text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
               >
                 <span className={activeId === f.id ? active.accentColor : ""}>
                   {f.icon}
@@ -395,11 +393,10 @@ export default function AgentMFeatures() {
             <button
               onClick={() => setShowMore((v) => !v)}
               className={`inline-flex items-center justify-center rounded-full px-3 py-2 text-xs font-medium transition-all duration-200
-        ${
-          FEATURES.slice(2).some((f) => f.id === activeId)
-            ? "bg-primary/10 text-foreground shadow-sm"
-            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-        }`}
+        ${FEATURES.slice(2).some((f) => f.id === activeId)
+                  ? "bg-primary/10 text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
             >
               {FEATURES.slice(2).some((f) => f.id === activeId) ? (
                 <span className={active.accentColor}>{active.icon}</span>
@@ -427,11 +424,10 @@ export default function AgentMFeatures() {
                       setShowMore(false)
                     }}
                     className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 text-left
-              ${
-                activeId === f.id
-                  ? "bg-primary/10 text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              }`}
+              ${activeId === f.id
+                        ? "bg-primary/10 text-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      }`}
                   >
                     <span className={activeId === f.id ? f.accentColor : ""}>
                       {f.icon}
