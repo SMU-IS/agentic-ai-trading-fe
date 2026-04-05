@@ -1,4 +1,4 @@
-name: Trading Agent CI
+name: Agent M Frontend CI/CD Workflow
 
 on:
   workflow_dispatch:
@@ -57,7 +57,7 @@ jobs:
           sleep 10
 
           JOB_ID=$(aws amplify list-jobs --app-id "$APP_ID" --branch-name "$BRANCH" --query 'jobSummaries[?status==`RUNNING` || status==`PENDING`].jobId' --output text | awk '{print $1}')
-          
+
           if [ -z "$JOB_ID" ] || [ "$JOB_ID" == "None" ]; then
             echo "⚠️ No running or pending jobs found. Getting the latest job instead..."
             JOB_ID=$(aws amplify list-jobs --app-id "$APP_ID" --branch-name "$BRANCH" --max-items 1 --query 'jobSummaries[0].jobId' --output text)
@@ -67,7 +67,7 @@ jobs:
 
           while true; do
             STATUS=$(aws amplify get-job --app-id "$APP_ID" --branch-name "$BRANCH" --job-id "$JOB_ID" --query 'job.summary.status' --output text)
-            
+
             if [ -z "$STATUS" ] || [ "$STATUS" == "None" ]; then
               echo "❌ Failed to retrieve status for Job $JOB_ID."
               exit 1
