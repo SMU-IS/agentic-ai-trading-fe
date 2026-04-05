@@ -51,9 +51,13 @@ function fromApiSubreddit(s: string): Subreddit {
 }
 
 // ─── API ───────────────────────────────────────────────────────────────────────
-const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`
-const userId = sessionStorage.getItem("userId")
-const AGENT_SETTINGS_URL = `${BASE_URL}/trading/decisions/agent-settings/${userId}`
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL ?? ""
+
+function getAgentSettingsUrl(): string {
+  const userId = sessionStorage.getItem("userId")
+  return `${BASE_URL}/trading/decisions/agent-settings/${userId}`
+}
 
 interface AgentSettings {
   user_id: string
@@ -64,7 +68,7 @@ interface AgentSettings {
 }
 
 async function fetchAgentSettings(): Promise<AgentSettings | null> {
-  const res = await fetch(AGENT_SETTINGS_URL)
+  const res = await fetch(getAgentSettingsUrl())
   if (!res.ok) return null
   return res.json()
 }
@@ -72,7 +76,7 @@ async function fetchAgentSettings(): Promise<AgentSettings | null> {
 async function postAgentSettings(
   payload: Omit<AgentSettings, "user_id">,
 ): Promise<AgentSettings | null> {
-  const res = await fetch(AGENT_SETTINGS_URL, {
+  const res = await fetch(getAgentSettingsUrl(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
