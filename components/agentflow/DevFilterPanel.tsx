@@ -130,31 +130,29 @@ export function DevFilterPanel() {
               <p className="text-xs text-muted-foreground">
                 Reddit — select subreddits
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-col gap-0.5 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 {REDDIT_SUBREDDITS.map((sub) => {
-                  const selected =
-                    sources.reddit.selectedSubreddits.includes(sub)
+                  const selected = sources.reddit.selectedSubreddits.includes(sub)
                   return (
                     <button
                       key={sub}
                       onClick={() => toggleSubreddit(sub as Subreddit)}
-                      className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium transition-all duration-200 ${
-                        selected
-                          ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
-                          : "border-border bg-muted/20 text-muted-foreground hover:bg-muted/50"
-                      }`}
+                      className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-all duration-200 text-left ${selected
+                        ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
+                        : "border-transparent bg-muted/20 text-muted-foreground hover:bg-muted/50 hover:border-border"
+                        }`}
                     >
                       <FaReddit
-                        className={`h-3 w-3 ${selected ? "text-orange-400" : "text-muted-foreground"}`}
+                        className={`h-3.5 w-3.5 shrink-0 ${selected ? "text-orange-400" : "text-muted-foreground"}`}
                       />
-                      <span>{sub.replace("r/", "")}</span>
+                      <span className="flex-1">{sub}</span>
                       <motion.div
                         animate={{
                           scale: selected ? 1 : 0,
                           opacity: selected ? 1 : 0,
                         }}
                         transition={{ duration: 0.15 }}
-                        className="h-1.5 w-1.5 rounded-full bg-orange-400"
+                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400"
                       />
                     </button>
                   )
@@ -255,22 +253,20 @@ export function DevFilterPanel() {
 
             {/* Conservative label */}
             <span
-              className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 ${
-                riskMode === "conservative"
-                  ? "text-white"
-                  : "text-muted-foreground"
-              }`}
+              className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 ${riskMode === "conservative"
+                ? "text-white"
+                : "text-muted-foreground"
+                }`}
             >
               Conservative
             </span>
 
             {/* Aggressive label */}
             <span
-              className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 ${
-                riskMode === "aggressive"
-                  ? "text-white"
-                  : "text-muted-foreground"
-              }`}
+              className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 ${riskMode === "aggressive"
+                ? "text-white"
+                : "text-muted-foreground"
+                }`}
             >
               Aggressive
             </span>
