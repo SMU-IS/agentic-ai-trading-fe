@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { FaReddit } from "react-icons/fa"
 import { SiTradingview } from "react-icons/si"
+import { useEffect, useRef } from "react"
+
 import {
   useDevFilters,
   REDDIT_SUBREDDITS,
@@ -68,6 +70,24 @@ export function DevFilterPanel() {
     toggleRiskMode,
     handleSave,
   } = useDevFilters()
+  const subredditListRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!sources.reddit.enabled) return
+    const el = subredditListRef.current
+    if (!el) return
+
+    // Small delay so AnimatePresence finishes its entrance first
+    const timeout = setTimeout(() => {
+      el.scrollTo({ top: 60, behavior: "smooth" })
+      setTimeout(() => {
+        el.scrollTo({ top: 0, behavior: "smooth" })
+      }, 500)
+    }, 300)
+
+    return () => clearTimeout(timeout)
+  }, [sources.reddit.enabled])
+
 
   return (
     <motion.div
@@ -130,7 +150,7 @@ export function DevFilterPanel() {
               <p className="text-xs text-muted-foreground">
                 Reddit — select subreddits
               </p>
-              <div className="flex flex-col gap-0.5 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+              <div ref={subredditListRef} className="flex flex-col gap-0.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 {REDDIT_SUBREDDITS.map((sub) => {
                   const selected = sources.reddit.selectedSubreddits.includes(sub)
                   return (
