@@ -90,7 +90,7 @@ export function MetricsCard() {
       <div className="flex-1 flex flex-col justify-center gap-6 p-6">
         {/* ── Live from /metrics/cluster ── */}
         <ScrambleNumber
-          target="1400+"
+          target="300+"
           label="News Analysed / day"
           delay={500}
         />
