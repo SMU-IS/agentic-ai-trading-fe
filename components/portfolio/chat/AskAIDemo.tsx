@@ -654,7 +654,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
 
             <div
               className="relative flex flex-col overflow-hidden rounded-[calc(1rem-2px)] border-0 bg-card shadow-2xl"
-              style={{ minHeight: "40vh", maxHeight: "50vh" }}
+              style={{ minHeight: "50vh", maxHeight: "70vh" }}
             >
               {/* Header */}
               <div className="flex flex-shrink-0 items-center justify-between border-b border-border px-4 pb-2 pt-3">

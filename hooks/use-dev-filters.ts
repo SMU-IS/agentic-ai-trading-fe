@@ -1,4 +1,5 @@
 import { useEffect, useState, KeyboardEvent } from "react"
+import Cookies from "js-cookie"
 
 export type Source = "reddit" | "tradingview"
 export type RiskMode = "aggressive" | "conservative"
@@ -9,6 +10,11 @@ export const REDDIT_SUBREDDITS = [
   "r/stocks",
   "r/options",
   "r/stockmarket",
+  "r/stocks_picks",
+  "r/shortsqueeze",
+  "r/ValueInvesting",
+  "r/pennystocks",
+  "r/stockstobuytoday",
 ] as const
 
 export type Subreddit = (typeof REDDIT_SUBREDDITS)[number]
@@ -35,44 +41,61 @@ const DEFAULT_STATE: Record<Source, SourceState> = {
   },
 }
 
+// Map subreddit display format ("r/wallstreetbets") to API format ("wallstreetbets")
+function toApiSubreddit(s: Subreddit): string {
+  return s.replace(/^r\//, "")
+}
+
+// Map API format ("wallstreetbets") back to display format ("r/wallstreetbets")
+function fromApiSubreddit(s: string): Subreddit {
+  return `r/${s}` as Subreddit
+}
+
 // ─── API ───────────────────────────────────────────────────────────────────────
 
-async function fetchNewsSourceStatus(): Promise<Record<Source, boolean>> {
-  const res = await fetch("/api/filters/news/status")
-  if (!res.ok) return { reddit: true, tradingview: true }
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL ?? ""
+
+function getToken(): string {
+  return Cookies.get("jwt") ?? ""
+}
+
+function getAgentSettingsUrl(): string {
+  const userId = sessionStorage.getItem("userId")
+  return `${BASE_URL}/trading/decisions/agent-settings/${userId}`
+}
+
+interface AgentSettings {
+  user_id: string
+  risk_profile: RiskMode
+  reddit_enabled: boolean
+  tradingview_enabled: boolean
+  reddit_forums: string[]
+}
+
+async function fetchAgentSettings(): Promise<AgentSettings | null> {
+  const token = getToken()
+  if (!token) return null
+
+  const res = await fetch(getAgentSettingsUrl(), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) return null
   return res.json()
 }
 
-async function postToggleNews(source: Source, enabled: boolean) {
-  await fetch("/api/filters/news/toggle", {
+async function postAgentSettings(
+  payload: Omit<AgentSettings, "user_id">,
+): Promise<AgentSettings | null> {
+  const res = await fetch(getAgentSettingsUrl(), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ source, enabled }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(payload),
   })
-}
-
-async function postFilterReddit(subreddits: Subreddit[]) {
-  await fetch("/api/filters/reddit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ subreddits }),
-  })
-}
-
-async function postFilterTradingView(tickers: string[]) {
-  await fetch("/api/filters/tradingview", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tickers }),
-  })
-}
-
-async function postRiskMode(mode: RiskMode) {
-  await fetch("/api/filters/risk", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mode }),
-  })
+  if (!res.ok) return null
+  return res.json()
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -86,16 +109,22 @@ export function useDevFilters() {
   const [savedPulse, setSavedPulse] = useState(false)
 
   useEffect(() => {
-    fetchNewsSourceStatus()
-      .then((status) => {
+    fetchAgentSettings()
+      .then((settings) => {
+        if (!settings) return
         setSources((prev) => ({
           ...prev,
-          reddit: { ...prev.reddit, enabled: status.reddit ?? true },
+          reddit: {
+            ...prev.reddit,
+            enabled: settings.reddit_enabled,
+            selectedSubreddits: settings.reddit_forums.map(fromApiSubreddit),
+          },
           tradingview: {
             ...prev.tradingview,
-            enabled: status.tradingview ?? false,
+            enabled: settings.tradingview_enabled,
           },
         }))
+        setRiskMode(settings.risk_profile)
       })
       .finally(() => setIsHydrating(false))
   }, [])
@@ -163,17 +192,12 @@ export function useDevFilters() {
 
   const handleSave = async () => {
     setIsSaving(true)
-    await Promise.all([
-      postToggleNews("reddit", sources.reddit.enabled),
-      postToggleNews("tradingview", sources.tradingview.enabled),
-      sources.reddit.enabled
-        ? postFilterReddit(sources.reddit.selectedSubreddits)
-        : Promise.resolve(),
-      sources.tradingview.enabled
-        ? postFilterTradingView(sources.tradingview.tickers)
-        : Promise.resolve(),
-      postRiskMode(riskMode),
-    ])
+    await postAgentSettings({
+      risk_profile: riskMode,
+      reddit_enabled: sources.reddit.enabled,
+      tradingview_enabled: sources.tradingview.enabled,
+      reddit_forums: sources.reddit.selectedSubreddits.map(toApiSubreddit),
+    })
     setIsSaving(false)
     setSavedPulse(true)
     setTimeout(() => setSavedPulse(false), 2000)
