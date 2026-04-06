@@ -99,12 +99,11 @@ export default function AgentReasoningAccordion({
                     },
                     {
                       label: "Risk per Share",
-                      value: selectedTrade.risk_evaluation.risk_per_share + `(${(parseFloat(selectedTrade.risk_evaluation.risk_per_share) / selectedTrade.price * 100).toFixed(2)}%)`,
-                      color: "",
+                      value: `${parseFloat(selectedTrade.risk_evaluation.risk_per_share)} (${(parseFloat(selectedTrade.risk_evaluation.risk_per_share) / selectedTrade.price * 100).toFixed(2)}%)`, color: "",
                     },
                     {
                       label: "Reward per Share",
-                      value: selectedTrade.risk_evaluation.reward_per_share + `(${(parseFloat(selectedTrade.risk_evaluation.reward_per_share) / selectedTrade.price * 100).toFixed(2)}%)`,
+                      value: `${parseFloat(selectedTrade.risk_evaluation.reward_per_share)} (${(parseFloat(selectedTrade.risk_evaluation.reward_per_share) / selectedTrade.price * 100).toFixed(2)}%)`,
                       color: "text-green-500",
                     },
                     {
