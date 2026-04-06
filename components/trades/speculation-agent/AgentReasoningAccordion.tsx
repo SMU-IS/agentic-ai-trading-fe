@@ -68,7 +68,13 @@ export default function AgentReasoningAccordion({
 
       {selectedTrade.risk_evaluation &&
         Object.keys(selectedTrade.risk_evaluation).length > 0 && (
-          <Accordion type="single" collapsible className="w-full" defaultValue="risk-evaluation">
+          <Accordion
+            type="single"
+            collapsible
+            className="w-full"
+            defaultValue="risk-evaluation"
+            key={selectedTrade.id}
+          >
             <AccordionItem
               value="risk-evaluation"
               className="rounded-lg border border-border bg-muted/30 px-4"
