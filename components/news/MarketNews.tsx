@@ -441,10 +441,11 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                           {ticker.event_type && (
                             <span className="opacity-70">{ticker.event_type}</span>
                           )}
-                          <span>
-                            {ticker.sentiment_label.charAt(0).toUpperCase() +
-                              ticker.sentiment_label.slice(1)}
-                            {sentScore !== null && (
+                          {sentScore !== null && (
+                            <span className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
+                            >
+                              {ticker.sentiment_label.charAt(0).toUpperCase() +
+                                ticker.sentiment_label.slice(1)}
                               <>
                                 <span
                                   className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
@@ -453,8 +454,9 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                                   {sentScore.toFixed(2)} sentiment
                                 </span>
                               </>
-                            )}
-                          </span>
+                            </span>
+                          )}
+
                         </span>
                       ))}
                     </div>
