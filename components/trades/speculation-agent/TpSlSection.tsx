@@ -150,11 +150,10 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
           selectedTrade.risk_evaluation &&
           potentialAmount > 0 && (
             <div
-              className={`mt-1 flex items-center gap-1 rounded-md px-2 py-1 w-fit text-xs font-semibold border ${
-                isTakeProfit
+              className={`mt-1 flex items-center gap-1 rounded-md px-2 py-1 w-fit text-xs font-semibold border ${isTakeProfit
                   ? "bg-green-500/5 border-green-500/20 text-green-500"
                   : "bg-red-500/5 border-red-500/20 text-red-500"
-              }`}
+                }`}
             >
               {isTakeProfit ? (
                 <TrendingUp className="h-3 w-3" />
@@ -171,11 +170,10 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
         {isFilled && (
           <div className="flex items-center justify-between mt-1">
             <span
-              className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                isTakeProfit
+              className={`text-xs font-bold px-2 py-0.5 rounded-full ${isTakeProfit
                   ? "bg-green-500/20 text-green-500"
                   : "bg-red-500/20 text-red-500"
-              }`}
+                }`}
             >
               {isTakeProfit ? "+" : ""}${legPL.toFixed(2)}
             </span>
@@ -211,9 +209,9 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                 const unrealizedPnl =
                   side === "sell"
                     ? (selectedTrade.price - currentPrice) *
-                      selectedTrade.quantity
+                    selectedTrade.quantity
                     : (currentPrice - selectedTrade.price) *
-                      selectedTrade.quantity
+                    selectedTrade.quantity
                 const isPositive = unrealizedPnl >= 0
                 const isWinning =
                   side === "sell"
@@ -332,11 +330,10 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                 </div>
               </div>
               <div
-                className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  isProfit
+                className={`px-3 py-1 rounded-full text-xs font-bold ${isProfit
                     ? "bg-green-500/10 text-green-500 border border-green-500/20"
                     : "bg-red-500/10 text-red-500 border border-red-500/20"
-                }`}
+                  }`}
               >
                 {isProfit ? "PROFIT" : "LOSS"}
               </div>

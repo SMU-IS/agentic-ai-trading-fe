@@ -24,6 +24,7 @@ export default function AgentReasoningAccordion({
   if (selectedTrade.trading_agent_reasonings.startsWith("[Trade Conflict]"))
     return null
 
+
   return (
     <div className="space-y-4">
       <Accordion type="single" collapsible className="w-full">
@@ -98,12 +99,12 @@ export default function AgentReasoningAccordion({
                     },
                     {
                       label: "Risk per Share",
-                      value: selectedTrade.risk_evaluation.risk_per_share + `(${(+selectedTrade.risk_evaluation.risk_per_share / selectedTrade.price * 100).toFixed(2)}%)`,
+                      value: selectedTrade.risk_evaluation.risk_per_share + `(${(parseFloat(selectedTrade.risk_evaluation.risk_per_share) / selectedTrade.price * 100).toFixed(2)}%)`,
                       color: "",
                     },
                     {
                       label: "Reward per Share",
-                      value: selectedTrade.risk_evaluation.reward_per_share + `(${(+selectedTrade.risk_evaluation.reward_per_share / selectedTrade.price * 100).toFixed(2)}%)`,
+                      value: selectedTrade.risk_evaluation.reward_per_share + `(${(parseFloat(selectedTrade.risk_evaluation.reward_per_share) / selectedTrade.price * 100).toFixed(2)}%)`,
                       color: "text-green-500",
                     },
                     {
