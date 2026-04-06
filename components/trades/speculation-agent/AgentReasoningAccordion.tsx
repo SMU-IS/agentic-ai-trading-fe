@@ -30,7 +30,8 @@ export default function AgentReasoningAccordion({
 
   return (
     <div className="space-y-4">
-      <Accordion type="single" collapsible className="w-full" defaultValue="risk-evaluation">
+      <Accordion type="single" collapsible className="w-full">
+
         <AccordionItem
           value="agent-reasoning"
           className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4"
@@ -67,7 +68,7 @@ export default function AgentReasoningAccordion({
 
       {selectedTrade.risk_evaluation &&
         Object.keys(selectedTrade.risk_evaluation).length > 0 && (
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="single" collapsible className="w-full" defaultValue="risk-evaluation">
             <AccordionItem
               value="risk-evaluation"
               className="rounded-lg border border-border bg-muted/30 px-4"
