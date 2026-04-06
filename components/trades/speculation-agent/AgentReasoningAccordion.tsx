@@ -24,6 +24,9 @@ export default function AgentReasoningAccordion({
   if (selectedTrade.trading_agent_reasonings.startsWith("[Trade Conflict]"))
     return null
 
+  const parsePrice = (val: string) => parseFloat(val.replace(/[^0-9.-]/g, ''))
+
+
 
   return (
     <div className="space-y-4">
@@ -99,12 +102,11 @@ export default function AgentReasoningAccordion({
                     },
                     {
                       label: "Risk per Share",
-                      value: `${parseFloat(selectedTrade.risk_evaluation.risk_per_share)} (${(parseFloat(selectedTrade.risk_evaluation.risk_per_share) / selectedTrade.price * 100).toFixed(2)}%)`, color: "",
+                      value: `${selectedTrade.risk_evaluation.risk_per_share} (${(parsePrice(selectedTrade.risk_evaluation.risk_per_share) / selectedTrade.price * 100).toFixed(2)}%)`,
                     },
                     {
                       label: "Reward per Share",
-                      value: `${parseFloat(selectedTrade.risk_evaluation.reward_per_share)} (${(parseFloat(selectedTrade.risk_evaluation.reward_per_share) / selectedTrade.price * 100).toFixed(2)}%)`,
-                      color: "text-green-500",
+                      value: `${selectedTrade.risk_evaluation.reward_per_share} (${(parsePrice(selectedTrade.risk_evaluation.reward_per_share) / selectedTrade.price * 100).toFixed(2)}%)`, color: "text-green-500",
                     },
                     {
                       label: "ATR Distance",
