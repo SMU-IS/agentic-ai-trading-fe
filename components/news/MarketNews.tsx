@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { ExternalLink, RefreshCw } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import Cookies from "js-cookie"
-import { motion, useInView } from "framer-motion"
+import { motion } from "framer-motion"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -48,7 +48,7 @@ interface AgentNewsItem {
 interface AgentNewsResponse {
   status: string
   count: number
-  next_offset: string | null  // ← null means end of results
+  next_offset: string | null
   data: AgentNewsItem[]
 }
 
@@ -85,23 +85,57 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const [selectedCategory, setSelectedCategory] = useState(category)
   const [agentSubTab, setAgentSubTab] = useState<AgentSubTab>("reddit")
 
-  // ── Pagination state ────────────────────────────────────────────────────────
   const [nextOffset, setNextOffset] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
 
   const wsRef = useRef<WebSocket | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  // ── Refs for values needed inside the IO callback (avoids stale closures) ──
+  const hasMoreRef = useRef(hasMore)
+  const loadingMoreRef = useRef(loadingMore)
+  const nextOffsetRef = useRef(nextOffset)
+
+  useEffect(() => { hasMoreRef.current = hasMore }, [hasMore])
+  useEffect(() => { loadingMoreRef.current = loadingMore }, [loadingMore])
+  useEffect(() => { nextOffsetRef.current = nextOffset }, [nextOffset])
 
   const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY
   const wsUrl = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}/ws/notifications`
 
-  const loadMoreRef = useRef<HTMLDivElement>(null)
-  const listRef = useRef<HTMLDivElement>(null)
+  // ── Native IntersectionObserver for "scroll for more" ──────────────────────
+  useEffect(() => {
+    if (selectedCategory !== "agent") return
 
-  const isLoadMoreInView = useInView(loadMoreRef, {
-    root: listRef,
-    margin: "0px 0px 0px 0px",
-    amount: 0.1,
-  })
+    const sentinel = loadMoreRef.current
+    const scrollContainer = listRef.current
+    if (!sentinel || !scrollContainer) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        if (
+          entry.isIntersecting &&
+          hasMoreRef.current &&
+          !loadingMoreRef.current &&
+          nextOffsetRef.current
+        ) {
+          fetchAgentNews(nextOffsetRef.current)
+        }
+      },
+      {
+        root: scrollContainer,   // scope to the scrollable div, not the window
+        rootMargin: "0px",
+        threshold: 0.1,
+      }
+    )
+
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+    // Re-attach whenever hasMore or nextOffset change so the observer is
+    // always live when new pages become available.
+  }, [selectedCategory, hasMore, nextOffset])
 
   const fetchMarketNews = async (newsCategory: string) => {
     setLoading(true)
@@ -120,11 +154,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     }
   }
 
-  /**
-   * Fetches agent news.
-   * - offset = undefined  → fresh load (replaces list, resets pagination)
-   * - offset = UUID string → "load more" (appends to list)
-   */
   const fetchAgentNews = async (offset?: string) => {
     const token = getToken()
     const isLoadMore = offset !== undefined
@@ -133,10 +162,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     setError(null)
 
     try {
-      // Build URL — only append offset param when paginating
-      const url = new URL(
-        `${process.env.NEXT_PUBLIC_BASE_API_URL}/qdrant/news`,
-      )
+      const url = new URL(`${process.env.NEXT_PUBLIC_BASE_API_URL}/qdrant/news`)
       url.searchParams.set("limit", "10")
       if (offset) url.searchParams.set("offset", offset)
 
@@ -162,7 +188,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
               new Date(a.metadata.timestamp).getTime(),
           )
         })
-
         setNextOffset(data.next_offset ?? null)
         setHasMore(!!data.next_offset)
       } else {
@@ -175,7 +200,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     }
   }
 
-  // ── Reset & re-fetch whenever sub-tab changes (only in agent mode) ──────────
   useEffect(() => {
     if (selectedCategory !== "agent") return
     setAgentNews([])
@@ -186,7 +210,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
 
   useEffect(() => {
     if (selectedCategory === "agent") {
-      // Initial fetch
       setAgentNews([])
       setNextOffset(null)
       setHasMore(false)
@@ -263,13 +286,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory])
 
-  useEffect(() => {
-    if (isLoadMoreInView && hasMore && !loadingMore && nextOffset) {
-      fetchAgentNews(nextOffset)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoadMoreInView])
-
   const filteredAgentNews = agentNews.filter((item) =>
     item.topic_id.toLowerCase().startsWith(agentSubTab),
   )
@@ -318,8 +334,8 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
             <Button
               key={cat.value}
               className={`px-4 py-2 text-sm font-medium transition-colors ${selectedCategory === cat.value
-                ? "bg-card text-foreground hover:bg-card"
-                : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                  ? "bg-card text-foreground hover:bg-card"
+                  : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/30"
                 }`}
               onClick={() => setSelectedCategory(cat.value as typeof selectedCategory)}
               disabled={loading}
@@ -333,7 +349,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
           variant="ghost"
           onClick={() => {
             if (selectedCategory === "agent") {
-              // Hard refresh: clear list & cursor, fetch from start
               setAgentNews([])
               setNextOffset(null)
               setHasMore(false)
@@ -357,8 +372,8 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
               key={sub.value}
               onClick={() => setAgentSubTab(sub.value)}
               className={`px-3 py-1 text-xs font-medium tracking-wide rounded transition-colors ${agentSubTab === sub.value
-                ? "bg-primary/10 text-primary border border-primary/30"
-                : "text-muted-foreground hover:text-foreground"
+                  ? "bg-primary/10 text-primary border border-primary/30"
+                  : "text-muted-foreground hover:text-foreground"
                 }`}
             >
               {sub.label}
@@ -374,7 +389,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
         </div>
       )}
 
-      {/* Loading skeleton (initial load only) */}
+      {/* Loading skeleton */}
       {loading && (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
@@ -405,7 +420,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
             <>
               {filteredAgentNews.map((article) => {
                 const sentScore = avgSentimentScore(article.metadata.tickers_metadata)
-
                 return (
                   <div
                     key={article.topic_id}
@@ -414,7 +428,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                       article.metadata.url ? window.open(article.metadata.url, "_blank") : null
                     }
                   >
-                    {/* Headline + external link */}
                     <div className="flex min-w-0 items-start justify-between gap-2">
                       <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
                         {article.metadata.headline}
@@ -424,12 +437,10 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                       )}
                     </div>
 
-                    {/* Summary */}
                     <p className="mt-1 min-w-0 line-clamp-2 text-xs text-muted-foreground">
                       {article.metadata.text_content}
                     </p>
 
-                    {/* Ticker badges */}
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {article.metadata.tickers_metadata.map((ticker) => (
                         <span
@@ -442,26 +453,23 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                             <span className="opacity-70">{ticker.event_type}</span>
                           )}
                           {sentScore !== null && (
-                            <span className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
+                            <span
+                              className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
                             >
                               {ticker.sentiment_label.charAt(0).toUpperCase() +
                                 ticker.sentiment_label.slice(1)}
-                              <>
-                                <span
-                                  className={`flex-shrink-0 rounded border px-1.5 py-0.5 ml-2 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
-                                >
-                                  {sentScore > 0 ? "+" : ""}
-                                  {sentScore.toFixed(2)} sentiment
-                                </span>
-                              </>
+                              <span
+                                className={`flex-shrink-0 rounded border px-1.5 py-0.5 ml-2 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
+                              >
+                                {sentScore > 0 ? "+" : ""}
+                                {sentScore.toFixed(2)} sentiment
+                              </span>
                             </span>
                           )}
-
                         </span>
                       ))}
                     </div>
 
-                    {/* Footer */}
                     <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
                       <span className="min-w-0 truncate font-medium">
                         {article.metadata.source_domain}
@@ -476,48 +484,36 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                       <span className="flex-shrink-0">
                         {formatAgentDate(article.metadata.timestamp)}
                       </span>
-                      {/* {sentScore !== null && (
-                        <>
-                          <span className="flex-shrink-0">•</span>
-                          <span
-                            className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
-                          >
-                            {sentScore > 0 ? "+" : ""}
-                            {sentScore.toFixed(2)} sentiment
-                          </span>
-                        </>
-                      )} */}
                     </div>
                   </div>
                 )
               })}
-
-              {/* ── Load More button ─────────────────────────────────────── */}
-              {/* ── Auto load-more sentinel ──────────────────────────────── */}
-              {hasMore && (
-                <div ref={loadMoreRef} className="flex justify-center py-3">
-                  <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={loadingMore ? { opacity: 1, y: 0 } : { opacity: 0.4, y: 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="flex items-center gap-2 text-xs text-muted-foreground"
-                  >
-                    <motion.div
-                      animate={loadingMore ? { rotate: 360 } : { rotate: 0 }}
-                      transition={
-                        loadingMore
-                          ? { repeat: Infinity, duration: 0.8, ease: "linear" }
-                          : { duration: 0 }
-                      }
-                    >
-                      <RefreshCw className="h-3 w-3" />
-                    </motion.div>
-                    <span>{loadingMore ? "Loading more…" : "Scroll for more"}</span>
-                  </motion.div>
-                </div>
-              )}
             </>
           )}
+
+          {/* ── Sentinel: always rendered so the observer can attach ── */}
+          <div ref={loadMoreRef} className="flex justify-center py-3">
+            {hasMore && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={loadingMore ? { opacity: 1, y: 0 } : { opacity: 0.4, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="flex items-center gap-2 text-xs text-muted-foreground"
+              >
+                <motion.div
+                  animate={loadingMore ? { rotate: 360 } : { rotate: 0 }}
+                  transition={
+                    loadingMore
+                      ? { repeat: Infinity, duration: 0.8, ease: "linear" }
+                      : { duration: 0 }
+                  }
+                >
+                  <RefreshCw className="h-3 w-3" />
+                </motion.div>
+                <span>{loadingMore ? "Loading more…" : "Scroll for more"}</span>
+              </motion.div>
+            )}
+          </div>
         </div>
       )}
 
