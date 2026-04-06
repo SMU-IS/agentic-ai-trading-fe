@@ -30,7 +30,7 @@ export default function AgentReasoningAccordion({
 
   return (
     <div className="space-y-4">
-      <Accordion type="single" collapsible className="w-full">
+      <Accordion type="single" collapsible className="w-full" defaultValue="risk-evaluation">
         <AccordionItem
           value="agent-reasoning"
           className="rounded-lg border-2 border-primary/30 bg-primary/5 px-4"
