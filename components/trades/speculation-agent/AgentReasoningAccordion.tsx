@@ -103,7 +103,7 @@ export default function AgentReasoningAccordion({
                       color: "text-primary",
                     },
                     {
-                      label: "Total Risk",
+                      label: "Total Risk (position %)",
                       value: selectedTrade.risk_evaluation.total_risk,
                       color: "text-red-500",
                     },
