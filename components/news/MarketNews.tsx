@@ -334,8 +334,8 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
             <Button
               key={cat.value}
               className={`px-4 py-2 text-sm font-medium transition-colors ${selectedCategory === cat.value
-                  ? "bg-card text-foreground hover:bg-card"
-                  : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                ? "bg-card text-foreground hover:bg-card"
+                : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/30"
                 }`}
               onClick={() => setSelectedCategory(cat.value as typeof selectedCategory)}
               disabled={loading}
@@ -372,8 +372,8 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
               key={sub.value}
               onClick={() => setAgentSubTab(sub.value)}
               className={`px-3 py-1 text-xs font-medium tracking-wide rounded transition-colors ${agentSubTab === sub.value
-                  ? "bg-primary/10 text-primary border border-primary/30"
-                  : "text-muted-foreground hover:text-foreground"
+                ? "bg-primary/10 text-primary border border-primary/30"
+                : "text-muted-foreground hover:text-foreground"
                 }`}
             >
               {sub.label}
@@ -419,7 +419,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
           ) : (
             <>
               {filteredAgentNews.map((article) => {
-                const sentScore = avgSentimentScore(article.metadata.tickers_metadata)
                 return (
                   <div
                     key={article.topic_id}
@@ -452,20 +451,18 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                           {ticker.event_type && (
                             <span className="opacity-70">{ticker.event_type}</span>
                           )}
-                          {sentScore !== null && (
-                            <span
-                              className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
-                            >
-                              {ticker.sentiment_label.charAt(0).toUpperCase() +
-                                ticker.sentiment_label.slice(1)}
-                              <span
-                                className={`flex-shrink-0 rounded border px-1.5 py-0.5 ml-2 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
-                              >
-                                {sentScore > 0 ? "+" : ""}
-                                {sentScore.toFixed(2)} sentiment
-                              </span>
-                            </span>
-                          )}
+                          <span
+                            className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(ticker.sentiment_score)}`}
+                          >
+                            {ticker.sentiment_label.charAt(0).toUpperCase() +
+                              ticker.sentiment_label.slice(1)}
+                          </span>
+                          <span
+                            className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(ticker.sentiment_score)}`}
+                          >
+                            {ticker.sentiment_score > 0 ? "+" : ""}
+                            {ticker.sentiment_score.toFixed(2)} sentiment
+                          </span>
                         </span>
                       ))}
                     </div>
