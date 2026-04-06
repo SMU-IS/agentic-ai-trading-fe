@@ -11,7 +11,9 @@ import SummaryCards from "./SummaryCards"
 import { Card, CardHeader, CardContent } from "../ui/card"
 import Cookies from "js-cookie"
 
+
 const getToken = () => Cookies.get("jwt") ?? ""
+
 
 export interface TradeEvent {
   id: string
@@ -36,10 +38,12 @@ export interface TradeEvent {
   pnl_percent?: number
 }
 
+
 type AccountResponse = {
   non_marginable_buying_power: string
   portfolio_value: string
 }
+
 
 type Position = {
   symbol: string
@@ -53,6 +57,47 @@ type Position = {
   side: "long" | "short"
 }
 
+
+/** Returns true if the current US/Eastern time is within standard market hours (Mon–Fri 09:30–16:00). */
+function isMarketOpen(): boolean {
+  const now = new Date()
+  // Convert to US Eastern Time
+  const etString = now.toLocaleString("en-US", { timeZone: "America/New_York" })
+  const et = new Date(etString)
+  const day = et.getDay()          // 0 = Sun, 6 = Sat
+  const hours = et.getHours()
+  const minutes = et.getMinutes()
+  const totalMinutes = hours * 60 + minutes
+  // Mon–Fri only, 09:30 (570) to 16:00 (960) exclusive
+  if (day === 0 || day === 6) return false
+  return totalMinutes >= 570 && totalMinutes < 960
+}
+
+
+/** Returns the current US Eastern time formatted as "HH:MM:SS AM/PM ET". */
+function useUSEasternTime(): string {
+  const [time, setTime] = useState("")
+
+  useEffect(() => {
+    const update = () => {
+      const formatted = new Date().toLocaleTimeString("en-US", {
+        timeZone: "America/New_York",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      })
+      setTime(`${formatted} ET`)
+    }
+    update()
+    const interval = setInterval(update, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return time
+}
+
+
 export default function PortfolioTab() {
   const [selectedStock, setSelectedStock] = useState<StockWithHistory | null>(null)
   const [cashValue, setCashValue] = useState<number>(0)
@@ -64,6 +109,10 @@ export default function PortfolioTab() {
   const [tradingAccStatus, setTradingAccStatus] = useState<boolean>(false)
   const [loading, setLoading] = useState(true)
   const [selectedTrade, setSelectedTrade] = useState<TradeEvent | null>(null)
+  const [marketOpen, setMarketOpen] = useState<boolean>(false)
+
+  const usTime = useUSEasternTime()
+
 
   useEffect(() => {
     async function fetchData() {
@@ -81,6 +130,7 @@ export default function PortfolioTab() {
         setTotalValue(Number(account.portfolio_value))
         setCashValue(Number(account.non_marginable_buying_power))
         setTradingAccStatus(true)
+        setMarketOpen(isMarketOpen())
 
         const posRes = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_API_URL}/trading/positions`,
@@ -112,33 +162,87 @@ export default function PortfolioTab() {
     fetchData()
   }, [])
 
+
+  // Recheck market open status every minute
+  useEffect(() => {
+    if (!tradingAccStatus) return
+    const interval = setInterval(() => setMarketOpen(isMarketOpen()), 60_000)
+    return () => clearInterval(interval)
+  }, [tradingAccStatus])
+
+
   return (
     <>
       {/* Status bar */}
       <div className="mb-4">
-        <div className="mb-6 flex items-center justify-end">
+        <div className="mb-6 flex flex-wrap items-center justify-end gap-3">
           {loading ? (
             <div className="flex animate-pulse items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-muted" />
               <div className="h-3 w-48 rounded bg-muted" />
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <span
-                className={`h-2 w-2 flex-shrink-0 rounded-full ${
-                  tradingAccStatus ? "animate-pulse bg-teal-600" : "bg-red-500"
-                }`}
-              />
-              <p
-                className={`text-xs text-right ${
-                  tradingAccStatus ? "text-primary" : "text-red-500"
-                }`}
-              >
-                {tradingAccStatus
-                  ? "Agent M is connected to Alpaca Trading"
-                  : "Alpaca Trading connection failed, please try again later"}
-              </p>
-            </div>
+            <>
+              {tradingAccStatus && (
+                <>
+                  {/* US Eastern Time */}
+                  <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/30 px-2.5 py-1">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-3.5 w-3.5 text-muted-foreground"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span className="font-mono text-xs text-primary tabular-nums">
+                      {usTime}
+                    </span>
+                  </div>
+
+                  {/* Market Open / Closed */}
+                  <div
+                    className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs ${marketOpen
+                        ? "border-teal-600/30 bg-teal-600/10 text-teal-600"
+                        : "border-border bg-muted/30 text-muted-foreground"
+                      }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${marketOpen ? "animate-pulse bg-teal-500" : "bg-muted-foreground"
+                        }`}
+                    />
+                    {marketOpen ? "Market Open" : "Market Closed"}
+                  </div>
+
+                  {/* NASDAQ Connected */}
+                  <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/30 px-2.5 py-1">
+                    <span className="h-1.5 w-1.5 flex-shrink-0 animate-pulse rounded-full bg-teal-500" />
+                    <span className="text-xs text-primary">NASDAQ</span>
+                  </div>
+                </>
+              )}
+
+              {/* Alpaca connection status */}
+              <div className="flex items-center gap-2">
+                <span
+                  className={`h-2 w-2 flex-shrink-0 rounded-full ${tradingAccStatus ? "animate-pulse bg-teal-600" : "bg-red-500"
+                    }`}
+                />
+                <p
+                  className={`text-right text-xs ${tradingAccStatus ? "text-primary" : "text-red-500"
+                    }`}
+                >
+                  {tradingAccStatus
+                    ? "Agent M is connected to Alpaca Trading"
+                    : "Alpaca Trading connection failed, please try again later"}
+                </p>
+              </div>
+            </>
           )}
         </div>
 
@@ -188,6 +292,7 @@ export default function PortfolioTab() {
   )
 }
 
+
 // Summary Cards Skeleton
 function SummaryCardsSkeleton() {
   return (
@@ -206,6 +311,7 @@ function SummaryCardsSkeleton() {
     </div>
   )
 }
+
 
 // Holdings Table Skeleton — scrollable on mobile
 function HoldingsTableSkeleton() {
