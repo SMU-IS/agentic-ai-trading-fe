@@ -444,6 +444,16 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                           <span>
                             {ticker.sentiment_label.charAt(0).toUpperCase() +
                               ticker.sentiment_label.slice(1)}
+                            {sentScore !== null && (
+                              <>
+                                <span
+                                  className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
+                                >
+                                  {sentScore > 0 ? "+" : ""}
+                                  {sentScore.toFixed(2)} sentiment
+                                </span>
+                              </>
+                            )}
                           </span>
                         </span>
                       ))}
@@ -464,7 +474,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                       <span className="flex-shrink-0">
                         {formatAgentDate(article.metadata.timestamp)}
                       </span>
-                      {sentScore !== null && (
+                      {/* {sentScore !== null && (
                         <>
                           <span className="flex-shrink-0">•</span>
                           <span
@@ -474,7 +484,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                             {sentScore.toFixed(2)} sentiment
                           </span>
                         </>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 )
