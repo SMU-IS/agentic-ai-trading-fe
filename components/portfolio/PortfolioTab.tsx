@@ -208,15 +208,15 @@ export default function PortfolioTab() {
                   {/* Market Open / Closed */}
                   <div
                     className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs ${marketOpen
-                        ? "border-teal-600/30 bg-teal-600/10 text-teal-600"
-                        : "border-border bg-muted/30 text-muted-foreground"
+                      ? "border-teal-600/30 bg-teal-600/10 text-teal-600"
+                      : "border-border bg-muted/30 text-muted-foreground"
                       }`}
                   >
                     <span
                       className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${marketOpen ? "animate-pulse bg-teal-500" : "bg-muted-foreground"
                         }`}
                     />
-                    {marketOpen ? "Market Open" : "Market Closed"}
+                    {marketOpen ? "Market Open" : "Market Currently Closed"}
                   </div>
 
                   {/* NASDAQ Connected */}
