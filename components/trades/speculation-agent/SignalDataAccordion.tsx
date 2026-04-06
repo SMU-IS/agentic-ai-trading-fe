@@ -37,7 +37,7 @@ export default function SignalDataAccordion({
               <div className="flex items-center gap-1">
                 <Star className="h-3.5 w-3.5 text-yellow-500" />
                 <span className="text-xs text-muted-foreground">
-                  {selectedTrade.signal_data.confidence}/10
+                  {selectedTrade.signal_data.confidence}/10 Confidence
                 </span>
               </div>
               <span
@@ -48,13 +48,13 @@ export default function SignalDataAccordion({
               >
                 {selectedTrade.signal_data.trade_signal}
               </span>
-              <span
+              {/* <span
                 className={`hidden md:block rounded border px-2 py-0.5 text-xs font-medium ${getCredibilityColor(
                   selectedTrade.signal_data.credibility,
                 )}`}
               >
                 {selectedTrade.signal_data.credibility}
-              </span>
+              </span> */}
             </div>
           </div>
         </AccordionTrigger>
