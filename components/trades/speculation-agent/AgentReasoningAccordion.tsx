@@ -10,6 +10,7 @@ import {
 import { TradeEvent } from "@/lib/types"
 import { getRiskStatusColor } from "./utils"
 import RiskAdjustments from "./RiskAdjustments"
+import { number } from "framer-motion"
 
 interface AgentReasoningAccordionProps {
   selectedTrade: TradeEvent
@@ -97,12 +98,12 @@ export default function AgentReasoningAccordion({
                     },
                     {
                       label: "Risk per Share",
-                      value: selectedTrade.risk_evaluation.risk_per_share,
+                      value: selectedTrade.risk_evaluation.risk_per_share + `(${(+selectedTrade.risk_evaluation.risk_per_share / selectedTrade.price * 100).toFixed(2)}%)`,
                       color: "",
                     },
                     {
                       label: "Reward per Share",
-                      value: selectedTrade.risk_evaluation.reward_per_share,
+                      value: selectedTrade.risk_evaluation.reward_per_share + `(${(+selectedTrade.risk_evaluation.reward_per_share / selectedTrade.price * 100).toFixed(2)}%)`,
                       color: "text-green-500",
                     },
                     {
