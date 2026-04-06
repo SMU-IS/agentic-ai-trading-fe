@@ -733,7 +733,7 @@ export default function NotificationsDropdown() {
                     : "border-gray-500/20 bg-gray-500/10 text-gray-500",
               )}
             >
-              {notification.trade_signal}
+              {notification.trade_signal === "NO_TRADE" ? "No Trade" : notification.trade_signal}
             </span>
           )}
           {notification.credibility && (
