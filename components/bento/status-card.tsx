@@ -29,10 +29,10 @@ function formatLatency(latency_s: number | null | undefined): string {
 
 function deriveStatus(
   entry: { avg_latency_s: number | null; processed?: number } | undefined,
-): "ACTIVE" | "IDLE" {
+): "RUNNING" | "IDLE" {
   if (!entry) return "IDLE"
   // A service is considered ONLINE if it has processed at least 1 item in the window
-  return (entry.processed ?? 0) > 0 ? "ACTIVE" : "IDLE"
+  return (entry.processed ?? 0) > 0 ? "RUNNING" : "IDLE"
 }
 
 function calcGlobalThroughput(onlineCount: number, totalCount: number): number {
@@ -59,7 +59,7 @@ export function StatusCard() {
     }
   })
 
-  const onlineCount = regions.filter((r) => r.status === "ACTIVE").length
+  const onlineCount = regions.filter((r) => r.status === "RUNNING").length
   const throughput = calcGlobalThroughput(onlineCount, regions.length)
 
   return (
@@ -147,7 +147,7 @@ export function StatusCard() {
                   className="inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full"
                   style={{
                     backgroundColor:
-                      region.status === "ACTIVE"
+                      region.status === "RUNNING"
                         ? "hsl(var(--primary))"
                         : "hsl(var(--muted-foreground))",
                   }}
