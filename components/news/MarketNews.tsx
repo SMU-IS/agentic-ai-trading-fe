@@ -448,7 +448,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
                                 ticker.sentiment_label.slice(1)}
                               <>
                                 <span
-                                  className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
+                                  className={`flex-shrink-0 rounded border px-1.5 py-0.5 ml-2 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(sentScore)}`}
                                 >
                                   {sentScore > 0 ? "+" : ""}
                                   {sentScore.toFixed(2)} sentiment
