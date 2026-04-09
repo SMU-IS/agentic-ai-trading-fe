@@ -17,6 +17,7 @@ type ChatMessage = {
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_API_URL}`
 const API_URL = `${BASE_URL}/info-agent/query`
+const DELETE_SESSION_API_URL = `${BASE_URL}/info-agent/history`
 
 const SUGGESTED_PROMPTS = [
   "What is Agent M?",
@@ -296,7 +297,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
   const [isResetting, setIsResetting] = useState(false)
   const [newChatKey, setNewChatKey] = useState(0)
 
-  const sessionIdRef = useRef<string>(crypto.randomUUID())
+  const sessionIdRef = useRef<string>("")
   const abortControllerRef = useRef<AbortController | null>(null)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -321,15 +322,18 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
   }, [open])
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      if (!sessionIdRef.current) {
+        sessionIdRef.current = crypto.randomUUID()
+      }
+    } else {
       abortControllerRef.current?.abort()
-      recognitionRef.current?.stop()
       setMessages([])
       setInput("")
       setError(null)
       setLoading(false)
       setIsListening(false)
-      sessionIdRef.current = crypto.randomUUID()
+      sessionIdRef.current = ""
     }
   }, [open])
 
@@ -529,17 +533,27 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
 
   // ── New chat ─────────────────────────────────────────────────────────────────
 
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
-    sessionIdRef.current = crypto.randomUUID()
-    setNewChatKey((k) => k + 1)
+
+    try {
+      const DELETE_URL = `${DELETE_SESSION_API_URL}/${sessionIdRef.current}`
+      await fetch(DELETE_URL, {
+        method: "DELETE",
+      })
+      console.log("Chat history cleared in backend.")
+    } catch (err) {
+      console.error("Failed to clear history:", err)
+    }
+
     setIsResetting(true)
     setTimeout(() => {
       setMessages([])
       setInput("")
       setError(null)
       setLoading(false)
+      sessionIdRef.current = crypto.randomUUID()
       if (textareaRef.current) textareaRef.current.style.height = "auto"
       setIsResetting(false)
     }, 600)
