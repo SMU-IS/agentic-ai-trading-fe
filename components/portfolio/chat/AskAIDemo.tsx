@@ -528,24 +528,24 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
   }
 
   const handleStop = () => abortControllerRef.current?.abort()
-
   const handleSend = () => handleSendMessage()
 
-  // ── New chat ─────────────────────────────────────────────────────────────────
-
-  const handleNewChat = async () => {
-    abortControllerRef.current?.abort()
-    abortControllerRef.current = null
-
+  const deleteSessionHistory = async () => {
     try {
       const DELETE_URL = `${DELETE_SESSION_API_URL}/${sessionIdRef.current}`
       await fetch(DELETE_URL, {
         method: "DELETE",
       })
-      console.log("Chat history cleared in backend.")
     } catch (err) {
       console.error("Failed to clear history:", err)
     }
+  }
+
+  // ── New chat ─────────────────────────────────────────────────────────────────
+  const handleNewChat = async () => {
+    abortControllerRef.current?.abort()
+    abortControllerRef.current = null
+    await deleteSessionHistory()
 
     setIsResetting(true)
     setTimeout(() => {
