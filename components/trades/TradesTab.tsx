@@ -6,6 +6,7 @@ import SpeculationAgent from "./speculation-agent/SpeculationAgent"
 import AgentSummary from "./AgentSummary"
 import { TradeEvent } from "@/lib/types"
 import Cookies from "js-cookie"
+import { X } from "lucide-react"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -18,6 +19,7 @@ export default function TradesTab() {
   const [selectedTrade, setSelectedTrade] = useState<TradeEvent | null>(null)
   const [holdings, setHoldings] = useState<Record<string, HoldingInfo>>({})
   const [holdingsLoading, setHoldingsLoading] = useState(true)
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false)
 
   useEffect(() => {
     const fetchHoldings = async () => {
@@ -29,7 +31,7 @@ export default function TradesTab() {
             headers: {
               Authorization: `Bearer ${getToken()}`,
             },
-          }
+          },
         )
         const data = await response.json()
         const holdingsMap: Record<string, HoldingInfo> = {}
@@ -50,6 +52,22 @@ export default function TradesTab() {
     fetchHoldings()
   }, [])
 
+  // Trigger slide-up animation when a trade is selected on mobile
+  useEffect(() => {
+    if (selectedTrade) {
+      // Small delay so the mount triggers the CSS transition
+      requestAnimationFrame(() => setIsOverlayVisible(true))
+    } else {
+      setIsOverlayVisible(false)
+    }
+  }, [selectedTrade])
+
+  const handleCloseOverlay = () => {
+    setIsOverlayVisible(false)
+    // Wait for the slide-down animation to finish before clearing trade
+    setTimeout(() => setSelectedTrade(null), 300)
+  }
+
   return (
     <div>
       <AgentSummary />
@@ -63,47 +81,60 @@ export default function TradesTab() {
           />
         </div>
 
-        {/* Speculation Agent — full width on mobile, fills remaining on desktop */}
-        {/* On mobile: only show when a trade is selected, with a back affordance */}
-        <div className="w-full lg:flex-1">
-          {/* Mobile: contextual prompt when nothing is selected */}
-          {!selectedTrade && (
-            <div className="flex items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-6 py-10 text-sm text-muted-foreground lg:hidden">
-              Select a trade from the timeline to analyse it
-            </div>
-          )}
-
-          {/* Show panel always on desktop, conditionally on mobile */}
-          <div className={selectedTrade ? "block" : "h-full hidden lg:block"}>
-            {/* Mobile back button */}
-            {selectedTrade && (
-              <button
-                className="mb-3 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors lg:hidden"
-                onClick={() => setSelectedTrade(null)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-                Back to timeline
-              </button>
-            )}
-
-            <SpeculationAgent
-              selectedTrade={selectedTrade}
-              holdings={holdings}
-            />
-          </div>
+        {/* ── Desktop: side-by-side panel (unchanged) ── */}
+        <div className="hidden w-full lg:block lg:flex-1">
+          <SpeculationAgent selectedTrade={selectedTrade} holdings={holdings} />
         </div>
       </div>
+
+      {/* ── Mobile: slide-up overlay ── */}
+      {selectedTrade && (
+        <>
+          {/* Scrim / backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden"
+            style={{ opacity: isOverlayVisible ? 1 : 0 }}
+            onClick={handleCloseOverlay}
+            aria-hidden="true"
+          />
+
+          {/* Slide-up sheet */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col rounded-t-2xl border border-border bg-background/50 backdrop-blur-sm shadow-2xl transition-transform duration-300 ease-out lg:hidden"
+            style={{
+              transform: isOverlayVisible
+                ? "translateY(0)"
+                : "translateY(100%)",
+            }}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+            </div>
+
+            {/* Header bar */}
+            <div className="flex items-center justify-between  px-4 py-3">
+              <button
+                onClick={handleCloseOverlay}
+                className="absolute right-3 top-3 p-1 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+                aria-label="Close analysis panel"
+              >
+                <X />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+              <SpeculationAgent
+                selectedTrade={selectedTrade}
+                holdings={holdings}
+              />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
