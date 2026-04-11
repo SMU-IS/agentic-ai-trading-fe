@@ -7,6 +7,7 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { accessToken } from "@/app/util/getAccessToken"
 import Cookies from "js-cookie"
+import { MarkdownRenderer } from "@/components/portfolio/chat/MarkdownRenderer"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -615,9 +616,7 @@ export default function AgentSummary() {
                         {/* Show result message when no trades data */}
                         {!statsData && result && (
                           <div className="rounded-xl bg-card backdrop-blur-sm p-6">
-                            <p className="whitespace-pre-wrap text-left text-foreground">
-                              {result}
-                            </p>
+                            <MarkdownRenderer content={result} />
                           </div>
                         )}
 
