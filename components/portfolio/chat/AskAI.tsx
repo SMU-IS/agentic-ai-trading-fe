@@ -301,7 +301,10 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           try {
             const parsed = JSON.parse(data)
             if (parsed.error) throw new Error(parsed.error)
-            const token = parsed.token || ""
+            
+            // Check for both direct token and reasoning_content (common in some APIs)
+            const token = parsed.token || parsed.reasoning_content || ""
+            
             if (token) {
               accumulatedContent += token
               setMessages((prev) =>

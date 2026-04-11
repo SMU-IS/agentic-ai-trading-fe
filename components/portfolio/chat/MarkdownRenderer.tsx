@@ -2,19 +2,59 @@
 
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import rehypeRaw from "rehype-raw"
 import { cn } from "@/lib/utils"
+import { ChevronDown, BrainCircuit } from "lucide-react"
+import { useState } from "react"
 
 interface MarkdownRendererProps {
   content: string
   className?: string
 }
 
+function ThoughtBlock({ children }: { children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(true)
+
+  return (
+    <div className="my-4 rounded-xl border border-teal-500/20 bg-teal-500/5 overflow-hidden transition-all duration-300">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-teal-400/80 hover:bg-teal-500/10 transition-colors border-b border-teal-500/10"
+      >
+        <div className="flex items-center gap-2">
+          <BrainCircuit className="h-3.5 w-3.5 animate-pulse" />
+          <span>Thinking Process</span>
+        </div>
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 transition-transform duration-300",
+            isOpen ? "rotate-180" : "rotate-0",
+          )}
+        />
+      </button>
+      <div
+        className={cn(
+          "transition-all duration-300 ease-in-out",
+          isOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden",
+        )}
+      >
+        <div className="p-4 text-xs italic text-muted-foreground/80 leading-relaxed space-y-2 border-l-2 border-teal-500/30 ml-4 my-2">
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
+      rehypePlugins={[rehypeRaw]}
       className={cn("prose prose-invert max-w-none text-sm leading-relaxed", className)}
       components={{
+        // Handle custom thought tag
+        thought: ({ children }) => <ThoughtBlock>{children}</ThoughtBlock>,
         p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
         strong: ({ children }) => (
           <strong className="font-bold text-teal-400/90">{children}</strong>
