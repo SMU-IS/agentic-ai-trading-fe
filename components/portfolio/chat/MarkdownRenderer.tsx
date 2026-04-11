@@ -14,7 +14,8 @@ interface MarkdownRendererProps {
 function ThoughtBlock({ content }: { content: string }) {
   const [isOpen, setIsOpen] = useState(true)
 
-  if (!content.trim()) return null
+  // Don't render until we have some actual content beyond just a few characters or whitespace
+  if (!content || content.trim().length < 2) return null
 
   return (
     <div className="my-4 rounded-xl border border-teal-500/20 bg-teal-500/5 overflow-hidden transition-all duration-300">
@@ -41,7 +42,7 @@ function ThoughtBlock({ content }: { content: string }) {
       >
         <div className="p-4 text-xs italic text-muted-foreground/80 leading-relaxed space-y-2 border-l-2 border-teal-500/30 ml-4 my-2">
            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {content}
+            {content.trim()}
           </ReactMarkdown>
         </div>
       </div>
@@ -54,9 +55,11 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
   const thoughtSegments: string[] = []
   let mainContent = ""
   
+  // Handle escaped tags like \<thought>
+  const sanitizedContent = content.replace(/\\<thought>/g, '<thought>')
+  
   // Regex to find all thought blocks
-  // We handle both complete <thought>...</thought> and incomplete <thought>... during streaming
-  const parts = content.split("<thought>")
+  const parts = sanitizedContent.split("<thought>")
   
   // The first part is always main content (text before the first <thought>)
   mainContent += parts[0]
@@ -73,18 +76,27 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
     }
   }
 
-  // Remove any trailing partial <thought tag that might show up during streaming
-  // This prevents the raw tag from flashing before it's fully formed and split
-  mainContent = mainContent.replace(/<t?h?o?u?g?h?t?>?$/, '')
+  // Remove any trailing partial <thought tag or markdown artifacts that might show up during streaming
+  // This prevents the raw tag or empty separators (like > or ---) from flashing
+  mainContent = mainContent
+    .replace(/\\?$/, '') // Remove trailing backslash
+    .replace(/<t?h?o?u?g?h?t?>?$/, '') // Remove partial tag
+    .replace(/\n[>\-\s]+$/, '\n') // Remove trailing empty blockquotes or horizontal rules
+    .trimEnd()
 
   return (
     <div className={cn("prose prose-invert max-w-none text-sm leading-relaxed", className)}>
-      {thoughtSegments.map((thought, idx) => (
-        <ThoughtBlock 
-          key={idx} 
-          content={thought.replace(/<\/t?h?o?u?g?h?t?>?$/, '')} 
-        />
-      ))}
+      {thoughtSegments.map((thought, idx) => {
+        const cleanedThought = thought.replace(/<\/t?h?o?u?g?h?t?>?$/, '').trim();
+        if (cleanedThought.length < 2) return null;
+        
+        return (
+          <ThoughtBlock 
+            key={idx} 
+            content={cleanedThought} 
+          />
+        );
+      })}
       
       {mainContent && (
         <ReactMarkdown
