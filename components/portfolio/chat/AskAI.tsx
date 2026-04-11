@@ -1,6 +1,7 @@
 "use client"
 
 import ChatLibrary from "@/components/portfolio/chat/ChatLibrary"
+import { MarkdownRenderer } from "@/components/portfolio/chat/MarkdownRenderer"
 import { Card } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
 import Cookies from "js-cookie"
@@ -90,127 +91,12 @@ function MarkdownStreamingContent({
     return () => {}
   }, [content, isStreaming])
 
-  const parseMarkdown = (text: string) => {
-    const parts: JSX.Element[] = []
-    let buffer = ""
-    let i = 0
-
-    while (i < text.length) {
-      if (text[i] === "*" && text[i + 1] === "*") {
-        if (buffer) {
-          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
-          buffer = ""
-        }
-        let j = i + 2,
-          boldText = "",
-          foundClosing = false
-        while (j < text.length - 1) {
-          if (text[j] === "*" && text[j + 1] === "*") {
-            boldText = text.slice(i + 2, j)
-            foundClosing = true
-            j += 2
-            break
-          }
-          j++
-        }
-        if (foundClosing) {
-          parts.push(
-            <strong key={`bold-${parts.length}`} className="font-semibold">
-              {boldText}
-            </strong>,
-          )
-          i = j
-        } else {
-          buffer += text.slice(i, j)
-          i = j
-        }
-      } else if (
-        text[i] === "*" &&
-        text[i + 1] !== "*" &&
-        (i === 0 || text[i - 1] !== "*")
-      ) {
-        if (buffer) {
-          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
-          buffer = ""
-        }
-        let j = i + 1,
-          italicText = "",
-          foundClosing = false
-        while (j < text.length) {
-          if (
-            text[j] === "*" &&
-            (j === text.length - 1 || text[j + 1] !== "*")
-          ) {
-            italicText = text.slice(i + 1, j)
-            foundClosing = true
-            j += 1
-            break
-          }
-          j++
-        }
-        if (foundClosing) {
-          parts.push(
-            <em key={`italic-${parts.length}`} className="italic">
-              {italicText}
-            </em>,
-          )
-          i = j
-        } else {
-          buffer += text.slice(i, j)
-          i = j
-        }
-      } else if (text[i] === "`") {
-        if (buffer) {
-          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
-          buffer = ""
-        }
-        let j = i + 1,
-          codeText = "",
-          foundClosing = false
-        while (j < text.length) {
-          if (text[j] === "`") {
-            codeText = text.slice(i + 1, j)
-            foundClosing = true
-            j += 1
-            break
-          }
-          j++
-        }
-        if (foundClosing) {
-          parts.push(
-            <code
-              key={`code-${parts.length}`}
-              className="rounded bg-muted px-1 py-0.5 font-mono text-xs"
-            >
-              {codeText}
-            </code>,
-          )
-          i = j
-        } else {
-          buffer += text.slice(i, j)
-          i = j
-        }
-      } else if (text[i] === "\\\\n") {
-        if (buffer) {
-          parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
-          buffer = ""
-        }
-        parts.push(<br key={`br-${parts.length}`} />)
-        i++
-      } else {
-        buffer += text[i]
-        i++
-      }
-    }
-
-    if (buffer) parts.push(<span key={`text-${parts.length}`}>{buffer}</span>)
-    return parts
-  }
-
   return (
-    <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-      {parseMarkdown(displayedText)}
-      {isStreaming && <span className="animate-pulse">|</span>}
+    <div className="relative">
+      <MarkdownRenderer content={displayedText} />
+      {isStreaming && (
+        <span className="ml-1 inline-block h-3 w-1 animate-pulse bg-teal-400" />
+      )}
     </div>
   )
 }
