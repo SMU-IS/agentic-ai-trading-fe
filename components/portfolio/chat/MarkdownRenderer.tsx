@@ -73,10 +73,17 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
     }
   }
 
+  // Remove any trailing partial <thought tag that might show up during streaming
+  // This prevents the raw tag from flashing before it's fully formed and split
+  mainContent = mainContent.replace(/<t?h?o?u?g?h?t?>?$/, '')
+
   return (
     <div className={cn("prose prose-invert max-w-none text-sm leading-relaxed", className)}>
       {thoughtSegments.map((thought, idx) => (
-        <ThoughtBlock key={idx} content={thought} />
+        <ThoughtBlock 
+          key={idx} 
+          content={thought.replace(/<\/t?h?o?u?g?h?t?>?$/, '')} 
+        />
       ))}
       
       {mainContent && (
