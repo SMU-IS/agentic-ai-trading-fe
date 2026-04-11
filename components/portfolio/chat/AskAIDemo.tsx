@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from "framer-motion"
 import { ArrowUp, Mic, MicOff, Square, SquarePen, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
+import { MarkdownRenderer } from "@/components/portfolio/chat/MarkdownRenderer"
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ChatMessage = {
@@ -90,127 +92,12 @@ function MarkdownStreamingContent({
     return () => {}
   }, [content, isStreaming])
 
-  const parseMarkdown = (text: string): JSX.Element[] => {
-    const parts: JSX.Element[] = []
-    let buffer = ""
-    let i = 0
-
-    while (i < text.length) {
-      if (text[i] === "*" && text[i + 1] === "*") {
-        if (buffer) {
-          parts.push(<span key={`t-${parts.length}`}>{buffer}</span>)
-          buffer = ""
-        }
-        let j = i + 2,
-          boldText = "",
-          found = false
-        while (j < text.length - 1) {
-          if (text[j] === "*" && text[j + 1] === "*") {
-            boldText = text.slice(i + 2, j)
-            found = true
-            j += 2
-            break
-          }
-          j++
-        }
-        if (found) {
-          parts.push(
-            <strong key={`b-${parts.length}`} className="font-semibold">
-              {boldText}
-            </strong>,
-          )
-          i = j
-        } else {
-          buffer += text.slice(i, j)
-          i = j
-        }
-      } else if (
-        text[i] === "*" &&
-        text[i + 1] !== "*" &&
-        (i === 0 || text[i - 1] !== "*")
-      ) {
-        if (buffer) {
-          parts.push(<span key={`t-${parts.length}`}>{buffer}</span>)
-          buffer = ""
-        }
-        let j = i + 1,
-          italicText = "",
-          found = false
-        while (j < text.length) {
-          if (
-            text[j] === "*" &&
-            (j === text.length - 1 || text[j + 1] !== "*")
-          ) {
-            italicText = text.slice(i + 1, j)
-            found = true
-            j += 1
-            break
-          }
-          j++
-        }
-        if (found) {
-          parts.push(
-            <em key={`i-${parts.length}`} className="italic">
-              {italicText}
-            </em>,
-          )
-          i = j
-        } else {
-          buffer += text.slice(i, j)
-          i = j
-        }
-      } else if (text[i] === "`") {
-        if (buffer) {
-          parts.push(<span key={`t-${parts.length}`}>{buffer}</span>)
-          buffer = ""
-        }
-        let j = i + 1,
-          codeText = "",
-          found = false
-        while (j < text.length) {
-          if (text[j] === "`") {
-            codeText = text.slice(i + 1, j)
-            found = true
-            j += 1
-            break
-          }
-          j++
-        }
-        if (found) {
-          parts.push(
-            <code
-              key={`c-${parts.length}`}
-              className="rounded bg-muted px-1 py-0.5 font-mono text-xs"
-            >
-              {codeText}
-            </code>,
-          )
-          i = j
-        } else {
-          buffer += text.slice(i, j)
-          i = j
-        }
-      } else if (text[i] === "\n") {
-        if (buffer) {
-          parts.push(<span key={`t-${parts.length}`}>{buffer}</span>)
-          buffer = ""
-        }
-        parts.push(<br key={`br-${parts.length}`} />)
-        i++
-      } else {
-        buffer += text[i]
-        i++
-      }
-    }
-
-    if (buffer) parts.push(<span key={`t-${parts.length}`}>{buffer}</span>)
-    return parts
-  }
-
   return (
-    <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-      {parseMarkdown(displayedText)}
-      {isStreaming && <span className="animate-pulse">|</span>}
+    <div className="relative">
+      <MarkdownRenderer content={displayedText} />
+      {isStreaming && (
+        <span className="ml-1 inline-block h-3 w-1 animate-pulse bg-teal-400" />
+      )}
     </div>
   )
 }
@@ -415,7 +302,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
           try {
             const parsed = JSON.parse(data)
             if (parsed.error) throw new Error(parsed.error)
-            const token = parsed.token || parsed.content || parsed.text || ""
+            const token = parsed.token || parsed.content || parsed.text || parsed.reasoning_content || ""
             if (token) {
               accumulatedContent += token
               setMessages((prev) =>
