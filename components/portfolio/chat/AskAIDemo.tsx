@@ -511,7 +511,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
         {" "}
         {/* ↓ This div is the animated panel — re-enables pointer-events and drives open/close */}
         <div
-          className={`pointer-events-auto transform transition-all duration-500 ${
+          className={`pointer-events-auto relative transform transition-all duration-500 ${
             open
               ? "translate-y-0 scale-100 opacity-100"
               : "translate-y-[calc(100%+2rem)] scale-95 opacity-0"
@@ -529,7 +529,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="mb-3 flex flex-wrap justify-end gap-2"
+                className="absolute bottom-full right-0 mb-3 flex flex-wrap justify-end gap-2"
               >
                 {SUGGESTED_PROMPTS.map((prompt) => (
                   <button
