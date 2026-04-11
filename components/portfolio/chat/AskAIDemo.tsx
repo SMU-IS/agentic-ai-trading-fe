@@ -298,10 +298,10 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
           try {
             const parsed = JSON.parse(data)
             if (parsed.error) throw new Error(parsed.error)
-            
+
             // Only capture the actual answer or reasoning, ignore raw source context
             const token = parsed.token || parsed.reasoning_content || ""
-            
+
             if (token) {
               accumulatedContent += token
               setMessages((prev) =>
@@ -530,7 +530,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="mb-3 flex flex-wrap justify-end gap-2 px-1"
+                  className="mb-3 hidden sm:flex flex-wrap justify-end gap-2 px-1"
                 >
                   {SUGGESTED_PROMPTS.map((prompt) => (
                     <button
@@ -563,9 +563,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
               />
             </div>
 
-            <div
-              className="relative flex h-full flex-col overflow-hidden rounded-[calc(1rem-2px)] border-0 bg-card shadow-2xl"
-            >
+            <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(1rem-2px)] border-0 bg-card shadow-2xl">
               {/* Header */}
               <div className="flex flex-shrink-0 h-16 items-center justify-between border-b border-border px-4 py-3">
                 <div className="flex items-center gap-2.5">
@@ -600,7 +598,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
                       >
                         <SquarePen className="h-3.5 w-3.5" />
                         <span className="hidden sm:block">
-                          {isResetting ? "Clearing…" : "New Chat"}
+                          {isResetting ? "Clearing…" : "New"}
                         </span>
                       </motion.button>
                     )}
