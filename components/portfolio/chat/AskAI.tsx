@@ -4,7 +4,15 @@ import ChatLibrary from "@/components/portfolio/chat/ChatLibrary"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
-import { ArrowUp, Mic, MicOff, PanelLeft, Square, SquarePen, X } from "lucide-react"
+import {
+  ArrowUp,
+  Mic,
+  MicOff,
+  PanelLeft,
+  Square,
+  SquarePen,
+  X,
+} from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import Cookies from "js-cookie"
 
@@ -276,11 +284,11 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     if (!open) {
       hasAutoSentRef.current = false
       if (abortControllerRef.current) abortControllerRef.current.abort()
-      if (recognitionRef.current) {         
-      recognitionRef.current.stop()        
-      recognitionRef.current = null   
-      }     
-      setIsListening(false)                  
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+        recognitionRef.current = null
+      }
+      setIsListening(false)
       setShowLibrary(false)
       setMessages([])
       setError(null)
@@ -439,62 +447,64 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   }
 
   const handleVoiceInput = () => {
-  const SpeechRecognition =
-    window.SpeechRecognition || (window as any).webkitSpeechRecognition
+    const SpeechRecognition =
+      window.SpeechRecognition || (window as any).webkitSpeechRecognition
 
-  if (!SpeechRecognition) {
-    setError("Voice input is not supported in this browser. Try Chrome or Edge.")
-    return
-  }
+    if (!SpeechRecognition) {
+      setError(
+        "Voice input is not supported in this browser. Try Chrome or Edge.",
+      )
+      return
+    }
 
-  // If already listening, stop it
-  if (isListening && recognitionRef.current) {
-    recognitionRef.current.stop()
-    return
-  }
+    // If already listening, stop it
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop()
+      return
+    }
 
-  const recognition = new SpeechRecognition()
-  recognitionRef.current = recognition
-  recognition.lang = "en-US"
-  recognition.interimResults = true   // shows live partial results in the input
-  recognition.continuous = false      // stops after a natural pause
+    const recognition = new SpeechRecognition()
+    recognitionRef.current = recognition
+    recognition.lang = "en-US"
+    recognition.interimResults = true // shows live partial results in the input
+    recognition.continuous = false // stops after a natural pause
 
-  recognition.onstart = () => setIsListening(true)
+    recognition.onstart = () => setIsListening(true)
 
-  recognition.onresult = (event: SpeechRecognitionEvent) => {
-    let interimTranscript = ""
-    let finalTranscript = ""
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interimTranscript = ""
+      let finalTranscript = ""
 
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const transcript = event.results[i][0].transcript
-      if (event.results[i].isFinal) {
-        finalTranscript += transcript
-      } else {
-        interimTranscript += transcript
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript
+        } else {
+          interimTranscript += transcript
+        }
       }
+
+      // Show interim results live in the input box
+      setInput(finalTranscript || interimTranscript)
     }
 
-    // Show interim results live in the input box
-    setInput(finalTranscript || interimTranscript)
-  }
-
-  recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-    if (event.error !== "aborted") {
-      setError(`Voice error: ${event.error}`)
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      if (event.error !== "aborted") {
+        setError(`Voice error: ${event.error}`)
+      }
+      setIsListening(false)
     }
-    setIsListening(false)
-  }
 
-  recognition.onend = () => {
-    setIsListening(false)
-    recognitionRef.current = null
-    // Auto-send if something was captured
-    // (optional — remove the line below if you prefer the user presses Send manually)
-    // handleSendMessage(undefined, false)
-  }
+    recognition.onend = () => {
+      setIsListening(false)
+      recognitionRef.current = null
+      // Auto-send if something was captured
+      // (optional — remove the line below if you prefer the user presses Send manually)
+      // handleSendMessage(undefined, false)
+    }
 
-  recognition.start()
-}
+    recognition.start()
+  }
 
   const handleSendMessage = async (
     messageText?: string,
@@ -657,7 +667,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                 className="relative flex flex-col overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl"
                 style={{
                   minHeight: "30vh",
-                  maxHeight: showLibrary ? "80vh" : "60vh",
+                  maxHeight: showLibrary ? "100vh" : "80vh",
                   transition: "max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
                 }}
               >
@@ -908,8 +918,15 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                         e.target.style.height = `${e.target.scrollHeight}px`
                       }}
                       onKeyDown={(e) => {
-                        const isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches
-                        if (e.key === "Enter" && !e.shiftKey && !loading && !isMobile) {
+                        const isMobile = window.matchMedia(
+                          "(hover: none) and (pointer: coarse)",
+                        ).matches
+                        if (
+                          e.key === "Enter" &&
+                          !e.shiftKey &&
+                          !loading &&
+                          !isMobile
+                        ) {
                           e.preventDefault()
                           handleSend()
                         }
@@ -923,7 +940,9 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                       type="button"
                       onClick={handleVoiceInput}
                       disabled={loading || isResetting}
-                      aria-label={isListening ? "Stop listening" : "Start voice input"}
+                      aria-label={
+                        isListening ? "Stop listening" : "Start voice input"
+                      }
                       className={`flex-shrink-0 rounded-lg p-1.5 transition-colors ${
                         isListening
                           ? "text-red-400 hover:text-red-300 animate-pulse"
