@@ -47,6 +47,18 @@ function ThoughtBlock({ children }: { children: React.ReactNode }) {
 }
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
+  // Pre-process content to handle the custom <thought> tag safely
+  // This prevents the raw <thought> tags from appearing as text before they are parsed
+  const processedContent = content
+    .replace(/<thought>([\s\S]*?)<\/thought>/g, (match, p1) => {
+      return `<thought>${p1}</thought>`
+    })
+    // If there's an open tag but no closing tag (streaming), wrap it so it renders
+    .replace(/<thought>([\s\S]*?)$/g, (match, p1) => {
+      if (match.includes("</thought>")) return match
+      return `<thought>${p1}</thought>`
+    })
+
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
@@ -136,7 +148,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         ),
       }}
     >
-      {content}
+      {processedContent}
     </ReactMarkdown>
   )
 }
