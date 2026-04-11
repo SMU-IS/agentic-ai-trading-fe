@@ -523,20 +523,29 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
           }}
         >
           {/* Suggested prompts */}
-          <div className="mb-3 flex flex-wrap justify-end gap-2">
-            {SUGGESTED_PROMPTS.map((prompt) => (
-              <button
-                key={prompt}
-                onClick={() => handleSendMessage(prompt)}
-                disabled={loading || isResetting}
-                className="rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground
-                transition-colors hover:border-primary/60 hover:bg-primary/5 hover:text-foreground
-                disabled:pointer-events-none disabled:opacity-40"
+          <AnimatePresence>
+            {messages.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="mb-3 flex flex-wrap justify-end gap-2"
               >
-                {prompt}
-              </button>
-            ))}
-          </div>
+                {SUGGESTED_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt}
+                    onClick={() => handleSendMessage(prompt)}
+                    disabled={loading || isResetting}
+                    className="rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground
+                    transition-colors hover:border-primary/60 hover:bg-primary/5 hover:text-foreground
+                    disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Chat card */}
           <div className="relative w-full rounded-2xl p-[2px]">
