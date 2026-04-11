@@ -196,15 +196,11 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden"
-      // Prevent background scrolling on iOS/mobile
-      document.body.style.touchAction = "none"
     } else {
       document.body.style.overflow = ""
-      document.body.style.touchAction = ""
     }
     return () => {
       document.body.style.overflow = ""
-      document.body.style.touchAction = ""
     }
   }, [open])
 
