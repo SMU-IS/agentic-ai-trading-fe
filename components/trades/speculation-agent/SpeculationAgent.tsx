@@ -6,6 +6,7 @@ import { TradeEvent } from "@/lib/types"
 import { Bot, Sparkles } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import AskAI from "../../portfolio/chat/AskAI"
+import { MarkdownRenderer } from "@/components/portfolio/chat/MarkdownRenderer"
 
 import AgentReasoningAccordion from "./AgentReasoningAccordion"
 import EmptyState from "./EmptyState"
@@ -241,9 +242,9 @@ export default function SpeculationAgent({
                       Agent Reasoning
                     </span>
                   </div>
-                  <p className="text-sm text-foreground">
-                    {selectedTrade.trading_agent_reasonings}
-                  </p>
+                  <div className="text-sm text-foreground">
+                    <MarkdownRenderer content={selectedTrade.trading_agent_reasonings} />
+                  </div>
                 </div>
               )}
 

@@ -1,6 +1,7 @@
 "use client"
 
 import { Bot, Shield, AlertTriangle, MessageSquare } from "lucide-react"
+import { MarkdownRenderer } from "@/components/portfolio/chat/MarkdownRenderer"
 import {
   Accordion,
   AccordionItem,
@@ -45,9 +46,9 @@ export default function AgentReasoningAccordion({
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <p className="text-sm leading-relaxed text-foreground">
-              {selectedTrade.trading_agent_reasonings}
-            </p>
+            <div className="text-sm leading-relaxed text-foreground">
+              <MarkdownRenderer content={selectedTrade.trading_agent_reasonings} />
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

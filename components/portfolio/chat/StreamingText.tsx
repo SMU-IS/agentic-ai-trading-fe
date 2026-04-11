@@ -1,17 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { MarkdownRenderer } from "./MarkdownRenderer"
 
 interface StreamingTextProps {
   text: string
   isStreaming?: boolean
   speed?: number
+  className?: string
 }
 
 export default function StreamingText({
   text,
   isStreaming = false,
   speed = 20,
+  className,
 }: StreamingTextProps) {
   const [displayedText, setDisplayedText] = useState("")
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -34,11 +37,11 @@ export default function StreamingText({
   }, [currentIndex, text, speed])
 
   return (
-    <span className="inline-block whitespace-pre-wrap">
-      {displayedText}
+    <div className={className}>
+      <MarkdownRenderer content={displayedText} />
       {isStreaming && currentIndex < text.length && (
-        <span className="typing-cursor">|</span>
+        <span className="ml-1 inline-block h-3 w-1 animate-pulse bg-teal-400" />
       )}
-    </span>
+    </div>
   )
 }
