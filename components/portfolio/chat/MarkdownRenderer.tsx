@@ -11,7 +11,7 @@ interface MarkdownRendererProps {
   className?: string
 }
 
-function ThoughtBlock({ content }: { content: string }) {
+function ThoughtBlock({ content, title }: { content: string; title?: string }) {
   const [isOpen, setIsOpen] = useState(true)
 
   // Don't render until we have some actual content beyond just a few characters or whitespace
@@ -25,7 +25,7 @@ function ThoughtBlock({ content }: { content: string }) {
       >
         <div className="flex items-center gap-2">
           <BrainCircuit className="h-3.5 w-3.5 animate-pulse" />
-          <span>Thinking Process</span>
+          <span>{title || "Thinking Process"}</span>
         </div>
         <ChevronDown
           className={cn(
@@ -173,6 +173,43 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             .trim()
           // Higher threshold to prevent empty-looking accordions during the very start of streaming
           if (cleanedThought.length < 10) return null
+
+          // Handle multiple sources within a single thought block
+          if (cleanedThought.includes("Source:")) {
+            const subSegments = cleanedThought.split(/Source:/g)
+            return (
+              <div key={idx} className="flex flex-col gap-0">
+                {subSegments.map((segment, sIdx) => {
+                  const trimmed = segment.trim()
+                  if (!trimmed) return null
+
+                  if (sIdx === 0) {
+                    // This is the intro text before any "Source:"
+                    return (
+                      <ThoughtBlock
+                        key={sIdx}
+                        content={trimmed}
+                        title="Thinking Process"
+                      />
+                    )
+                  }
+
+                  // Extract the source name (first line or until next newline)
+                  const lines = trimmed.split("\n")
+                  const sourceName = lines[0].trim()
+                  const sourceContent = lines.slice(1).join("\n").trim()
+
+                  return (
+                    <ThoughtBlock
+                      key={sIdx}
+                      content={sourceContent || trimmed}
+                      title={`Source: ${sourceName}`}
+                    />
+                  )
+                })}
+              </div>
+            )
+          }
 
           return <ThoughtBlock key={idx} content={cleanedThought} />
         } else {
