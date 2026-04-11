@@ -302,7 +302,10 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
           try {
             const parsed = JSON.parse(data)
             if (parsed.error) throw new Error(parsed.error)
-            const token = parsed.token || parsed.content || parsed.text || parsed.reasoning_content || ""
+            
+            // Only capture the actual answer or reasoning, ignore raw source context
+            const token = parsed.token || parsed.reasoning_content || ""
+            
             if (token) {
               accumulatedContent += token
               setMessages((prev) =>
