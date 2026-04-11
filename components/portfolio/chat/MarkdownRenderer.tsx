@@ -81,14 +81,15 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
   mainContent = mainContent
     .replace(/\\?$/, '') // Remove trailing backslash
     .replace(/<t?h?o?u?g?h?t?>?$/, '') // Remove partial tag
-    .replace(/\n[>\-\s]+$/, '\n') // Remove trailing empty blockquotes or horizontal rules
+    .replace(/(?:^|\n)[\s>*-]+$/, '$1') // Strip trailing blockquote markers, list markers, or horizontal rules
     .trimEnd()
 
   return (
     <div className={cn("prose prose-invert max-w-none text-sm leading-relaxed", className)}>
       {thoughtSegments.map((thought, idx) => {
         const cleanedThought = thought.replace(/<\/t?h?o?u?g?h?t?>?$/, '').trim();
-        if (cleanedThought.length < 2) return null;
+        // Higher threshold to prevent empty-looking accordions during the very start of streaming
+        if (cleanedThought.length < 10) return null;
         
         return (
           <ThoughtBlock 
