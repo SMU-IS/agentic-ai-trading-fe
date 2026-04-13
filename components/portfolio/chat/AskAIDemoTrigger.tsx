@@ -11,10 +11,10 @@ export default function AskAIDemoTrigger() {
   return (
     <>
       {/* Floating Ask AI button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-10 right-6 sm:bottom-6 sm:right-6 z-[60]">
         <Button
           disabled={showAskAI}
-          className={`h-10 bg-background text-foreground relative group transition-all duration-300 rounded-full hover:bg-muted shadow-lg ${
+          className={`h-12 w-12 sm:h-10 sm:w-auto bg-background text-foreground relative group transition-all duration-300 rounded-full hover:bg-muted shadow-2xl ${
             showAskAI ? "opacity-30 scale-95" : "opacity-100 scale-100"
           }`}
           onClick={() => setShowAskAI(true)}

@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { TrendingUp, TrendingDown, Activity, Target } from "lucide-react"
-import { motion } from "framer-motion"
 import { TradeEvent } from "@/lib/types"
+import { motion } from "framer-motion"
 import Cookies from "js-cookie"
+import { Activity, Target, TrendingDown, TrendingUp } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -19,6 +19,9 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
   const [isMobile, setIsMobile] = useState(false)
   const [mobileFlipped, setMobileFlipped] = useState(false)
 
+  const isMounted = useRef(true)
+  const lastFetchedSymbol = useRef<string | null>(null)
+
   const tpLeg = selectedTrade.legs?.find(
     (leg: any) => leg.order_type === "limit" || leg.type === "limit",
   )
@@ -30,57 +33,97 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
   const anyLegFilled = tpIsFilled || slIsFilled
 
   useEffect(() => {
+    isMounted.current = true
     const mq = window.matchMedia("(max-width: 767px)")
     setIsMobile(mq.matches)
 
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    const handler = (e: MediaQueryListEvent) => {
+      if (isMounted.current) setIsMobile(e.matches)
+    }
 
     if (mq.addEventListener) {
       mq.addEventListener("change", handler)
-      return () => mq.removeEventListener("change", handler)
+      return () => {
+        isMounted.current = false
+        mq.removeEventListener("change", handler)
+      }
     } else {
       mq.addListener(handler)
-      return () => mq.removeListener(handler)
+      return () => {
+        isMounted.current = false
+        mq.removeListener(handler)
+      }
     }
   }, [])
 
   useEffect(() => {
     if (!isMobile) return
     const id = setInterval(() => {
-      setMobileFlipped((prev) => !prev)
+      if (isMounted.current) setMobileFlipped((prev) => !prev)
     }, 3000)
     return () => clearInterval(id)
   }, [isMobile])
 
   useEffect(() => {
-    if (anyLegFilled) {
+    if (anyLegFilled || !selectedTrade.symbol) {
       setCurrentPrice(null)
       return
     }
 
+    // Prevent redundant fetches if we already have the price for this symbol
+    if (
+      lastFetchedSymbol.current === selectedTrade.symbol &&
+      currentPrice !== null
+    ) {
+      return
+    }
+
+    const controller = new AbortController()
+
     const fetchPrice = async () => {
+      if (!isMounted.current) return
+
       setLoadingPrice(true)
       const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL
+
       try {
         const res = await fetch(
           `${baseUrl}/trading/yahoo/latest/${selectedTrade.symbol}`,
           {
+            signal: controller.signal,
+            credentials: "include",
             headers: {
               Authorization: `Bearer ${getToken()}`,
             },
           },
         )
-        if (!res.ok) return
+
+        if (!res.ok) throw new Error("Fetch failed")
+
         const data = await res.json()
-        setCurrentPrice(data.price?.current_price ?? null)
-      } catch {
+        if (isMounted.current) {
+          setCurrentPrice(data.price?.current_price ?? null)
+          lastFetchedSymbol.current = selectedTrade.symbol
+        }
+      } catch (err: any) {
+        if (err.name === "AbortError") {
+          // Aborted fetch is expected on unmount/symbol change
+        } else {
+          console.error("Price fetch error:", err)
+        }
       } finally {
-        setLoadingPrice(false)
+        if (isMounted.current) {
+          setLoadingPrice(false)
+        }
       }
     }
 
     fetchPrice()
-  }, [selectedTrade.symbol, anyLegFilled])
+
+    return () => {
+      controller.abort()
+    }
+  }, [selectedTrade.symbol, anyLegFilled, currentPrice])
 
   const getLegPL = (leg: any) => {
     const legQty = parseFloat(leg.filled_qty || leg.quantity || "0")
@@ -150,10 +193,11 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
           selectedTrade.risk_evaluation &&
           potentialAmount > 0 && (
             <div
-              className={`mt-1 flex items-center gap-1 rounded-md px-2 py-1 w-fit text-xs font-semibold border ${isTakeProfit
+              className={`mt-1 flex items-center gap-1 rounded-md px-2 py-1 w-fit text-xs font-semibold border ${
+                isTakeProfit
                   ? "bg-green-500/5 border-green-500/20 text-green-500"
                   : "bg-red-500/5 border-red-500/20 text-red-500"
-                }`}
+              }`}
             >
               {isTakeProfit ? (
                 <TrendingUp className="h-3 w-3" />
@@ -170,10 +214,11 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
         {isFilled && (
           <div className="flex items-center justify-between mt-1">
             <span
-              className={`text-xs font-bold px-2 py-0.5 rounded-full ${isTakeProfit
+              className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                isTakeProfit
                   ? "bg-green-500/20 text-green-500"
                   : "bg-red-500/20 text-red-500"
-                }`}
+              }`}
             >
               {isTakeProfit ? "+" : ""}${legPL.toFixed(2)}
             </span>
@@ -209,9 +254,9 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                 const unrealizedPnl =
                   side === "sell"
                     ? (selectedTrade.price - currentPrice) *
-                    selectedTrade.quantity
+                      selectedTrade.quantity
                     : (currentPrice - selectedTrade.price) *
-                    selectedTrade.quantity
+                      selectedTrade.quantity
                 const isPositive = unrealizedPnl >= 0
                 const isWinning =
                   side === "sell"
@@ -330,10 +375,11 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                 </div>
               </div>
               <div
-                className={`px-3 py-1 rounded-full text-xs font-bold ${isProfit
+                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  isProfit
                     ? "bg-green-500/10 text-green-500 border border-green-500/20"
                     : "bg-red-500/10 text-red-500 border border-red-500/20"
-                  }`}
+                }`}
               >
                 {isProfit ? "PROFIT" : "LOSS"}
               </div>

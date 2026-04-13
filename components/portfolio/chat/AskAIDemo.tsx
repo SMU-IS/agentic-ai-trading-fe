@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { ArrowUp, Mic, MicOff, Square, SquarePen, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
+import LoaderSpinner from "@/components/loader-spinner"
 import { MarkdownRenderer } from "@/components/portfolio/chat/MarkdownRenderer"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -196,15 +197,11 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden"
-      // Prevent background scrolling on iOS/mobile
-      document.body.style.touchAction = "none"
     } else {
       document.body.style.overflow = ""
-      document.body.style.touchAction = ""
     }
     return () => {
       document.body.style.overflow = ""
-      document.body.style.touchAction = ""
     }
   }, [open])
 
@@ -302,10 +299,10 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
           try {
             const parsed = JSON.parse(data)
             if (parsed.error) throw new Error(parsed.error)
-            
+
             // Only capture the actual answer or reasoning, ignore raw source context
             const token = parsed.token || parsed.reasoning_content || ""
-            
+
             if (token) {
               accumulatedContent += token
               setMessages((prev) =>
@@ -515,7 +512,7 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
         {" "}
         {/* ↓ This div is the animated panel — re-enables pointer-events and drives open/close */}
         <div
-          className={`pointer-events-auto transform transition-all duration-500 ${
+          className={`pointer-events-auto relative h-[500px] max-h-[70vh] w-full sm:w-[440px] transform transition-[transform,opacity] duration-500 ${
             open
               ? "translate-y-0 scale-100 opacity-100"
               : "translate-y-[calc(100%+2rem)] scale-95 opacity-0"
@@ -527,23 +524,34 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
           }}
         >
           {/* Suggested prompts */}
-          <div className="mb-3 flex flex-wrap justify-end gap-2">
-            {SUGGESTED_PROMPTS.map((prompt) => (
-              <button
-                key={prompt}
-                onClick={() => handleSendMessage(prompt)}
-                disabled={loading || isResetting}
-                className="rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground
-                transition-colors hover:border-primary/60 hover:bg-primary/5 hover:text-foreground
-                disabled:pointer-events-none disabled:opacity-40"
-              >
-                {prompt}
-              </button>
-            ))}
+          <div className="absolute bottom-full right-0 z-10 w-full">
+            <AnimatePresence>
+              {messages.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="mb-3 hidden sm:flex flex-wrap justify-end gap-2 px-1"
+                >
+                  {SUGGESTED_PROMPTS.map((prompt) => (
+                    <button
+                      key={prompt}
+                      onClick={() => handleSendMessage(prompt)}
+                      disabled={loading || isResetting}
+                      className="rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground
+                      transition-colors hover:border-primary/60 hover:bg-primary/5 hover:text-foreground
+                      disabled:pointer-events-none disabled:opacity-40 shadow-sm"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Chat card */}
-          <div className="relative w-full rounded-2xl p-[2px]">
+          <div className="relative h-full w-full rounded-2xl p-[2px]">
             {/* Spinning gradient border */}
             <div className="absolute inset-0 overflow-hidden rounded-2xl">
               <div
@@ -556,31 +564,29 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
               />
             </div>
 
-            <div
-              className="relative flex flex-col overflow-hidden rounded-[calc(1rem-2px)] border-0 bg-card shadow-2xl"
-              style={{ minHeight: "50vh", maxHeight: "70vh" }}
-            >
+            <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(1rem-2px)] border-0 bg-card shadow-2xl">
               {/* Header */}
-              <div className="flex flex-shrink-0 items-center justify-between border-b border-border px-4 pb-2 pt-3">
+              <div className="flex flex-shrink-0 h-16 items-center justify-between border-b border-border px-4 py-3">
                 <div className="flex items-center gap-2.5">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">
+                    <p className="text-sm font-semibold text-foreground leading-tight">
                       AskAI
                     </p>
-                    <p className="text-[10px] text-muted-foreground ">
+                    <p className="text-[10px] text-muted-foreground leading-tight">
                       Try out the RAG-powered agent that we use for trades
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <AnimatePresence>
+                  <AnimatePresence mode="wait">
                     {(messages.length > 0 || isResetting) && (
                       <motion.button
+                        key="new-chat-btn"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: isResetting ? 0.5 : 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
@@ -593,7 +599,11 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
                       >
                         <SquarePen className="h-3.5 w-3.5" />
                         <span className="hidden sm:block">
-                          {isResetting ? "Clearing…" : "New Chat"}
+                          {isResetting ? (
+                            <LoaderSpinner customSize="h-3 w-3" />
+                          ) : (
+                            "New"
+                          )}
                         </span>
                       </motion.button>
                     )}

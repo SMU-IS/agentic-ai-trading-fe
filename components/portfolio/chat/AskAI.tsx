@@ -472,11 +472,13 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
       if (contextData.dataType === "holding") {
         autoMessage =
-          `I have a position in ${contextData.symbol}:\n` +
-          `- Current Price: $${contextData.currentPrice.toFixed(2)}\n` +
-          `- Shares: ${Math.abs(contextData.shares)}\n` +
-          `- Avg Entry Price: $${contextData.avgPrice.toFixed(2)}\n` +
-          `- Total P/L: ${contextData.totalPL >= 0 ? "+" : ""}$${contextData.totalPL.toFixed(2)} (${contextData.changePercent.toFixed(2)}%)\n\n` +
+          `I have a position in **${contextData.symbol}**:\n\n` +
+          `| Metric | Value |\n` +
+          `| :--- | :--- |\n` +
+          `| **Current Price** | $${contextData.currentPrice.toFixed(2)} |\n` +
+          `| **Shares** | ${Math.abs(contextData.shares)} |\n` +
+          `| **Avg Entry Price** | $${contextData.avgPrice.toFixed(2)} |\n` +
+          `| **Total P/L** | ${contextData.totalPL >= 0 ? "+" : ""}$${contextData.totalPL.toFixed(2)} (${contextData.changePercent.toFixed(2)}%) |\n\n` +
           `Can you analyze this position and provide insights?`
       } else if (contextData.dataType === "transaction") {
         const txDate = new Date(contextData.datetime).toLocaleString("en-US", {
@@ -487,15 +489,15 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           minute: "2-digit",
         })
         autoMessage =
-          `I'm reviewing transactions made by the agent and I'd like to expand my understanding of one of them. ` +
-          `This transaction is made for ${contextData.symbol}:\n` +
-          `- OrderId: ${contextData.orderId}\n` +
-          `- Type: ${contextData.type.toUpperCase()}\n` +
-          `- Date: ${txDate}\n` +
-          `- Price: $${contextData.price.toFixed(2)}\n` +
-          `- Quantity: ${contextData.filledQty} shares\n` +
-          `- Total Value: $${contextData.totalValue.toFixed(2)}\n` +
-          `- Trade Reason: ${contextData.reason}\n\n` +
+          `I'm reviewing a transaction for **${contextData.symbol}** and I'd like to expand my understanding.\n\n` +
+          `### Transaction Details\n` +
+          `- **Order ID:** \`${contextData.orderId}\`\n` +
+          `- **Type:** ${contextData.type.toUpperCase()}\n` +
+          `- **Date:** ${txDate}\n` +
+          `- **Price:** $${contextData.price.toFixed(2)}\n` +
+          `- **Quantity:** ${contextData.filledQty} shares\n` +
+          `- **Total Value:** $${contextData.totalValue.toFixed(2)}\n` +
+          `- **Trade Reason:** ${contextData.reason}\n\n` +
           `Can you analyse this transaction and provide detailed insights?`
         shouldIncludeOrderId = !true
       }
@@ -768,9 +770,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                             isStreaming={m.isStreaming || false}
                           />
                         ) : (
-                          <span className="whitespace-pre-wrap">
-                            {m.content}
-                          </span>
+                          <MarkdownRenderer content={m.content} />
                         )}
                       </div>
                     </motion.div>
