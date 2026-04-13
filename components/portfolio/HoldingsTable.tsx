@@ -414,7 +414,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 minimumFractionDigits: 2,
               })}
             </td>
-            <td className="w-1/8 px-6 py-4 text-right">
+            {/* <td className="w-1/8 px-6 py-4 text-right">
               <div
                 className={`flex items-center justify-end gap-1 ${
                   stock.totalPL >= 0 ? "text-primary" : "text-red-500"
@@ -429,7 +429,7 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                   {stock.totalPL >= 0 ? "+" : ""}${stock.totalPL.toFixed(2)}
                 </span>
               </div>
-            </td>
+            </td> */}
             <td className=" w-1/8 px-6 py-4 text-right text-foreground md:table-cell">
               ${value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </td>
@@ -488,9 +488,9 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                 <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
                   Current Price
                 </th>
-                <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                {/* <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
                   Total P/L
-                </th>
+                </th> */}
                 <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">
                   Current Value
                 </th>
@@ -528,9 +528,9 @@ export default function HoldingsTable({ onSelectStock }: HoldingsTableProps) {
                     <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
                       Current Price
                     </th>
-                    <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
+                    {/* <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground">
                       Total P/L
-                    </th>
+                    </th> */}
                     <th className="w-1/8 px-6 py-4 text-right text-sm font-medium text-muted-foreground md:table-cell">
                       Current Value
                     </th>
