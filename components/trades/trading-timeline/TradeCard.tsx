@@ -12,6 +12,10 @@ interface TradeCardProps {
 }
 
 export default function TradeCard({ trade, isSelected, onSelect }: TradeCardProps) {
+  const filledLegs = trade.legs?.filter((leg: any) => leg.status === "filled") ?? []
+  const tpFilled = filledLegs.some((leg: any) => leg.order_type === "limit" || leg.type === "limit")
+  const slFilled = filledLegs.some((leg: any) => leg.order_type === "stop" || leg.type === "stop")
+
   return (
     <div
       onClick={() => onSelect(trade)}
@@ -66,6 +70,18 @@ export default function TradeCard({ trade, isSelected, onSelect }: TradeCardProp
               {trade.status}
             </span>
           </div>
+
+          {/* TP / SL badge */}
+          {tpFilled && (
+            <span className="rounded border border-green-500/30 bg-green-500/10 px-1.5 py-0.5 text-xs font-bold text-green-500">
+              TP
+            </span>
+          )}
+          {slFilled && (
+            <span className="rounded border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-xs font-bold text-red-500">
+              SL
+            </span>
+          )}
 
           {/* Agent / Manual badge — pushed right on sm+, wraps naturally on mobile */}
           <div className="ml-auto">
