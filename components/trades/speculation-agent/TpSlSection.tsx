@@ -4,7 +4,7 @@ import { TradeEvent } from "@/lib/types"
 import { motion } from "framer-motion"
 import Cookies from "js-cookie"
 import { Activity, Target, TrendingDown, TrendingUp } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -19,6 +19,9 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
   const [isMobile, setIsMobile] = useState(false)
   const [mobileFlipped, setMobileFlipped] = useState(false)
 
+  const isMounted = useRef(true)
+  const lastFetchedSymbol = useRef<string | null>(null)
+
   const tpLeg = selectedTrade.legs?.find(
     (leg: any) => leg.order_type === "limit" || leg.type === "limit",
   )
@@ -30,37 +33,56 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
   const anyLegFilled = tpIsFilled || slIsFilled
 
   useEffect(() => {
+    isMounted.current = true
     const mq = window.matchMedia("(max-width: 767px)")
     setIsMobile(mq.matches)
 
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    const handler = (e: MediaQueryListEvent) => {
+      if (isMounted.current) setIsMobile(e.matches)
+    }
 
     if (mq.addEventListener) {
       mq.addEventListener("change", handler)
-      return () => mq.removeEventListener("change", handler)
+      return () => {
+        isMounted.current = false
+        mq.removeEventListener("change", handler)
+      }
     } else {
       mq.addListener(handler)
-      return () => mq.removeListener(handler)
+      return () => {
+        isMounted.current = false
+        mq.removeListener(handler)
+      }
     }
   }, [])
 
   useEffect(() => {
     if (!isMobile) return
     const id = setInterval(() => {
-      setMobileFlipped((prev) => !prev)
+      if (isMounted.current) setMobileFlipped((prev) => !prev)
     }, 3000)
     return () => clearInterval(id)
   }, [isMobile])
 
   useEffect(() => {
-    if (anyLegFilled) {
+    if (anyLegFilled || !selectedTrade.symbol) {
       setCurrentPrice(null)
+      return
+    }
+
+    // Prevent redundant fetches if we already have the price for this symbol
+    if (
+      lastFetchedSymbol.current === selectedTrade.symbol &&
+      currentPrice !== null
+    ) {
       return
     }
 
     const controller = new AbortController()
 
     const fetchPrice = async () => {
+      if (!isMounted.current) return
+
       setLoadingPrice(true)
       const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL
 
@@ -69,6 +91,7 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
           `${baseUrl}/trading/yahoo/latest/${selectedTrade.symbol}`,
           {
             signal: controller.signal,
+            credentials: "include",
             headers: {
               Authorization: `Bearer ${getToken()}`,
             },
@@ -78,15 +101,20 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
         if (!res.ok) throw new Error("Fetch failed")
 
         const data = await res.json()
-        setCurrentPrice(data.price?.current_price ?? null)
+        if (isMounted.current) {
+          setCurrentPrice(data.price?.current_price ?? null)
+          lastFetchedSymbol.current = selectedTrade.symbol
+        }
       } catch (err: any) {
         if (err.name === "AbortError") {
-          console.log("Fetch aborted")
+          // Aborted fetch is expected on unmount/symbol change
         } else {
           console.error("Price fetch error:", err)
         }
       } finally {
-        setLoadingPrice(false)
+        if (isMounted.current) {
+          setLoadingPrice(false)
+        }
       }
     }
 
@@ -95,7 +123,7 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
     return () => {
       controller.abort()
     }
-  }, [selectedTrade.symbol, anyLegFilled])
+  }, [selectedTrade.symbol, anyLegFilled, currentPrice])
 
   const getLegPL = (leg: any) => {
     const legQty = parseFloat(leg.filled_qty || leg.quantity || "0")

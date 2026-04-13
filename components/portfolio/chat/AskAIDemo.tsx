@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { ArrowUp, Mic, MicOff, Square, SquarePen, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
+import LoaderSpinner from "@/components/loader-spinner"
 import { MarkdownRenderer } from "@/components/portfolio/chat/MarkdownRenderer"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -598,7 +599,11 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
                       >
                         <SquarePen className="h-3.5 w-3.5" />
                         <span className="hidden sm:block">
-                          {isResetting ? "Clearing…" : "New"}
+                          {isResetting ? (
+                            <LoaderSpinner customSize="h-3 w-3" />
+                          ) : (
+                            "New"
+                          )}
                         </span>
                       </motion.button>
                     )}
