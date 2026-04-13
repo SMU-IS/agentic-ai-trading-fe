@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { TrendingUp, TrendingDown, Activity, Target } from "lucide-react"
-import { motion } from "framer-motion"
 import { TradeEvent } from "@/lib/types"
+import { motion } from "framer-motion"
 import Cookies from "js-cookie"
+import { Activity, Target, TrendingDown, TrendingUp } from "lucide-react"
+import { useEffect, useState } from "react"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -58,28 +58,43 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
       return
     }
 
+    const controller = new AbortController()
+
     const fetchPrice = async () => {
       setLoadingPrice(true)
       const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL
+
       try {
         const res = await fetch(
           `${baseUrl}/trading/yahoo/latest/${selectedTrade.symbol}`,
           {
+            signal: controller.signal,
             headers: {
               Authorization: `Bearer ${getToken()}`,
             },
           },
         )
-        if (!res.ok) return
+
+        if (!res.ok) throw new Error("Fetch failed")
+
         const data = await res.json()
         setCurrentPrice(data.price?.current_price ?? null)
-      } catch {
+      } catch (err: any) {
+        if (err.name === "AbortError") {
+          console.log("Fetch aborted")
+        } else {
+          console.error("Price fetch error:", err)
+        }
       } finally {
         setLoadingPrice(false)
       }
     }
 
     fetchPrice()
+
+    return () => {
+      controller.abort()
+    }
   }, [selectedTrade.symbol, anyLegFilled])
 
   const getLegPL = (leg: any) => {
@@ -150,10 +165,11 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
           selectedTrade.risk_evaluation &&
           potentialAmount > 0 && (
             <div
-              className={`mt-1 flex items-center gap-1 rounded-md px-2 py-1 w-fit text-xs font-semibold border ${isTakeProfit
+              className={`mt-1 flex items-center gap-1 rounded-md px-2 py-1 w-fit text-xs font-semibold border ${
+                isTakeProfit
                   ? "bg-green-500/5 border-green-500/20 text-green-500"
                   : "bg-red-500/5 border-red-500/20 text-red-500"
-                }`}
+              }`}
             >
               {isTakeProfit ? (
                 <TrendingUp className="h-3 w-3" />
@@ -170,10 +186,11 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
         {isFilled && (
           <div className="flex items-center justify-between mt-1">
             <span
-              className={`text-xs font-bold px-2 py-0.5 rounded-full ${isTakeProfit
+              className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                isTakeProfit
                   ? "bg-green-500/20 text-green-500"
                   : "bg-red-500/20 text-red-500"
-                }`}
+              }`}
             >
               {isTakeProfit ? "+" : ""}${legPL.toFixed(2)}
             </span>
@@ -209,9 +226,9 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                 const unrealizedPnl =
                   side === "sell"
                     ? (selectedTrade.price - currentPrice) *
-                    selectedTrade.quantity
+                      selectedTrade.quantity
                     : (currentPrice - selectedTrade.price) *
-                    selectedTrade.quantity
+                      selectedTrade.quantity
                 const isPositive = unrealizedPnl >= 0
                 const isWinning =
                   side === "sell"
@@ -330,10 +347,11 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                 </div>
               </div>
               <div
-                className={`px-3 py-1 rounded-full text-xs font-bold ${isProfit
+                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  isProfit
                     ? "bg-green-500/10 text-green-500 border border-green-500/20"
                     : "bg-red-500/10 text-red-500 border border-red-500/20"
-                  }`}
+                }`}
               >
                 {isProfit ? "PROFIT" : "LOSS"}
               </div>
