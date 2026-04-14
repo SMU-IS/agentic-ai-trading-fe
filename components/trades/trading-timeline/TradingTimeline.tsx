@@ -35,6 +35,7 @@ export default function TradingTimeline({
   const [showStats, setShowStats] = useState(false)
   const [filterSymbols, setFilterSymbols] = useState<string[]>([])
   const [filterPeriod, setFilterPeriod] = useState("all")
+  const [filterTpSl, setFilterTpSl] = useState<"all" | "tp" | "sl">("all")
   const [livePrices, setLivePrices] = useState<Record<string, number>>({})
 
   useEffect(() => {
@@ -83,6 +84,14 @@ export default function TradingTimeline({
     if (filterSource === "manual" && trade.is_agent_trade) return false
     if (filterSymbols.length > 0 && !filterSymbols.includes(trade.symbol))
       return false
+
+    if (filterTpSl !== "all") {
+      const filledLegs = trade.legs?.filter((leg: any) => leg.status === "filled") ?? []
+      const tpFilled = filledLegs.some((leg: any) => leg.order_type === "limit" || leg.type === "limit")
+      const slFilled = filledLegs.some((leg: any) => leg.order_type === "stop" || leg.type === "stop")
+      if (filterTpSl === "tp" && !tpFilled) return false
+      if (filterTpSl === "sl" && !slFilled) return false
+    }
 
     if (filterPeriod !== "all") {
       const tradeDate = new Date(trade.timestamp)
@@ -238,6 +247,8 @@ export default function TradingTimeline({
                 setFilterSymbols={setFilterSymbols}
                 filterPeriod={filterPeriod}
                 setFilterPeriod={setFilterPeriod}
+                filterTpSl={filterTpSl}
+                setFilterTpSl={setFilterTpSl}
               />
             </div>
           </div>
@@ -247,7 +258,8 @@ export default function TradingTimeline({
             filterStatus !== "all" ||
             filterSource !== "all" ||
             filterSymbols.length > 0 ||
-            filterPeriod !== "all") && (
+            filterPeriod !== "all" ||
+            filterTpSl !== "all") && (
             <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               {filterType !== "all" && (
                 <FilterChip
@@ -271,6 +283,12 @@ export default function TradingTimeline({
                 <FilterChip
                   label={filterPeriod}
                   onRemove={() => setFilterPeriod("all")}
+                />
+              )}
+              {filterTpSl !== "all" && (
+                <FilterChip
+                  label={filterTpSl === "tp" ? "TP Hit" : "SL Hit"}
+                  onRemove={() => setFilterTpSl("all")}
                 />
               )}
               {filterSymbols.map((sym) => (

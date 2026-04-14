@@ -19,6 +19,8 @@ interface FiltersDropdownProps {
   setFilterSymbols: (v: string[]) => void
   filterPeriod: string
   setFilterPeriod: (v: string) => void
+  filterTpSl: "all" | "tp" | "sl"
+  setFilterTpSl: (v: "all" | "tp" | "sl") => void
 }
 
 export default function FiltersDropdown({
@@ -35,6 +37,8 @@ export default function FiltersDropdown({
   setFilterSymbols,
   filterPeriod,
   setFilterPeriod,
+  filterTpSl,
+  setFilterTpSl,
 }: FiltersDropdownProps) {
   const activeCount = [
     filterType !== "all" ? 1 : 0,
@@ -42,6 +46,7 @@ export default function FiltersDropdown({
     filterSource !== "all" ? 1 : 0,
     filterSymbols.length > 0 ? 1 : 0,
     filterPeriod !== "all" ? 1 : 0,
+    filterTpSl !== "all" ? 1 : 0,
   ].reduce((a, b) => a + b, 0)
 
   const clearAll = () => {
@@ -50,6 +55,7 @@ export default function FiltersDropdown({
     setFilterSource("all")
     setFilterSymbols([])
     setFilterPeriod("all")
+    setFilterTpSl("all")
   }
 
   return (
@@ -337,6 +343,39 @@ export default function FiltersDropdown({
                           className={`relative z-10 flex items-center gap-1 font-medium transition-colors duration-150 ${filterType === value ? "text-primary-foreground" : "text-muted-foreground"}`}
                         >
                           {icon}
+                          {label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </LayoutGroup>
+              </div>
+
+              {/* TP / SL */}
+              <div>
+                <h4 className="mb-2 text-xs text-muted-foreground">TP / SL Hit</h4>
+                <LayoutGroup id="tpsl">
+                  <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+                    {[
+                      { label: "All", value: "all" },
+                      { label: "TP Hit", value: "tp" },
+                      { label: "SL Hit", value: "sl" },
+                    ].map(({ label, value }) => (
+                      <button
+                        key={value}
+                        onClick={() => setFilterTpSl(value as "all" | "tp" | "sl")}
+                        className="relative h-8 flex-1 flex items-center justify-center gap-1 rounded text-xs z-10"
+                      >
+                        {filterTpSl === value && (
+                          <motion.div
+                            layoutId="tpsl-active"
+                            className="absolute inset-0 bg-primary rounded"
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          />
+                        )}
+                        <span
+                          className={`relative z-10 font-medium transition-colors duration-150 ${filterTpSl === value ? "text-primary-foreground" : "text-muted-foreground"}`}
+                        >
                           {label}
                         </span>
                       </button>
