@@ -70,8 +70,6 @@ export default function TradesTab() {
 
   return (
     <div>
-      <AgentSummary />
-
       <div className="my-8 flex flex-col gap-6 lg:flex-row">
         {/* Trading Timeline — full width on mobile, 55% on desktop */}
         <div className="w-full lg:w-[55%]">
@@ -135,6 +133,9 @@ export default function TradesTab() {
           </div>
         </>
       )}
+
+      <AgentSummary />
+
     </div>
   )
 }
