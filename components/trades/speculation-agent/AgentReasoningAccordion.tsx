@@ -43,9 +43,11 @@ export default function AgentReasoningAccordion({
               <span className="text-sm font-bold text-primary">
                 Agent Trade Reasoning
               </span>
+              <div className={`rounded border px-3 py-1 text-xs font-bold ${selectedTrade.trade_type === "buy" ? "text-green-500" : "text-red-500"}`}>
               <p className={`text-sm font-bold ${selectedTrade.trade_type === "buy" ? "text-green-500" : "text-red-500"}`}>
                 {selectedTrade.trade_type.toUpperCase()}
               </p>
+              </div>
             </div>
           </AccordionTrigger>
           <AccordionContent>
