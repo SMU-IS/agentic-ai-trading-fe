@@ -9,11 +9,15 @@ import { useState } from "react"
 // ─── Trade Signal Card ───────────────────────────────────────────────────────
 
 interface TradeSignalData {
-  catalyst?: string
-  priceAction?: string
-  alignmentFactors?: string
-  entry?: string
+  catalystStrength?: string
+  catalystDetail?: string
+  candleSentiment?: string
+  candleDetail?: string
+  alignmentCount?: string
+  alignmentDetail?: string
+  currentPrice?: string
   support?: string
+  bbLower?: string
   sl?: string
   tp?: string
   risk?: string
@@ -21,15 +25,12 @@ interface TradeSignalData {
   rr?: string
   direction?: "BUY" | "SELL"
   validity?: string
-  currentPrice?: string
 }
 
 function parseTradeSignal(text: string): TradeSignalData | null {
   // Heuristic: must mention key trading terms to be considered a signal block
   const isSignal =
-    /\b(RSI|MACD|ATR|support|resistance|SL=|TP=|RR=|oversold|overbought|catalyst)\b/i.test(
-      text,
-    ) &&
+    /\b(RSI|MACD|ATR|SL=|TP=|RR=|oversold|overbought|catalyst)\b/i.test(text) &&
     /\b(BUY|SELL)\b/.test(text) &&
     text.length > 80
 
@@ -37,48 +38,74 @@ function parseTradeSignal(text: string): TradeSignalData | null {
 
   const d: TradeSignalData = {}
 
-  // Direction
-  const dirMatch = text.match(/\b(BUY|SELL)\b/)
-  if (dirMatch) d.direction = dirMatch[1] as "BUY" | "SELL"
+  // Direction — prefer explicit "for BUY/SELL" context, fallback to first occurrence
+  const dirContextMatch = text.match(/\bfor\s+(BUY|SELL)\b/i) ?? text.match(/\b(BUY|SELL)\b/)
+  if (dirContextMatch) d.direction = dirContextMatch[1].toUpperCase() as "BUY" | "SELL"
 
-  // Catalyst
-  const catalystMatch = text.match(/^(.*?catalyst[^,)]*)/i)
-  if (catalystMatch) d.catalyst = catalystMatch[1].trim()
+  // Catalyst — "STRONG catalyst (...)" or "WEAK catalyst (...)"
+  const catalystMatch = text.match(
+    /\b(STRONG|MODERATE|WEAK)\s+catalyst\s*\(([^)]+)\)/i,
+  )
+  if (catalystMatch) {
+    d.catalystStrength = catalystMatch[1].toUpperCase()
+    d.catalystDetail = catalystMatch[2].trim()
+  } else {
+    // Fallback: grab text up to first comma/paren that contains "catalyst"
+    const fallback = text.match(/^([^,)]*catalyst[^,)]*)/i)
+    if (fallback) d.catalystDetail = fallback[1].trim()
+  }
 
-  // Price action
-  const paMatch = text.match(/\bneutral price action \(([^)]+)\)/i)
-  if (paMatch) d.priceAction = paMatch[1].trim()
+  // Candle sentiment — "MODERATE_BEARISH candle (...)" / "NEUTRAL candle (...)"
+  const candleMatch = text.match(
+    /\b(STRONG_BULLISH|BULLISH|MODERATE_BULLISH|NEUTRAL|MODERATE_BEARISH|BEARISH|STRONG_BEARISH)\s+candle\s*\(([^)]+)\)/i,
+  )
+  if (candleMatch) {
+    d.candleSentiment = candleMatch[1].toUpperCase()
+    d.candleDetail = candleMatch[2].trim()
+  }
 
-  // Alignment factors
-  const afMatch = text.match(/(\d+)\s+alignment factors? for (BUY|SELL)\s*\(([^)]+)\)/i)
-  if (afMatch) d.alignmentFactors = `${afMatch[1]} factors for ${afMatch[2]}: ${afMatch[3]}`
+  // Alignment factors — "alignment factors=3 (...)" or "alignment count 4 (...)" or "4 alignment factors for BUY (...)"
+  const afMatch =
+    text.match(/alignment\s+(?:factors?=|count)\s*(\d+)\s*\(([^)]+)\)/i) ??
+    text.match(/(\d+)\s+alignment\s+factors?\s+for\s+(?:BUY|SELL)\s*\(([^)]+)\)/i)
+  if (afMatch) {
+    d.alignmentCount = afMatch[1]
+    d.alignmentDetail = afMatch[2].trim()
+  }
 
-  // Current price / entry
-  const entryMatch = text.match(/current price \$?([\d.]+)/i)
+  // Current price — "current 4.380" or "current price $164.83"
+  const entryMatch = text.match(/current(?:\s+price)?\s+\$?([\d.]+)/i)
   if (entryMatch) d.currentPrice = entryMatch[1]
 
-  // Support
-  const supportMatch = text.match(/(?:key level )?support[^\$]*\$?([\d.]+)/i)
+  // Support — "support=13.520" or "support $158.460" or "support 4.310"
+  const supportMatch = text.match(/\bsupport\s*[=:$\s]\s*([\d.]+)/i)
   if (supportMatch) d.support = supportMatch[1]
 
-  // SL
-  const slMatch = text.match(/SL\s*=\s*[^$]*?\$?([\d.]+)(?:\s+rounded to\s+\$?([\d.]+))?/i)
-  if (slMatch) d.sl = slMatch[2] ?? slMatch[1]
+  // BB Lower
+  const bbMatch = text.match(/BB\s*Lower\s*[=:$\s]\s*([\d.]+)/i)
+  if (bbMatch) d.bbLower = bbMatch[1]
 
-  // TP
-  const tpMatch = text.match(/(?:nearest TP|TP)\s+[^$\d]*\$?([\d.]+)/i)
-  if (tpMatch) d.tp = tpMatch[1]
+  // SL — "SL=12.81" (value right after =, before space/paren)
+  const slMatch = text.match(/\bSL\s*=\s*([\d.]+)/i)
+  if (slMatch) d.sl = slMatch[1]
+
+  // TP — "TP=16.89" or "TP=SMA20 5.089..."
+  const tpDirectMatch = text.match(/\bTP\s*=\s*([\d.]+)/i)
+  const tpSmaMatch = text.match(/\bTP\s*=\s*SMA\d+\s+[\d.]+[^=\d]*([\d.]+)/i)
+  if (tpDirectMatch) d.tp = tpDirectMatch[1]
+  else if (tpSmaMatch) d.tp = tpSmaMatch[1]
 
   // Risk / Reward / RR
-  const riskMatch = text.match(/risk\s*=\s*([\d.]+)/i)
+  const riskMatch = text.match(/\brisk\s*=\s*([\d.]+)/i)
   if (riskMatch) d.risk = riskMatch[1]
-  const rewardMatch = text.match(/reward\s*=\s*([\d.]+)/i)
+  const rewardMatch = text.match(/\breward\s*=\s*([\d.]+)/i)
   if (rewardMatch) d.reward = rewardMatch[1]
-  const rrMatch = text.match(/RR\s*=\s*([\d.]+)/i)
+  // RR=2.53:1 or RR=1.834
+  const rrMatch = text.match(/\bRR\s*=\s*([\d.]+)/i)
   if (rrMatch) d.rr = rrMatch[1]
 
-  // Validity summary (last sentence)
-  const validMatch = text.match(/valid\s+[^,]+(?:,\s*.+)?$/i)
+  // Validity summary — last clause starting with "valid"
+  const validMatch = text.match(/valid\b.+$/i)
   if (validMatch) d.validity = validMatch[0].trim()
 
   return d
@@ -149,19 +176,49 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
               @ ${data.currentPrice}
             </span>
           )}
+          {data.candleSentiment && (
+            <span
+              className={cn(
+                "text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide",
+                /BULLISH/i.test(data.candleSentiment)
+                  ? "bg-green-500/10 text-green-400 border-green-500/25"
+                  : /BEARISH/i.test(data.candleSentiment)
+                    ? "bg-red-500/10 text-red-400 border-red-500/25"
+                    : "bg-muted/40 text-muted-foreground border-border",
+              )}
+            >
+              {data.candleSentiment.replace(/_/g, " ")}
+            </span>
+          )}
         </div>
-        {data.rr && (
-          <span
-            className={cn(
-              "text-xs font-semibold px-2 py-0.5 rounded-full border",
-              parseFloat(data.rr) >= 2
-                ? "bg-green-500/15 text-green-300 border-green-500/30"
-                : "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
-            )}
-          >
-            RR {data.rr}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {data.catalystStrength && (
+            <span
+              className={cn(
+                "text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide",
+                data.catalystStrength === "STRONG"
+                  ? "bg-teal-500/10 text-teal-400 border-teal-500/25"
+                  : data.catalystStrength === "WEAK"
+                    ? "bg-muted/40 text-muted-foreground border-border"
+                    : "bg-yellow-500/10 text-yellow-400 border-yellow-500/25",
+              )}
+            >
+              {data.catalystStrength}
+            </span>
+          )}
+          {data.rr && (
+            <span
+              className={cn(
+                "text-xs font-semibold px-2 py-0.5 rounded-full border",
+                parseFloat(data.rr) >= 2
+                  ? "bg-green-500/15 text-green-300 border-green-500/30"
+                  : "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
+              )}
+            >
+              RR {data.rr}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Key Levels Grid */}
@@ -177,6 +234,9 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
         )}
         {data.tp && (
           <Pill label="Take Profit" value={`$${data.tp}`} color="green" />
+        )}
+        {data.bbLower && (
+          <Pill label="BB Lower" value={`$${data.bbLower}`} color="yellow" />
         )}
       </div>
 
@@ -198,18 +258,26 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
         </div>
       )}
 
-      {/* Alignment / Catalyst row */}
-      {(data.catalyst || data.alignmentFactors) && (
-        <div className="border-t border-border/30 px-3 py-2 space-y-1">
-          {data.catalyst && (
+      {/* Catalyst / Alignment row */}
+      {(data.catalystDetail || data.alignmentDetail) && (
+        <div className="border-t border-border/30 px-3 py-2 space-y-1.5">
+          {data.catalystDetail && (
             <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
               <Zap className="h-3 w-3 mt-0.5 text-yellow-400 shrink-0" />
-              <span>{data.catalyst}</span>
+              <span>{data.catalystDetail}</span>
             </div>
           )}
-          {data.alignmentFactors && (
-            <div className="text-xs text-muted-foreground pl-4.5">
-              {data.alignmentFactors}
+          {data.alignmentDetail && (
+            <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+              <span className="text-teal-400 shrink-0 font-mono text-[10px] mt-0.5">
+                {data.alignmentCount}×
+              </span>
+              <span>{data.alignmentDetail}</span>
+            </div>
+          )}
+          {data.candleDetail && (
+            <div className="text-xs text-muted-foreground/60 italic pl-4">
+              Candle: {data.candleDetail}
             </div>
           )}
         </div>
