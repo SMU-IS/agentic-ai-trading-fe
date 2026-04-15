@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Bell,
   Settings,
@@ -16,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { v4 as uuidv4 } from "uuid"
 import Cookies from "js-cookie"
 import { FaReddit } from "react-icons/fa"
 import { SiTradingview } from "react-icons/si"
@@ -38,7 +37,6 @@ interface TradeOrder {
   timestamp?: string
 }
 
-// ⚠️ Adjust these fields once you confirm the real /trading/decisions/signals/ response shape
 interface HistoricalSignal {
   id: string
   ticker: string
@@ -61,10 +59,10 @@ interface HistoricalNewsItem {
       sentiment_score: number
       sentiment_label: string
     }>
-    timestamp: string // ISO string e.g. "2026-03-31T02:35:28+08:00"
+    timestamp: string
     source_domain: string
     credibility_score: number
-    headline: string // may be empty string — fall back to text_content
+    headline: string
     text_content: string
     url: string
     author: string
@@ -82,7 +80,6 @@ interface HistoricalNewsResponse {
 
 interface WSNewsNotification {
   type?: "NEWS_RECEIVED" | string
-  // server sends "id" but may also send "news_id" — handle both
   id?: string
   news_id?: string
   headline: string
@@ -156,7 +153,6 @@ type Notification = NewsNotification | SignalNotification | OrderNotification
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-/** Decode user_id from JWT. Returns null if token is missing or malformed. */
 function getUserIdFromToken(): string | null {
   const token = getToken()
   if (!token) return null
@@ -168,7 +164,6 @@ function getUserIdFromToken(): string | null {
   }
 }
 
-/** Merge incoming notifications into existing state, skipping duplicates by id. */
 function mergeNotifications(
   prev: Notification[],
   incoming: Notification[],
@@ -183,12 +178,9 @@ function mergeNotifications(
 
 export default function NotificationsDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [activeTab, setActiveTab] = useState<"news" | "signals" | "orders">(
-    "news",
-  )
+  const [activeTab, setActiveTab] = useState<"news" | "signals" | "orders">("news")
   const [isConnected, setIsConnected] = useState(false)
 
-  // Per-tab loading / error states
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [ordersError, setOrdersError] = useState<string | null>(null)
   const [signalsLoading, setSignalsLoading] = useState(false)
@@ -198,17 +190,13 @@ export default function NotificationsDropdown() {
 
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
+  // FIX 3: Guard flag — prevents localStorage persist from running before rehydration completes
+  const rehydratedRef = useRef(false)
 
   const unreadCount = notifications.filter((n) => !n.isRead).length
-  const unreadNewsCount = notifications.filter(
-    (n) => !n.isRead && n.type === "news",
-  ).length
-  const unreadSignalsCount = notifications.filter(
-    (n) => !n.isRead && n.type === "signal",
-  ).length
-  const unreadOrdersCount = notifications.filter(
-    (n) => !n.isRead && n.type === "order",
-  ).length
+  const unreadNewsCount = notifications.filter((n) => !n.isRead && n.type === "news").length
+  const unreadSignalsCount = notifications.filter((n) => !n.isRead && n.type === "signal").length
+  const unreadOrdersCount = notifications.filter((n) => !n.isRead && n.type === "order").length
 
   const filteredNotifications = notifications
     .filter((n) => {
@@ -243,13 +231,11 @@ export default function NotificationsDropdown() {
         const newsNotifications: NewsNotification[] = json.data.map((item) => ({
           id: item.topic_id,
           type: "news",
-          // Use headline if present, otherwise fall back to text_content
           headline: item.metadata.headline?.trim()
             ? item.metadata.headline
             : item.text_content,
-          // Normalise tickers_metadata → match the existing NewsNotification shape
           tickers: item.metadata.tickers_metadata.map((t) => ({
-            symbol: t.ticker, // ticker → symbol
+            symbol: t.ticker,
             event_type: t.event_type,
             sentiment_label: t.sentiment_label,
           })),
@@ -305,7 +291,7 @@ export default function NotificationsDropdown() {
           credibility: item.credibility ?? "",
           confidence: item.confidence ?? 0,
           rumor_summary: item.rumor_summary ?? "",
-          timestamp: item.timestamp ? new Date(item.timestamp) : new Date(0), // ← use it
+          timestamp: item.timestamp ? new Date(item.timestamp) : new Date(0),
           isRead: false,
         }))
 
@@ -360,7 +346,7 @@ export default function NotificationsDropdown() {
           suggested_qty: order.suggested_qty,
           reasonings: order.reasonings,
           profile: order.profile,
-          timestamp: order.timestamp ? new Date(order.timestamp) : new Date(0), // ← use it
+          timestamp: order.timestamp ? new Date(order.timestamp) : new Date(0),
           isRead: false,
         }))
 
@@ -413,10 +399,17 @@ export default function NotificationsDropdown() {
             let newNotification: Notification
 
             if ("tickers" in data) {
-              // NEWS — server may omit "type"; detect by presence of "tickers"
+              // NEWS — detect by presence of "tickers"
               const news = data as WSNewsNotification
               const id = news.id ?? news.news_id ?? `news-${Date.now()}`
-              const tickers = Array.isArray(news.tickers) ? news.tickers : []
+              // FIX: explicitly map each ticker to guarantee the correct shape
+              const tickers = Array.isArray(news.tickers)
+                ? news.tickers.map((t) => ({
+                    symbol: t.symbol ?? "",
+                    event_type: t.event_type ?? "",
+                    sentiment_label: t.sentiment_label ?? "",
+                  }))
+                : []
               const headline =
                 news.headline?.trim() || news.event_description || id
 
@@ -450,26 +443,19 @@ export default function NotificationsDropdown() {
               return [newNotification, ...prev]
             })
 
-            if (
-              "Notification" in window &&
-              Notification.permission === "granted"
-            ) {
+            if ("Notification" in window && Notification.permission === "granted") {
               const isNews = "tickers" in data
               const newsData = isNews ? (data as WSNewsNotification) : null
               const signalData = !isNews ? (data as WSSignalNotification).signal_id : null
               new Notification("Incoming: Market News Update", {
                 body: isNews
-                  ? (newsData!.headline?.trim() || newsData!.event_description)
+                  ? newsData!.headline?.trim() || newsData!.event_description
                   : `${signalData!.ticker} — ${signalData!.trade_signal} signal (${signalData!.credibility} credibility)`,
                 icon: "/favicon.ico",
               })
             }
           } catch (err) {
-            console.error(
-              "❌ Failed to parse WebSocket message:",
-              err,
-              event.data,
-            )
+            console.error("❌ Failed to parse WebSocket message:", err, event.data)
           }
         }
 
@@ -510,32 +496,47 @@ export default function NotificationsDropdown() {
     }
   }, [])
 
-  // ─── 5. Persist to / restore from localStorage ───────────────────────────
+  // ─── 5. Restore from localStorage ────────────────────────────────────────
   useEffect(() => {
     const saved = localStorage.getItem("mvdia_notifications")
-    if (!saved) return
-    try {
-      const parsed = JSON.parse(saved).map((n: any) => ({
-        ...n,
-        timestamp: new Date(n.timestamp),
-        ...(n.type === "news" && {
-          tickers: (n.tickers ?? []).map((t: any) => ({
-            symbol: t.symbol ?? t.ticker ?? "",
-            event_type: t.event_type ?? "",
-            sentiment_label: t.sentiment_label ?? "neutral",
-          })),
-        }),
-      }))
-
-      // ✅ Merge instead of replace — preserves any WS notifications already in state
-      setNotifications((prev) => mergeNotifications(prev, parsed, "append"))
-    } catch (err) {
-      console.error("Failed to restore notifications:", err)
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved).map((n: any) => ({
+          ...n,
+          timestamp: new Date(n.timestamp),
+          // FIX: normalize stale news ticker shape on rehydration
+          ...(n.type === "news" && {
+            tickers: (n.tickers ?? []).map((t: any) => ({
+              symbol: t.symbol ?? t.ticker ?? "",
+              event_type: t.event_type ?? "",
+              sentiment_label: t.sentiment_label ?? "neutral",
+            })),
+          }),
+          ...(n.type === "signal" && {
+            credibility: n.credibility ?? "",
+            trade_signal: n.trade_signal ?? "",
+            confidence: n.confidence ?? 0,
+            rumor_summary: n.rumor_summary ?? "",
+            ticker: n.ticker ?? "",
+          }),
+        }))
+        // FIX: merge instead of replace — preserves any WS notifications already in state
+        setNotifications((prev) => mergeNotifications(prev, parsed, "append"))
+      } catch (err) {
+        console.error("Failed to restore notifications:", err)
+      } finally {
+        // FIX: always mark rehydration complete, even if parsing failed or localStorage was empty
+        rehydratedRef.current = true
+      }
+    } else {
+      rehydratedRef.current = true
     }
   }, [])
 
+  // ─── 6. Persist to localStorage ──────────────────────────────────────────
   useEffect(() => {
-    if (notifications.length > 0) {
+    // FIX: only persist after rehydration is complete to avoid overwriting restored data
+    if (rehydratedRef.current && notifications.length > 0) {
       localStorage.setItem("mvdia_notifications", JSON.stringify(notifications))
     }
   }, [notifications])
@@ -550,8 +551,7 @@ export default function NotificationsDropdown() {
     )
 
   const getTimeAgo = (date: Date) => {
-    if (!date || isNaN(date.getTime()) || date.getTime() === 0)
-      return "Historical"
+    if (!date || isNaN(date.getTime()) || date.getTime() === 0) return "Historical"
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
     if (seconds < 60) return "just now"
     const minutes = Math.floor(seconds / 60)
@@ -595,7 +595,6 @@ export default function NotificationsDropdown() {
         </span>
       )
     }
-
     if (topicId.startsWith("tradingview_ideas")) {
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 border border-blue-200">
@@ -604,7 +603,6 @@ export default function NotificationsDropdown() {
         </span>
       )
     }
-
     if (topicId.startsWith("tradingview_minds")) {
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-semibold text-cyan-600 border border-cyan-200">
@@ -613,8 +611,6 @@ export default function NotificationsDropdown() {
         </span>
       )
     }
-
-    // Fallback for unknown sources
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-semibold text-gray-500 border border-gray-200">
         Unknown
@@ -624,8 +620,9 @@ export default function NotificationsDropdown() {
 
   // ─── Renderers ────────────────────────────────────────────────────────────
   const renderNewsNotification = (notification: NewsNotification) => (
+    // FIX: stable key — removed uuidv4() which caused remount on every render
     <div
-      key={`${notification.id}-${uuidv4()}`}
+      key={notification.id}
       onClick={() => markAsRead(notification.id)}
       className={cn(
         "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
@@ -636,23 +633,15 @@ export default function NotificationsDropdown() {
         <Newspaper className="h-5 w-5 text-blue-500" />
       </div>
       <div className="flex-1 space-y-2">
-        {/* News Headline */}
         <p className="text-sm font-semibold text-foreground line-clamp-2">
           {notification.headline}
         </p>
-
-        {/* Source pill + tickers row */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Ticker badges */}
           {notification.tickers?.length > 0 &&
             notification.tickers.map((ticker, idx) => (
               <div key={idx} className="flex items-center gap-1">
                 <span className="text-xs font-medium text-foreground">
-                  <span
-                    className={cn(
-                      "bg-muted rounded-full px-2 py-0.5 text-[10px] font-medium",
-                    )}
-                  >
+                  <span className={cn("bg-muted rounded-full px-2 py-0.5 text-[10px] font-medium")}>
                     {ticker.symbol || "N/A"}
                   </span>
                 </span>
@@ -678,21 +667,17 @@ export default function NotificationsDropdown() {
                 )}
               </div>
             ))}
-          {/* ── Source pill derived from topic_id ── */}
           {getSourcePill(notification.id)}
         </div>
-
         {notification.event_description && (
           <p className="text-xs text-muted-foreground line-clamp-1">
             {notification.event_description}
           </p>
         )}
-
         <p className="text-xs text-muted-foreground">
           {getTimeAgo(notification.timestamp)}
         </p>
       </div>
-
       {!notification.isRead && (
         <div className="flex-shrink-0">
           <div className="h-2 w-2 rounded-full bg-primary" />
@@ -842,7 +827,7 @@ export default function NotificationsDropdown() {
 
   // ─── JSX ──────────────────────────────────────────────────────────────────
   return (
-    <DropdownMenu >
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           size="icon"
@@ -866,9 +851,7 @@ export default function NotificationsDropdown() {
             <span
               className={cn(
                 "text-xs px-2 py-0.5 rounded-full",
-                isConnected
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700",
+                isConnected ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700",
               )}
             >
               {isConnected ? "Live" : "Offline"}
@@ -886,11 +869,7 @@ export default function NotificationsDropdown() {
         <div className="flex items-center gap-4 border-b px-4">
           {(["news", "signals", "orders"] as const).map((tab) => {
             const label =
-              tab === "news"
-                ? "News"
-                : tab === "signals"
-                  ? "Trade Signals"
-                  : "Orders"
+              tab === "news" ? "News" : tab === "signals" ? "Trade Signals" : "Orders"
             const count =
               tab === "news"
                 ? unreadNewsCount
@@ -941,12 +920,9 @@ export default function NotificationsDropdown() {
           {!isTabLoading && filteredNotifications.length > 0 ? (
             <div className="divide-y">
               {filteredNotifications.map((notification) => {
-                if (notification.type === "news")
-                  return renderNewsNotification(notification)
-                if (notification.type === "signal")
-                  return renderSignalNotification(notification)
-                if (notification.type === "order")
-                  return renderOrderNotification(notification)
+                if (notification.type === "news") return renderNewsNotification(notification)
+                if (notification.type === "signal") return renderSignalNotification(notification)
+                if (notification.type === "order") return renderOrderNotification(notification)
               })}
             </div>
           ) : (
@@ -955,33 +931,23 @@ export default function NotificationsDropdown() {
                 {activeTab === "news" ? (
                   <>
                     <Newspaper className="mb-3 h-12 w-12 text-muted-foreground" />
-                    <p className="text-sm font-medium text-foreground">
-                      No news notifications
-                    </p>
+                    <p className="text-sm font-medium text-foreground">No news notifications</p>
                     <p className="text-xs text-muted-foreground">
-                      {isConnected
-                        ? "Listening for new updates..."
-                        : "Reconnecting..."}
+                      {isConnected ? "Listening for new updates..." : "Reconnecting..."}
                     </p>
                   </>
                 ) : activeTab === "signals" ? (
                   <>
                     <TrendingUp className="mb-3 h-12 w-12 text-muted-foreground" />
-                    <p className="text-sm font-medium text-foreground">
-                      No trade signals
-                    </p>
+                    <p className="text-sm font-medium text-foreground">No trade signals</p>
                     <p className="text-xs text-muted-foreground">
-                      {isConnected
-                        ? "Listening for new signals..."
-                        : "Reconnecting..."}
+                      {isConnected ? "Listening for new signals..." : "Reconnecting..."}
                     </p>
                   </>
                 ) : (
                   <>
                     <History className="mb-3 h-12 w-12 text-muted-foreground" />
-                    <p className="text-sm font-medium text-foreground">
-                      No executed orders
-                    </p>
+                    <p className="text-sm font-medium text-foreground">No executed orders</p>
                     <p className="text-xs text-muted-foreground">
                       Agent-M has not placed any orders yet.
                     </p>
