@@ -3,8 +3,243 @@
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { cn } from "@/lib/utils"
-import { ChevronDown, BrainCircuit } from "lucide-react"
+import { ChevronDown, BrainCircuit, TrendingUp, TrendingDown, Target, ShieldAlert, Zap } from "lucide-react"
 import { useState } from "react"
+
+// ─── Trade Signal Card ───────────────────────────────────────────────────────
+
+interface TradeSignalData {
+  catalyst?: string
+  priceAction?: string
+  alignmentFactors?: string
+  entry?: string
+  support?: string
+  sl?: string
+  tp?: string
+  risk?: string
+  reward?: string
+  rr?: string
+  direction?: "BUY" | "SELL"
+  validity?: string
+  currentPrice?: string
+}
+
+function parseTradeSignal(text: string): TradeSignalData | null {
+  // Heuristic: must mention key trading terms to be considered a signal block
+  const isSignal =
+    /\b(RSI|MACD|ATR|support|resistance|SL=|TP=|RR=|oversold|overbought|catalyst)\b/i.test(
+      text,
+    ) &&
+    /\b(BUY|SELL)\b/.test(text) &&
+    text.length > 80
+
+  if (!isSignal) return null
+
+  const d: TradeSignalData = {}
+
+  // Direction
+  const dirMatch = text.match(/\b(BUY|SELL)\b/)
+  if (dirMatch) d.direction = dirMatch[1] as "BUY" | "SELL"
+
+  // Catalyst
+  const catalystMatch = text.match(/^(.*?catalyst[^,)]*)/i)
+  if (catalystMatch) d.catalyst = catalystMatch[1].trim()
+
+  // Price action
+  const paMatch = text.match(/\bneutral price action \(([^)]+)\)/i)
+  if (paMatch) d.priceAction = paMatch[1].trim()
+
+  // Alignment factors
+  const afMatch = text.match(/(\d+)\s+alignment factors? for (BUY|SELL)\s*\(([^)]+)\)/i)
+  if (afMatch) d.alignmentFactors = `${afMatch[1]} factors for ${afMatch[2]}: ${afMatch[3]}`
+
+  // Current price / entry
+  const entryMatch = text.match(/current price \$?([\d.]+)/i)
+  if (entryMatch) d.currentPrice = entryMatch[1]
+
+  // Support
+  const supportMatch = text.match(/(?:key level )?support[^\$]*\$?([\d.]+)/i)
+  if (supportMatch) d.support = supportMatch[1]
+
+  // SL
+  const slMatch = text.match(/SL\s*=\s*[^$]*?\$?([\d.]+)(?:\s+rounded to\s+\$?([\d.]+))?/i)
+  if (slMatch) d.sl = slMatch[2] ?? slMatch[1]
+
+  // TP
+  const tpMatch = text.match(/(?:nearest TP|TP)\s+[^$\d]*\$?([\d.]+)/i)
+  if (tpMatch) d.tp = tpMatch[1]
+
+  // Risk / Reward / RR
+  const riskMatch = text.match(/risk\s*=\s*([\d.]+)/i)
+  if (riskMatch) d.risk = riskMatch[1]
+  const rewardMatch = text.match(/reward\s*=\s*([\d.]+)/i)
+  if (rewardMatch) d.reward = rewardMatch[1]
+  const rrMatch = text.match(/RR\s*=\s*([\d.]+)/i)
+  if (rrMatch) d.rr = rrMatch[1]
+
+  // Validity summary (last sentence)
+  const validMatch = text.match(/valid\s+[^,]+(?:,\s*.+)?$/i)
+  if (validMatch) d.validity = validMatch[0].trim()
+
+  return d
+}
+
+function Pill({
+  label,
+  value,
+  color,
+}: {
+  label: string
+  value: string
+  color: "teal" | "red" | "green" | "yellow" | "muted"
+}) {
+  const colors = {
+    teal: "bg-teal-500/10 text-teal-300 border-teal-500/30",
+    red: "bg-red-500/10 text-red-300 border-red-500/30",
+    green: "bg-green-500/10 text-green-300 border-green-500/30",
+    yellow: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30",
+    muted: "bg-muted/40 text-muted-foreground border-border",
+  }
+  return (
+    <div className={cn("flex flex-col rounded-lg border px-3 py-2", colors[color])}>
+      <span className="text-[10px] uppercase tracking-wider opacity-60 font-semibold">
+        {label}
+      </span>
+      <span className="text-sm font-bold font-mono">{value}</span>
+    </div>
+  )
+}
+
+function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const isBuy = data.direction === "BUY"
+
+  return (
+    <div
+      className={cn(
+        "my-3 rounded-xl border overflow-hidden",
+        isBuy
+          ? "border-green-500/25 bg-green-500/5"
+          : "border-red-500/25 bg-red-500/5",
+      )}
+    >
+      {/* Header */}
+      <div
+        className={cn(
+          "flex items-center justify-between px-4 py-2.5 border-b",
+          isBuy ? "border-green-500/15" : "border-red-500/15",
+        )}
+      >
+        <div className="flex items-center gap-2">
+          {isBuy ? (
+            <TrendingUp className="h-4 w-4 text-green-400" />
+          ) : (
+            <TrendingDown className="h-4 w-4 text-red-400" />
+          )}
+          <span
+            className={cn(
+              "text-sm font-bold uppercase tracking-wide",
+              isBuy ? "text-green-400" : "text-red-400",
+            )}
+          >
+            {data.direction} Signal
+          </span>
+          {data.currentPrice && (
+            <span className="text-xs text-muted-foreground ml-1">
+              @ ${data.currentPrice}
+            </span>
+          )}
+        </div>
+        {data.rr && (
+          <span
+            className={cn(
+              "text-xs font-semibold px-2 py-0.5 rounded-full border",
+              parseFloat(data.rr) >= 2
+                ? "bg-green-500/15 text-green-300 border-green-500/30"
+                : "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
+            )}
+          >
+            RR {data.rr}
+          </span>
+        )}
+      </div>
+
+      {/* Key Levels Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3">
+        {data.currentPrice && (
+          <Pill label="Entry" value={`$${data.currentPrice}`} color="teal" />
+        )}
+        {data.support && (
+          <Pill label="Support" value={`$${data.support}`} color="muted" />
+        )}
+        {data.sl && (
+          <Pill label="Stop Loss" value={`$${data.sl}`} color="red" />
+        )}
+        {data.tp && (
+          <Pill label="Take Profit" value={`$${data.tp}`} color="green" />
+        )}
+      </div>
+
+      {/* Risk / Reward row */}
+      {(data.risk || data.reward) && (
+        <div className="flex items-center gap-4 px-3 pb-3 text-xs text-muted-foreground">
+          {data.risk && (
+            <span className="flex items-center gap-1">
+              <ShieldAlert className="h-3 w-3 text-red-400" />
+              Risk <span className="font-mono text-red-300">${data.risk}</span>
+            </span>
+          )}
+          {data.reward && (
+            <span className="flex items-center gap-1">
+              <Target className="h-3 w-3 text-green-400" />
+              Reward <span className="font-mono text-green-300">${data.reward}</span>
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Alignment / Catalyst row */}
+      {(data.catalyst || data.alignmentFactors) && (
+        <div className="border-t border-border/30 px-3 py-2 space-y-1">
+          {data.catalyst && (
+            <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+              <Zap className="h-3 w-3 mt-0.5 text-yellow-400 shrink-0" />
+              <span>{data.catalyst}</span>
+            </div>
+          )}
+          {data.alignmentFactors && (
+            <div className="text-xs text-muted-foreground pl-4.5">
+              {data.alignmentFactors}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Validity */}
+      {data.validity && (
+        <div className="border-t border-border/30 px-3 py-2 text-xs text-muted-foreground italic">
+          {data.validity}
+        </div>
+      )}
+
+      {/* Raw text toggle */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors border-t border-border/20"
+      >
+        <ChevronDown
+          className={cn("h-3 w-3 transition-transform", expanded ? "rotate-180" : "")}
+        />
+        {expanded ? "hide" : "raw analysis"}
+      </button>
+      {expanded && (
+        <div className="px-4 pb-3 text-[11px] text-muted-foreground/60 leading-relaxed border-t border-border/20 pt-2">
+          {rawText}
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface MarkdownRendererProps {
   content: string
@@ -224,6 +459,13 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           }
 
           if (!cleanedText.trim()) return null
+
+          const signalData = parseTradeSignal(cleanedText.trim())
+          if (signalData) {
+            return (
+              <TradeSignalCard key={idx} data={signalData} rawText={cleanedText.trim()} />
+            )
+          }
 
           return (
             <ReactMarkdown
