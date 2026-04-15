@@ -108,7 +108,7 @@ export function DevFilterPanel() {
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
             <p className="text-xs font-semibold text-primary uppercase tracking-widest">
-              Modify Agent
+              Modify Agents
             </p>
           </div>
           <AnimatePresence>
@@ -127,6 +127,9 @@ export function DevFilterPanel() {
         <div className="grid grid-cols-2 gap-4">
           {/* Column 1: Sources */}
           <div className="space-y-3">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
+              News Sources
+            </p>
             {/* Source toggles */}
             <div className="space-y-2">
               <MotionToggle

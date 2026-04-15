@@ -558,7 +558,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                 className="relative flex flex-col overflow-hidden rounded-2xl border-0 bg-card shadow-2xl backdrop-blur-xl"
                 style={{
                   minHeight: "30vh",
-                  maxHeight: showLibrary ? "100vh" : "80vh",
+                  maxHeight: showLibrary ? "90vh" : "80vh",
                   transition: "max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
                 }}
               >
