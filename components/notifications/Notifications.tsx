@@ -513,34 +513,24 @@ export default function NotificationsDropdown() {
   // ─── 5. Persist to / restore from localStorage ───────────────────────────
   useEffect(() => {
     const saved = localStorage.getItem("mvdia_notifications")
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        setNotifications(
-          parsed.map((n: any) => ({
-            ...n,
-            timestamp: new Date(n.timestamp),
-            // ── Fix stale news ticker shape ──────────────────────────────
-            ...(n.type === "news" && {
-              tickers: (n.tickers ?? []).map((t: any) => ({
-                symbol: t.symbol ?? t.ticker ?? "", // normalize stale "ticker" → "symbol"
-                event_type: t.event_type ?? "",
-                sentiment_label: t.sentiment_label ?? "neutral",
-              })),
-            }),
-            // ── Fix stale signal shape ───────────────────────────────────
-            ...(n.type === "signal" && {
-              credibility: n.credibility ?? "",
-              trade_signal: n.trade_signal ?? "",
-              confidence: n.confidence ?? 0,
-              rumor_summary: n.rumor_summary ?? "",
-              ticker: n.ticker ?? "",
-            }),
+    if (!saved) return
+    try {
+      const parsed = JSON.parse(saved).map((n: any) => ({
+        ...n,
+        timestamp: new Date(n.timestamp),
+        ...(n.type === "news" && {
+          tickers: (n.tickers ?? []).map((t: any) => ({
+            symbol: t.symbol ?? t.ticker ?? "",
+            event_type: t.event_type ?? "",
+            sentiment_label: t.sentiment_label ?? "neutral",
           })),
-        )
-      } catch (err) {
-        console.error("Failed to restore notifications:", err)
-      }
+        }),
+      }))
+
+      // ✅ Merge instead of replace — preserves any WS notifications already in state
+      setNotifications((prev) => mergeNotifications(prev, parsed, "append"))
+    } catch (err) {
+      console.error("Failed to restore notifications:", err)
     }
   }, [])
 
