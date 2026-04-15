@@ -90,9 +90,6 @@ export function DevFilterPanel() {
   }, [sources.reddit.enabled])
 
 
-  // Map riskMode to slider position index (0, 1, 2)
-  const riskIndex = riskMode === "conservative" ? 0 : riskMode === "aggressive" ? 1 : 2
-  const sliderColors = ["hsl(var(--primary) / 0.6)", "rgb(239, 68, 68)", "rgb(100, 116, 139)"]
 
   return (
     <motion.div
@@ -124,7 +121,7 @@ export function DevFilterPanel() {
         </div>
 
         {/* Two-column body */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-[1fr_200px] gap-4">
           {/* Column 1: Sources */}
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
@@ -210,14 +207,19 @@ export function DevFilterPanel() {
               Risk Adjustment
             </p>
             <div className="relative flex items-center rounded-lg border border-border bg-muted/30 p-1 text-xs overflow-hidden">
-              {/* Sliding background highlight */}
+              {/* Sliding background */}
               <motion.div
-                className="absolute top-1 bottom-1 rounded-md"
-                style={{ width: "calc(33.333% - 4px)", left: 4 }}
+                className="absolute top-1 bottom-1 rounded-md pointer-events-none"
+                style={{ width: "calc(33.333% - 2.67px)", left: 4 }}
                 initial={false}
                 animate={{
-                  x: `calc(${riskIndex * 100}%)`,
-                  backgroundColor: sliderColors[riskIndex],
+                  x: `calc(${(riskMode === "conservative" ? 0 : riskMode === "aggressive" ? 1 : 2) * 100}%)`,
+                  backgroundColor:
+                    riskMode === "conservative"
+                      ? "hsl(var(--primary) / 0.6)"
+                      : riskMode === "aggressive"
+                        ? "rgb(239, 68, 68)"
+                        : "rgb(100, 116, 139)",
                 }}
                 transition={{ type: "spring", stiffness: 500, damping: 35 }}
               />
@@ -225,7 +227,9 @@ export function DevFilterPanel() {
                 <button
                   key={mode}
                   onClick={() => toggleRiskMode(mode)}
-                  className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 capitalize ${riskMode === mode ? "text-white" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 capitalize ${
+                    riskMode === mode ? "text-white" : "text-muted-foreground hover:text-foreground"
+                  }`}
                 >
                   {mode}
                 </button>
