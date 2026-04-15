@@ -81,8 +81,10 @@ interface HistoricalNewsResponse {
 // ─── WebSocket types ────────────────────────────────────────────────────────
 
 interface WSNewsNotification {
-  type: "NEWS_RECEIVED"
-  news_id: string
+  type?: "NEWS_RECEIVED" | string
+  // server sends "id" but may also send "news_id" — handle both
+  id?: string
+  news_id?: string
   headline: string
   tickers: Array<{
     symbol: string
@@ -93,7 +95,7 @@ interface WSNewsNotification {
 }
 
 interface WSSignalNotification {
-  type: "SIGNAL_GENERATED"
+  type?: "SIGNAL_GENERATED" | string
   signal_id: {
     id: string
     ticker: string
@@ -410,24 +412,26 @@ export default function NotificationsDropdown() {
             const data: WSNotification = JSON.parse(event.data)
             let newNotification: Notification
 
-            if (data.type === "NEWS_RECEIVED") {
-              const tickers = Array.isArray(data.tickers)
-                ? data.tickers
-                : data.tickers
-                  ? [data.tickers]
-                  : []
+            if ("tickers" in data) {
+              // NEWS — server may omit "type"; detect by presence of "tickers"
+              const news = data as WSNewsNotification
+              const id = news.id ?? news.news_id ?? `news-${Date.now()}`
+              const tickers = Array.isArray(news.tickers) ? news.tickers : []
+              const headline =
+                news.headline?.trim() || news.event_description || id
 
               newNotification = {
-                id: data.news_id,
+                id,
                 type: "news",
-                headline: data.headline,
+                headline,
                 tickers,
-                event_description: data.event_description,
+                event_description: news.event_description ?? "",
                 timestamp: new Date(),
                 isRead: false,
               }
             } else {
-              const signal = data.signal_id
+              // SIGNAL
+              const signal = (data as WSSignalNotification).signal_id
               newNotification = {
                 id: `signal-${signal.id}-${Date.now()}`,
                 type: "signal",
@@ -450,11 +454,13 @@ export default function NotificationsDropdown() {
               "Notification" in window &&
               Notification.permission === "granted"
             ) {
+              const isNews = "tickers" in data
+              const newsData = isNews ? (data as WSNewsNotification) : null
+              const signalData = !isNews ? (data as WSSignalNotification).signal_id : null
               new Notification("Incoming: Market News Update", {
-                body:
-                  data.type === "NEWS_RECEIVED"
-                    ? data.headline
-                    : `${data.signal_id.ticker} — ${data.signal_id.trade_signal} signal (${data.signal_id.credibility} credibility)`,
+                body: isNews
+                  ? (newsData!.headline?.trim() || newsData!.event_description)
+                  : `${signalData!.ticker} — ${signalData!.trade_signal} signal (${signalData!.credibility} credibility)`,
                 icon: "/favicon.ico",
               })
             }
