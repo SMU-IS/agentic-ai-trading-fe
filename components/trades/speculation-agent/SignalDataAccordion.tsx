@@ -30,7 +30,7 @@ export default function SignalDataAccordion({
             <div className="flex items-center gap-2 shrink-0">
               <Newspaper className="h-5 w-5 text-muted-foreground" />
               <span className="text-sm font-bold">
-                Agent Trade Reason (news)
+                Agent Trade Signal (news)
               </span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -40,14 +40,6 @@ export default function SignalDataAccordion({
                   {selectedTrade.signal_data.confidence}/10 Confidence
                 </span>
               </div>
-              <span
-                className={`hidden md:block rounded border px-2 py-0.5 text-xs font-bold ${selectedTrade.signal_data.trade_signal === "BUY"
-                  ? "border-green-500/20 bg-green-500/10 text-green-500"
-                  : "border-red-500/20 bg-red-500/10 text-red-500"
-                  }`}
-              >
-                {selectedTrade.signal_data.trade_signal}
-              </span>
               {/* <span
                 className={`hidden md:block rounded border px-2 py-0.5 text-xs font-medium ${getCredibilityColor(
                   selectedTrade.signal_data.credibility,
@@ -60,6 +52,15 @@ export default function SignalDataAccordion({
         </AccordionTrigger>
 
         <AccordionContent className="space-y-4 pt-2 overflow-hidden w-full min-w-0 max-w-full">
+          <div className={`rounded-lg border p-3 ${selectedTrade.signal_data.trade_signal === "BUY" ? "border-green-500/20 bg-green-500/10" : "border-red-500/20 bg-red-500/10"}`}>
+            <p className="text-xs text-muted-foreground mb-1">Trade Signal Agent suggests to</p>
+            <p className={`text-sm font-bold ${selectedTrade.signal_data.trade_signal === "BUY" ? "text-green-500" : "text-red-500"}`}>
+              {selectedTrade.signal_data.trade_signal}
+            </p>
+            <p className="mt-2 text-[10px] text-muted-foreground italic">
+              Technical Analysis Agent still has to analyse market conditions before executing.
+            </p>
+          </div>
           <div>
             <p className="text-xs font-semibold text-muted-foreground mb-1">
               Rumor Summary
@@ -90,7 +91,7 @@ export default function SignalDataAccordion({
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          {/* <div className="grid grid-cols-3 gap-3">
             <div className="rounded-lg bg-background p-3">
               <div className="text-xs text-muted-foreground mb-1">Recommended Target</div>
               <div className="text-sm font-bold text-green-500">
@@ -113,7 +114,7 @@ export default function SignalDataAccordion({
                 {selectedTrade.signal_data.position_size_pct}%
               </div>
             </div>
-          </div>
+          </div> */}
 
           {selectedTrade.signal_data.references &&
             selectedTrade.signal_data.references.length > 0 && (
