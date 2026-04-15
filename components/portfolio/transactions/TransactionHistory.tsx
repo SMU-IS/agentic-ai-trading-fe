@@ -186,7 +186,13 @@ export default function TransactionsModal({
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((transaction) => (
+                  {[...transactions]
+                    .sort(
+                      (a, b) =>
+                        new Date(b.datetime).getTime() -
+                        new Date(a.datetime).getTime(),
+                    )
+                    .map((transaction) => (
                     <tr
                       key={transaction.id}
                       onContextMenu={(e) => handleContextMenu(e, transaction)}
