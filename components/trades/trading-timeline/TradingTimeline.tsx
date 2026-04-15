@@ -34,7 +34,8 @@ export default function TradingTimeline({
   const [showFilters, setShowFilters] = useState(false)
   const [showStats, setShowStats] = useState(false)
   const [filterSymbols, setFilterSymbols] = useState<string[]>([])
-  const [filterPeriod, setFilterPeriod] = useState("all")
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | null>(null)
+  const [filterDateTo, setFilterDateTo] = useState<Date | null>(null)
   const [filterTpSl, setFilterTpSl] = useState<"all" | "tp" | "sl" | "ongoing">("all")
   const [livePrices, setLivePrices] = useState<Record<string, number>>({})
 
@@ -94,27 +95,17 @@ export default function TradingTimeline({
       if (filterTpSl === "ongoing" && (tpFilled || slFilled)) return false
     }
 
-    if (filterPeriod !== "all") {
+    if (filterDateFrom || filterDateTo) {
       const tradeDate = new Date(trade.timestamp)
-      const now = new Date()
-      if (filterPeriod === "today") {
-        if (tradeDate.toDateString() !== now.toDateString()) return false
-      } else if (filterPeriod === "week") {
-        const weekAgo = new Date(now)
-        weekAgo.setDate(now.getDate() - 7)
-        if (tradeDate < weekAgo) return false
-      } else if (filterPeriod === "month") {
-        if (
-          tradeDate.getMonth() !== now.getMonth() ||
-          tradeDate.getFullYear() !== now.getFullYear()
-        )
-          return false
-      } else if (filterPeriod === "3months") {
-        const threeMonthsAgo = new Date(now)
-        threeMonthsAgo.setMonth(now.getMonth() - 3)
-        if (tradeDate < threeMonthsAgo) return false
-      } else if (filterPeriod === "year") {
-        if (tradeDate.getFullYear() !== now.getFullYear()) return false
+      if (filterDateFrom) {
+        const from = new Date(filterDateFrom)
+        from.setHours(0, 0, 0, 0)
+        if (tradeDate < from) return false
+      }
+      if (filterDateTo) {
+        const to = new Date(filterDateTo)
+        to.setHours(23, 59, 59, 999)
+        if (tradeDate > to) return false
       }
     }
     return true
@@ -246,8 +237,10 @@ export default function TradingTimeline({
                 setFilterSource={setFilterSource}
                 filterSymbols={filterSymbols}
                 setFilterSymbols={setFilterSymbols}
-                filterPeriod={filterPeriod}
-                setFilterPeriod={setFilterPeriod}
+                filterDateFrom={filterDateFrom}
+                setFilterDateFrom={setFilterDateFrom}
+                filterDateTo={filterDateTo}
+                setFilterDateTo={setFilterDateTo}
                 filterTpSl={filterTpSl}
                 setFilterTpSl={setFilterTpSl}
               />
@@ -259,7 +252,8 @@ export default function TradingTimeline({
             filterStatus !== "all" ||
             filterSource !== "all" ||
             filterSymbols.length > 0 ||
-            filterPeriod !== "all" ||
+            filterDateFrom !== null ||
+            filterDateTo !== null ||
             filterTpSl !== "all") && (
             <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               {filterType !== "all" && (
@@ -280,10 +274,13 @@ export default function TradingTimeline({
                   onRemove={() => setFilterSource("all")}
                 />
               )}
-              {filterPeriod !== "all" && (
+              {(filterDateFrom || filterDateTo) && (
                 <FilterChip
-                  label={filterPeriod}
-                  onRemove={() => setFilterPeriod("all")}
+                  label={[
+                    filterDateFrom ? filterDateFrom.toLocaleDateString() : "Start",
+                    filterDateTo ? filterDateTo.toLocaleDateString() : "End",
+                  ].join(" – ")}
+                  onRemove={() => { setFilterDateFrom(null); setFilterDateTo(null) }}
                 />
               )}
               {filterTpSl !== "all" && (

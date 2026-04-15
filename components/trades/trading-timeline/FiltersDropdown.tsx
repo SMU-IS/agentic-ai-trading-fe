@@ -17,8 +17,10 @@ interface FiltersDropdownProps {
   setFilterSource: (v: "all" | "agent" | "manual") => void
   filterSymbols: string[]
   setFilterSymbols: (v: string[]) => void
-  filterPeriod: string
-  setFilterPeriod: (v: string) => void
+  filterDateFrom: Date | null
+  setFilterDateFrom: (v: Date | null) => void
+  filterDateTo: Date | null
+  setFilterDateTo: (v: Date | null) => void
   filterTpSl: "all" | "tp" | "sl" | "ongoing"
   setFilterTpSl: (v: "all" | "tp" | "sl" | "ongoing") => void
 }
@@ -35,8 +37,10 @@ export default function FiltersDropdown({
   setFilterSource,
   filterSymbols,
   setFilterSymbols,
-  filterPeriod,
-  setFilterPeriod,
+  filterDateFrom,
+  setFilterDateFrom,
+  filterDateTo,
+  setFilterDateTo,
   filterTpSl,
   setFilterTpSl,
 }: FiltersDropdownProps) {
@@ -45,16 +49,20 @@ export default function FiltersDropdown({
     filterStatus !== "all" ? 1 : 0,
     filterSource !== "all" ? 1 : 0,
     filterSymbols.length > 0 ? 1 : 0,
-    filterPeriod !== "all" ? 1 : 0,
+    filterDateFrom || filterDateTo ? 1 : 0,
     filterTpSl !== "all" ? 1 : 0,
   ].reduce((a, b) => a + b, 0)
+
+  const toInputValue = (d: Date | null) =>
+    d ? d.toISOString().slice(0, 10) : ""
 
   const clearAll = () => {
     setFilterType("all")
     setFilterStatus("all")
     setFilterSource("all")
     setFilterSymbols([])
-    setFilterPeriod("all")
+    setFilterDateFrom(null)
+    setFilterDateTo(null)
     setFilterTpSl("all")
   }
 
@@ -209,46 +217,43 @@ export default function FiltersDropdown({
                 })()}
               </div>
 
-              {/* Date Period */}
+              {/* Date Range */}
               <div>
-                <h4 className="mb-2 text-xs text-muted-foreground">
-                  Date Period
-                </h4>
-                <LayoutGroup id="period">
-                  <div className="grid grid-cols-3 gap-1">
-                    {[
-                      { label: "All Time", value: "all" },
-                      { label: "Today", value: "today" },
-                      { label: "This Week", value: "week" },
-                      { label: "This Month", value: "month" },
-                      { label: "3 Months", value: "3months" },
-                      { label: "This Year", value: "year" },
-                    ].map(({ label, value }) => (
-                      <button
-                        key={value}
-                        onClick={() => setFilterPeriod(value)}
-                        className="relative h-8 rounded-lg text-xs font-medium border border-border overflow-hidden"
-                      >
-                        {filterPeriod === value && (
-                          <motion.div
-                            layoutId="period-active"
-                            className="absolute inset-0 bg-primary"
-                            transition={{
-                              type: "spring",
-                              stiffness: 400,
-                              damping: 30,
-                            }}
-                          />
-                        )}
-                        <span
-                          className={`relative z-10 transition-colors duration-150 ${filterPeriod === value ? "text-primary-foreground" : "text-muted-foreground"}`}
-                        >
-                          {label}
-                        </span>
-                      </button>
-                    ))}
+                <h4 className="mb-2 text-xs text-muted-foreground">Date Range</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="mb-1 block text-[10px] text-muted-foreground">From</label>
+                    <input
+                      type="date"
+                      value={toInputValue(filterDateFrom)}
+                      max={toInputValue(filterDateTo)}
+                      onChange={(e) =>
+                        setFilterDateFrom(e.target.value ? new Date(e.target.value) : null)
+                      }
+                      className="w-full rounded-lg border border-border bg-muted px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
                   </div>
-                </LayoutGroup>
+                  <div>
+                    <label className="mb-1 block text-[10px] text-muted-foreground">To</label>
+                    <input
+                      type="date"
+                      value={toInputValue(filterDateTo)}
+                      min={toInputValue(filterDateFrom)}
+                      onChange={(e) =>
+                        setFilterDateTo(e.target.value ? new Date(e.target.value) : null)
+                      }
+                      className="w-full rounded-lg border border-border bg-muted px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+                {(filterDateFrom || filterDateTo) && (
+                  <button
+                    onClick={() => { setFilterDateFrom(null); setFilterDateTo(null) }}
+                    className="mt-1.5 text-[10px] text-red-500 hover:text-red-400 transition-colors"
+                  >
+                    Clear dates
+                  </button>
+                )}
               </div>
 
               {/* Trade Source */}
