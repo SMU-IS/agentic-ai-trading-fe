@@ -89,7 +89,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const [hasMore, setHasMore] = useState(false)
 
   const wsRef = useRef<WebSocket | null>(null)
-  const loadMoreRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
   // ── Refs for values needed inside the IO callback (avoids stale closures) ──
@@ -104,38 +103,24 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY
   const wsUrl = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}/ws/notifications`
 
-  // ── Native IntersectionObserver for "scroll for more" ──────────────────────
+  // ── Scroll listener for "scroll for more" ─────────────────────────────────
   useEffect(() => {
     if (selectedCategory !== "agent") return
 
-    const sentinel = loadMoreRef.current
     const scrollContainer = listRef.current
-    if (!sentinel || !scrollContainer) return
+    if (!scrollContainer) return
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0]
-        if (
-          entry.isIntersecting &&
-          hasMoreRef.current &&
-          !loadingMoreRef.current &&
-          nextOffsetRef.current
-        ) {
-          fetchAgentNews(nextOffsetRef.current)
-        }
-      },
-      {
-        root: scrollContainer,   // scope to the scrollable div, not the window
-        rootMargin: "0px",
-        threshold: 0.1,
+    const handleScroll = () => {
+      if (!hasMoreRef.current || loadingMoreRef.current || !nextOffsetRef.current) return
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer
+      if (scrollHeight - scrollTop - clientHeight < 80) {
+        fetchAgentNews(nextOffsetRef.current)
       }
-    )
+    }
 
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-    // Re-attach whenever hasMore or nextOffset change so the observer is
-    // always live when new pages become available.
-  }, [selectedCategory, hasMore, nextOffset])
+    scrollContainer.addEventListener("scroll", handleScroll)
+    return () => scrollContainer.removeEventListener("scroll", handleScroll)
+  }, [selectedCategory])
 
   const fetchMarketNews = async (newsCategory: string) => {
     setLoading(true)
@@ -488,8 +473,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
             </>
           )}
 
-          {/* ── Sentinel: always rendered so the observer can attach ── */}
-          <div ref={loadMoreRef} className="flex justify-center py-3">
+          <div className="flex justify-center py-3">
             {hasMore && (
               <motion.div
                 initial={{ opacity: 0, y: 6 }}
