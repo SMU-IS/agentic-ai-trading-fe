@@ -27,44 +27,73 @@ interface TradeSignalData {
   validity?: string
 }
 
+// Extract the final resolved number from a complex SL/TP expression like:
+// "lower of support 1.480 BB Lower 1.545 minus 0.25xATR14=1.545-0.040=1.505 adjusted to 1.255 for structure"
+// Strategy: prefer "adjusted to X", else last standalone decimal before comma/end
+function extractFinalValue(expr: string): string | null {
+  const adjustedMatch = expr.match(/adjusted\s+to\s+([\d.]+)/i)
+  if (adjustedMatch) return adjustedMatch[1]
+  // Last number that looks like a price (has decimal point) before a comma or end
+  const allNumbers = [...expr.matchAll(/([\d]+\.[\d]+)/g)]
+  if (allNumbers.length) return allNumbers[allNumbers.length - 1][1]
+  return null
+}
+
 function parseTradeSignal(text: string): TradeSignalData | null {
   // Heuristic: must mention key trading terms to be considered a signal block
-  const isSignal =
+  // Direction is optional — a setup may be implicitly long/bullish from catalyst context
+  const hasTradeTerms =
     /\b(RSI|MACD|ATR|SL=|TP=|RR=|oversold|overbought|catalyst)\b/i.test(text) &&
-    /\b(BUY|SELL)\b/.test(text) &&
+    /\b(risk|reward|RR)\s*=\s*[\d.]+/i.test(text) &&
     text.length > 80
 
-  if (!isSignal) return null
+  if (!hasTradeTerms) return null
 
   const d: TradeSignalData = {}
 
-  // Direction — prefer explicit "for BUY/SELL" context, fallback to first occurrence
+  // Direction — prefer explicit "for BUY/SELL", then standalone BUY/SELL
   const dirContextMatch = text.match(/\bfor\s+(BUY|SELL)\b/i) ?? text.match(/\b(BUY|SELL)\b/)
   if (dirContextMatch) d.direction = dirContextMatch[1].toUpperCase() as "BUY" | "SELL"
+  // Infer from candle / catalyst if still missing
+  if (!d.direction) {
+    if (/\b(bullish|oversold|beat|raise|accumulate)\b/i.test(text)) d.direction = "BUY"
+    else if (/\b(bearish|overbought|miss|downgrade)\b/i.test(text)) d.direction = "SELL"
+  }
 
   // Catalyst — "STRONG catalyst (...)" or "WEAK catalyst (...)"
-  const catalystMatch = text.match(
-    /\b(STRONG|MODERATE|WEAK)\s+catalyst\s*\(([^)]+)\)/i,
-  )
+  const catalystMatch = text.match(/\b(STRONG|MODERATE|WEAK)\s+catalyst\s*\(([^)]+)\)/i)
   if (catalystMatch) {
     d.catalystStrength = catalystMatch[1].toUpperCase()
     d.catalystDetail = catalystMatch[2].trim()
   } else {
-    // Fallback: grab text up to first comma/paren that contains "catalyst"
     const fallback = text.match(/^([^,)]*catalyst[^,)]*)/i)
     if (fallback) d.catalystDetail = fallback[1].trim()
   }
 
-  // Candle sentiment — "MODERATE_BEARISH candle (...)" / "NEUTRAL candle (...)"
-  const candleMatch = text.match(
-    /\b(STRONG_BULLISH|BULLISH|MODERATE_BULLISH|NEUTRAL|MODERATE_BEARISH|BEARISH|STRONG_BEARISH)\s+candle\s*\(([^)]+)\)/i,
-  )
+  // Candle sentiment — "MODERATE_BEARISH candle (...)" / "neutral candle (...)"
+  // Also handles: "flush-and-recover price action (STRONG_BULLISH candle ...)"
+  const candleMatch =
+    text.match(
+      /\b(STRONG_BULLISH|BULLISH|MODERATE_BULLISH|NEUTRAL|MODERATE_BEARISH|BEARISH|STRONG_BEARISH)\s+candle\s*\(([^)]+)\)/i,
+    ) ??
+    text.match(
+      /[^(]*\(\s*(STRONG_BULLISH|BULLISH|MODERATE_BULLISH|NEUTRAL|MODERATE_BEARISH|BEARISH|STRONG_BEARISH)\s+candle\s+([^)]+)\)/i,
+    )
   if (candleMatch) {
     d.candleSentiment = candleMatch[1].toUpperCase()
     d.candleDetail = candleMatch[2].trim()
   }
+  // Also capture the outer price action label if present (e.g. "flush-and-recover price action")
+  const priceActionMatch = text.match(
+    /\b([\w-]+(?:\s+[\w-]+)*)\s+price\s+action\s*\(/i,
+  )
+  if (priceActionMatch && !d.candleSentiment) {
+    d.candleSentiment = priceActionMatch[1].toUpperCase()
+  } else if (priceActionMatch) {
+    d.candleDetail = `${priceActionMatch[1]} — ${d.candleDetail ?? ""}`
+  }
 
-  // Alignment factors — "alignment factors=3 (...)" or "alignment count 4 (...)" or "4 alignment factors for BUY (...)"
+  // Alignment factors — "alignment factors=3 (...)", "alignment count 3 (...)", "3 alignment factors for BUY (...)"
   const afMatch =
     text.match(/alignment\s+(?:factors?=|count)\s*(\d+)\s*\(([^)]+)\)/i) ??
     text.match(/(\d+)\s+alignment\s+factors?\s+for\s+(?:BUY|SELL)\s*\(([^)]+)\)/i)
@@ -73,11 +102,11 @@ function parseTradeSignal(text: string): TradeSignalData | null {
     d.alignmentDetail = afMatch[2].trim()
   }
 
-  // Current price — "current 4.380" or "current price $164.83"
+  // Current price — "current price 1.680" or "current 4.380"
   const entryMatch = text.match(/current(?:\s+price)?\s+\$?([\d.]+)/i)
   if (entryMatch) d.currentPrice = entryMatch[1]
 
-  // Support — "support=13.520" or "support $158.460" or "support 4.310"
+  // Support — "support 1.480", "support=13.520", "support $158.460"
   const supportMatch = text.match(/\bsupport\s*[=:$\s]\s*([\d.]+)/i)
   if (supportMatch) d.support = supportMatch[1]
 
@@ -85,15 +114,22 @@ function parseTradeSignal(text: string): TradeSignalData | null {
   const bbMatch = text.match(/BB\s*Lower\s*[=:$\s]\s*([\d.]+)/i)
   if (bbMatch) d.bbLower = bbMatch[1]
 
-  // SL — "SL=12.81" (value right after =, before space/paren)
-  const slMatch = text.match(/\bSL\s*=\s*([\d.]+)/i)
-  if (slMatch) d.sl = slMatch[1]
+  // SL — extract the segment after "SL=" up to the next comma (or end), then resolve final value
+  const slSegmentMatch = text.match(/\bSL\s*=\s*([^,]+?)(?=,\s*(?:TP|risk|reward|RR)\b|$)/i)
+  if (slSegmentMatch) {
+    const segment = slSegmentMatch[1]
+    // Fast path: SL= followed directly by a number
+    const directNum = segment.match(/^([\d.]+)/)
+    d.sl = directNum ? directNum[1] : (extractFinalValue(segment) ?? undefined)
+  }
 
-  // TP — "TP=16.89" or "TP=SMA20 5.089..."
-  const tpDirectMatch = text.match(/\bTP\s*=\s*([\d.]+)/i)
-  const tpSmaMatch = text.match(/\bTP\s*=\s*SMA\d+\s+[\d.]+[^=\d]*([\d.]+)/i)
-  if (tpDirectMatch) d.tp = tpDirectMatch[1]
-  else if (tpSmaMatch) d.tp = tpSmaMatch[1]
+  // TP — same approach
+  const tpSegmentMatch = text.match(/\bTP\s*=\s*([^,]+?)(?=,\s*(?:risk|reward|RR)\b|$)/i)
+  if (tpSegmentMatch) {
+    const segment = tpSegmentMatch[1]
+    const directNum = segment.match(/^([\d.]+)/)
+    d.tp = directNum ? directNum[1] : (extractFinalValue(segment) ?? undefined)
+  }
 
   // Risk / Reward / RR
   const riskMatch = text.match(/\brisk\s*=\s*([\d.]+)/i)
@@ -104,9 +140,12 @@ function parseTradeSignal(text: string): TradeSignalData | null {
   const rrMatch = text.match(/\bRR\s*=\s*([\d.]+)/i)
   if (rrMatch) d.rr = rrMatch[1]
 
-  // Validity summary — last clause starting with "valid"
-  const validMatch = text.match(/valid\b.+$/i)
-  if (validMatch) d.validity = validMatch[0].trim()
+  // Validity / trailing note — last clause starting with "valid", or trailing RR override note
+  const validMatch =
+    text.match(/valid\b.+$/i) ??
+    text.match(/\bRR\s*=[\d.:]+\s+but\b.+$/i) ??
+    text.match(/,\s*([^,]{10,})$/)
+  if (validMatch) d.validity = (validMatch[1] ?? validMatch[0]).trim()
 
   return d
 }
@@ -146,8 +185,8 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
       className={cn(
         "my-3 rounded-xl border overflow-hidden",
         isBuy
-          ? "border-green-500/25 bg-green-500/5"
-          : "border-red-500/25 bg-red-500/5",
+          ? "border-green-500/25 bg-background"
+          : "border-red-500/25 bg-background",
       )}
     >
       {/* Header */}
