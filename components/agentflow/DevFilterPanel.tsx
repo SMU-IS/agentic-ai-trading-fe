@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Save } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { FaReddit } from "react-icons/fa"
 import { SiTradingview } from "react-icons/si"
@@ -59,6 +58,8 @@ export function DevFilterPanel() {
   const {
     sources,
     riskMode,
+    customPrompt,
+    setCustomPrompt,
     isHydrating,
     isSaving,
     savedPulse,
@@ -89,13 +90,17 @@ export function DevFilterPanel() {
   }, [sources.reddit.enabled])
 
 
+  // Map riskMode to slider position index (0, 1, 2)
+  const riskIndex = riskMode === "conservative" ? 0 : riskMode === "aggressive" ? 1 : 2
+  const sliderColors = ["hsl(var(--primary) / 0.6)", "rgb(239, 68, 68)", "rgb(100, 116, 139)"]
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 40 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="absolute right-4 top-16 z-[1000] w-72 pointer-events-auto"
+      className="absolute right-4 top-16 z-[1000] pointer-events-auto"
     >
       <Card className="border border-primary/20 bg-card/95 backdrop-blur-sm shadow-xl p-4 space-y-4">
         {/* Header */}
@@ -118,179 +123,133 @@ export function DevFilterPanel() {
           </AnimatePresence>
         </div>
 
-        {/* Source toggles */}
-        <div className="space-y-2">
-          <MotionToggle
-            enabled={sources.reddit.enabled}
-            onToggle={() => toggleSource("reddit")}
-            label="Reddit"
-            icon={<FaReddit className="h-4 w-4 text-orange-600" />}
-            activeRgb="rgb(255, 143, 95)"
-          />
-          <MotionToggle
-            enabled={sources.tradingview.enabled}
-            onToggle={() => toggleSource("tradingview")}
-            label="TradingView"
-            icon={<SiTradingview className="h-4 w-4 text-blue-400" />}
-            activeRgb="rgb(59, 130, 246)"
-          />
-        </div>
-
-        {/* Sub-filter: Reddit subreddits */}
-        <AnimatePresence>
-          {sources.reddit.enabled && (
-            <motion.div
-              key="reddit-filter"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="space-y-2"
-            >
-              <p className="text-xs text-muted-foreground">
-                Reddit — filter subreddits to trade
-              </p>
-              <div ref={subredditListRef} className="flex flex-col gap-0.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-                {REDDIT_SUBREDDITS.map((sub) => {
-                  const selected = sources.reddit.selectedSubreddits.includes(sub)
-                  return (
-                    <button
-                      key={sub}
-                      onClick={() => toggleSubreddit(sub as Subreddit)}
-                      className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-all duration-200 text-left ${selected
-                        ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
-                        : "border-transparent bg-muted/20 text-muted-foreground hover:bg-muted/50 hover:border-border"
-                        }`}
-                    >
-                      <FaReddit
-                        className={`h-3.5 w-3.5 shrink-0 ${selected ? "text-orange-400" : "text-muted-foreground"}`}
-                      />
-                      <span className="flex-1">{sub}</span>
-                      <motion.div
-                        animate={{
-                          scale: selected ? 1 : 0,
-                          opacity: selected ? 1 : 0,
-                        }}
-                        transition={{ duration: 0.15 }}
-                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400"
-                      />
-                    </button>
-                  )
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Sub-filter: TradingView tickers */}
-        {/* <AnimatePresence>
-          {sources.tradingview.enabled && (
-            <motion.div
-              key="tradingview-filter"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="space-y-2"
-            >
-              <p className="text-xs text-muted-foreground">
-                TradingView — only trade specific tickers{" "}
-                <span className="text-foreground/40">(press Enter)</span>
-              </p>
-              <Input
-                value={sources.tradingview.tickerInput}
-                onChange={(e) => handleTickerInput(e.target.value)}
-                onKeyDown={handleTickerKeyDown}
-                placeholder="e.g. NVDA, AAPL..."
-                className="h-8 text-xs bg-muted/30 border-border focus:border-blue-500/50 uppercase"
+        {/* Two-column body */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Column 1: Sources */}
+          <div className="space-y-3">
+            {/* Source toggles */}
+            <div className="space-y-2">
+              <MotionToggle
+                enabled={sources.reddit.enabled}
+                onToggle={() => toggleSource("reddit")}
+                label="Reddit"
+                icon={<FaReddit className="h-4 w-4 text-orange-600" />}
+                activeRgb="rgb(255, 143, 95)"
               />
-              {sources.tradingview.tickers.length > 0 && (
+              <MotionToggle
+                enabled={sources.tradingview.enabled}
+                onToggle={() => toggleSource("tradingview")}
+                label="TradingView"
+                icon={<SiTradingview className="h-4 w-4 text-blue-400" />}
+                activeRgb="rgb(59, 130, 246)"
+              />
+            </div>
+
+            {/* Sub-filter: Reddit subreddits */}
+            <AnimatePresence>
+              {sources.reddit.enabled && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-wrap gap-1.5 pt-1"
+                  key="reddit-filter"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="space-y-2"
                 >
-                  {sources.tradingview.tickers.map((ticker) => (
-                    <motion.div
-                      key={ticker}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      className="flex items-center gap-1 rounded-md bg-blue-500/15 border border-blue-500/30 px-2 py-0.5"
-                    >
-                      <span className="text-[11px] font-semibold text-blue-400">
-                        {ticker}
-                      </span>
-                      <button
-                        onClick={() => removeTicker(ticker)}
-                        className="text-blue-400/60 hover:text-blue-400 transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </motion.div>
-                  ))}
+                  <p className="text-xs text-muted-foreground">
+                    Filter subreddits
+                  </p>
+                  <div ref={subredditListRef} className="flex flex-col gap-0.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+                    {REDDIT_SUBREDDITS.map((sub) => {
+                      const selected = sources.reddit.selectedSubreddits.includes(sub)
+                      return (
+                        <button
+                          key={sub}
+                          onClick={() => toggleSubreddit(sub as Subreddit)}
+                          className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-all duration-200 text-left ${selected
+                            ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
+                            : "border-transparent bg-muted/20 text-muted-foreground hover:bg-muted/50 hover:border-border"
+                            }`}
+                        >
+                          <FaReddit
+                            className={`h-3.5 w-3.5 shrink-0 ${selected ? "text-orange-400" : "text-muted-foreground"}`}
+                          />
+                          <span className="flex-1">{sub}</span>
+                          <motion.div
+                            animate={{
+                              scale: selected ? 1 : 0,
+                              opacity: selected ? 1 : 0,
+                            }}
+                            transition={{ duration: 0.15 }}
+                            className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400"
+                          />
+                        </button>
+                      )
+                    })}
+                  </div>
                 </motion.div>
               )}
-            </motion.div>
-          )}
-        </AnimatePresence> */}
+            </AnimatePresence>
 
-        {/* Empty state */}
-        {!isHydrating &&
-          !sources.reddit.enabled &&
-          !sources.tradingview.enabled && (
-            <p className="text-[11px] text-muted-foreground/50 text-center italic py-1">
-              Toggle a source to configure filters
+            {/* Empty state */}
+            {!isHydrating &&
+              !sources.reddit.enabled &&
+              !sources.tradingview.enabled && (
+                <p className="text-[11px] text-muted-foreground/50 text-center italic py-1">
+                  Toggle a source to configure filters
+                </p>
+              )}
+          </div>
+
+          {/* Column 2: Risk Adjustment */}
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
+              Risk Adjustment
             </p>
-          )}
+            <div className="relative flex items-center rounded-lg border border-border bg-muted/30 p-1 text-xs overflow-hidden">
+              {/* Sliding background highlight */}
+              <motion.div
+                className="absolute top-1 bottom-1 rounded-md"
+                style={{ width: "calc(33.333% - 4px)", left: 4 }}
+                initial={false}
+                animate={{
+                  x: `calc(${riskIndex * 100}%)`,
+                  backgroundColor: sliderColors[riskIndex],
+                }}
+                transition={{ type: "spring", stiffness: 500, damping: 35 }}
+              />
+              {(["conservative", "aggressive", "custom"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => toggleRiskMode(mode)}
+                  className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 capitalize ${riskMode === mode ? "text-white" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
 
-        {/* Divider */}
-        <div className="border-t border-border" />
-
-        {/* Risk Adjustment */}
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
-            Risk Adjustment
-          </p>
-          <button
-            onClick={toggleRiskMode}
-            className="relative w-full flex items-center rounded-lg border border-border bg-muted/30 p-1 text-xs transition-colors duration-200 hover:bg-muted/60 overflow-hidden"
-          >
-            {/* Sliding background highlight */}
-            <motion.div
-              className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-md"
-              initial={false}
-              animate={{
-                x: riskMode === "aggressive" ? "calc(100%)" : "0%",
-                backgroundColor:
-                  riskMode === "aggressive"
-                    ? "rgb(239, 68, 68)"
-                    : "hsl(var(--primary) / 0.5)",
-              }}
-              style={{ left: 4 }}
-              transition={{ type: "spring", stiffness: 500, damping: 35 }}
-            />
-
-            {/* Conservative label */}
-            <span
-              className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 ${riskMode === "conservative"
-                ? "text-white"
-                : "text-muted-foreground"
-                }`}
-            >
-              Conservative
-            </span>
-
-            {/* Aggressive label */}
-            <span
-              className={`relative z-10 flex-1 py-1 text-center font-medium transition-colors duration-300 ${riskMode === "aggressive"
-                ? "text-white"
-                : "text-muted-foreground"
-                }`}
-            >
-              Aggressive
-            </span>
-          </button>
+            {/* Custom prompt textarea */}
+            <AnimatePresence>
+              {riskMode === "custom" && (
+                <motion.div
+                  key="custom-prompt"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="overflow-hidden"
+                >
+                  <textarea
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="Enter custom risk instructions..."
+                    className="w-full mt-1 min-h-[80px] resize-y rounded-md border border-border bg-muted/30 px-2.5 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 transition-colors"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Save Button */}

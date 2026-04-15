@@ -89,7 +89,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const [hasMore, setHasMore] = useState(false)
 
   const wsRef = useRef<WebSocket | null>(null)
-  const listRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
   // ── Refs for values needed inside the IO callback (avoids stale closures) ──
   const hasMoreRef = useRef(hasMore)
@@ -103,24 +103,25 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY
   const wsUrl = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}/ws/notifications`
 
-  // ── Scroll listener for "scroll for more" ─────────────────────────────────
+  // ── IntersectionObserver for infinite scroll ──────────────────────────────
   useEffect(() => {
     if (selectedCategory !== "agent") return
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
 
-    const scrollContainer = listRef.current
-    if (!scrollContainer) return
-
-    const handleScroll = () => {
-      if (!hasMoreRef.current || loadingMoreRef.current || !nextOffsetRef.current) return
-      const { scrollTop, scrollHeight, clientHeight } = scrollContainer
-      if (scrollHeight - scrollTop - clientHeight < 80) {
-        fetchAgentNews(nextOffsetRef.current)
-      }
-    }
-
-    scrollContainer.addEventListener("scroll", handleScroll)
-    return () => scrollContainer.removeEventListener("scroll", handleScroll)
-  }, [selectedCategory])
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMoreRef.current && !loadingMoreRef.current && nextOffsetRef.current) {
+          fetchAgentNews(nextOffsetRef.current)
+        }
+      },
+      { threshold: 0.1 },
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  // re-attach whenever the list re-renders (loading done, category set)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, loading])
 
   const fetchMarketNews = async (newsCategory: string) => {
     setLoading(true)
@@ -394,7 +395,7 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
 
       {/* Agent News List */}
       {!loading && !error && selectedCategory === "agent" && (
-        <div ref={listRef} className="max-h-[320px] space-y-3 overflow-y-auto">
+        <div className="max-h-[320px] space-y-3 overflow-y-auto">
           {filteredAgentNews.length === 0 ? (
             <div className="rounded-lg border border-border p-8 text-center">
               <p className="text-sm text-muted-foreground">
@@ -473,11 +474,11 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
             </>
           )}
 
-          <div className="flex justify-center py-3">
+          <div ref={sentinelRef} className="flex justify-center py-3">
             {hasMore && (
               <motion.div
                 initial={{ opacity: 0, y: 6 }}
-                animate={loadingMore ? { opacity: 1, y: 0 } : { opacity: 0.4, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 className="flex items-center gap-2 text-xs text-muted-foreground"
               >

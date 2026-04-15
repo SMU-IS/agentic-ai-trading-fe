@@ -2,7 +2,7 @@ import { useEffect, useState, KeyboardEvent } from "react"
 import Cookies from "js-cookie"
 
 export type Source = "reddit" | "tradingview"
-export type RiskMode = "aggressive" | "conservative"
+export type RiskMode = "aggressive" | "conservative" | "custom"
 
 export const REDDIT_SUBREDDITS = [
   "r/wallstreetbets",
@@ -70,6 +70,7 @@ interface AgentSettings {
   reddit_enabled: boolean
   tradingview_enabled: boolean
   reddit_forums: string[]
+  custom_prompt?: string
 }
 
 async function fetchAgentSettings(): Promise<AgentSettings | null> {
@@ -104,6 +105,7 @@ export function useDevFilters() {
   const [sources, setSources] =
     useState<Record<Source, SourceState>>(DEFAULT_STATE)
   const [riskMode, setRiskMode] = useState<RiskMode>("conservative")
+  const [customPrompt, setCustomPrompt] = useState<string>("")
   const [isHydrating, setIsHydrating] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [savedPulse, setSavedPulse] = useState(false)
@@ -125,6 +127,7 @@ export function useDevFilters() {
           },
         }))
         setRiskMode(settings.risk_profile)
+        setCustomPrompt(settings.custom_prompt ?? "")
       })
       .finally(() => setIsHydrating(false))
   }, [])
@@ -184,10 +187,8 @@ export function useDevFilters() {
     }))
   }
 
-  const toggleRiskMode = () => {
-    setRiskMode((prev) =>
-      prev === "aggressive" ? "conservative" : "aggressive",
-    )
+  const toggleRiskMode = (mode: RiskMode) => {
+    setRiskMode(mode)
   }
 
   const handleSave = async () => {
@@ -197,6 +198,7 @@ export function useDevFilters() {
       reddit_enabled: sources.reddit.enabled,
       tradingview_enabled: sources.tradingview.enabled,
       reddit_forums: sources.reddit.selectedSubreddits.map(toApiSubreddit),
+      custom_prompt: customPrompt,
     })
     setIsSaving(false)
     setSavedPulse(true)
@@ -206,6 +208,8 @@ export function useDevFilters() {
   return {
     sources,
     riskMode,
+    customPrompt,
+    setCustomPrompt,
     isHydrating,
     isSaving,
     savedPulse,
