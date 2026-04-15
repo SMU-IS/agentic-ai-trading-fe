@@ -82,7 +82,7 @@ export default function TradeCard({ trade, isSelected, onSelect }: TradeCardProp
 
           {/* TP / SL badge */}
           {tpFilled && (
-            <div className="flex items-center gap-1 rounded border border-green-500/30 bg-green-500/10 px-1.5 py-0.5">
+            <div className="flex items-center gap-1 rounded-xl border border-green-500/30 bg-green-500/10 px-1.5 py-0.5">
               <span className="text-xs font-bold text-green-500">TP</span>
               <span className="text-border">|</span>
               <span className={`text-xs font-semibold ${totalLegPL >= 0 ? "text-green-500" : "text-red-500"}`}>
@@ -91,7 +91,7 @@ export default function TradeCard({ trade, isSelected, onSelect }: TradeCardProp
             </div>
           )}
           {slFilled && (
-            <div className="flex items-center gap-1 rounded border border-red-500/30 bg-red-500/10 px-1.5 py-0.5">
+            <div className="flex items-center gap-1 rounded-xl border border-red-500/30 bg-red-500/10 px-1.5 py-0.5">
               <span className="text-xs font-bold text-red-500">SL</span>
               <span className="text-border">|</span>
               <span className={`text-xs font-semibold ${totalLegPL >= 0 ? "text-green-500" : "text-red-500"}`}>
