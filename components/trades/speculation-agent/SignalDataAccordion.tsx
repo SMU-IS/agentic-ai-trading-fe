@@ -147,6 +147,12 @@ export default function SignalDataAccordion({
                           target="_blank"
                           rel="noopener noreferrer"
                           title={ref}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (validHref === "#") { e.preventDefault(); return }
+                            window.open(validHref, "_blank", "noopener,noreferrer")
+                            e.preventDefault()
+                          }}
                           className="flex min-w-0 max-w-full items-center gap-2 rounded-lg bg-background px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-card/60 transition-colors"
                         >
                           <ExternalLink className="h-3 w-3 flex-shrink-0" />
