@@ -35,7 +35,7 @@ export default function TradingTimeline({
   const [showStats, setShowStats] = useState(false)
   const [filterSymbols, setFilterSymbols] = useState<string[]>([])
   const [filterPeriod, setFilterPeriod] = useState("all")
-  const [filterTpSl, setFilterTpSl] = useState<"all" | "tp" | "sl">("all")
+  const [filterTpSl, setFilterTpSl] = useState<"all" | "tp" | "sl" | "ongoing">("all")
   const [livePrices, setLivePrices] = useState<Record<string, number>>({})
 
   useEffect(() => {
@@ -91,6 +91,7 @@ export default function TradingTimeline({
       const slFilled = filledLegs.some((leg: any) => leg.order_type === "stop" || leg.type === "stop")
       if (filterTpSl === "tp" && !tpFilled) return false
       if (filterTpSl === "sl" && !slFilled) return false
+      if (filterTpSl === "ongoing" && (tpFilled || slFilled)) return false
     }
 
     if (filterPeriod !== "all") {
@@ -287,7 +288,7 @@ export default function TradingTimeline({
               )}
               {filterTpSl !== "all" && (
                 <FilterChip
-                  label={filterTpSl === "tp" ? "TP Hit" : "SL Hit"}
+                  label={filterTpSl === "tp" ? "TP Hit" : filterTpSl === "sl" ? "SL Hit" : "Ongoing"}
                   onRemove={() => setFilterTpSl("all")}
                 />
               )}

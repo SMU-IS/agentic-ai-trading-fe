@@ -19,8 +19,8 @@ interface FiltersDropdownProps {
   setFilterSymbols: (v: string[]) => void
   filterPeriod: string
   setFilterPeriod: (v: string) => void
-  filterTpSl: "all" | "tp" | "sl"
-  setFilterTpSl: (v: "all" | "tp" | "sl") => void
+  filterTpSl: "all" | "tp" | "sl" | "ongoing"
+  setFilterTpSl: (v: "all" | "tp" | "sl" | "ongoing") => void
 }
 
 export default function FiltersDropdown({
@@ -360,10 +360,11 @@ export default function FiltersDropdown({
                       { label: "All", value: "all" },
                       { label: "TP Hit", value: "tp" },
                       { label: "SL Hit", value: "sl" },
+                      { label: "Ongoing", value: "ongoing" },
                     ].map(({ label, value }) => (
                       <button
                         key={value}
-                        onClick={() => setFilterTpSl(value as "all" | "tp" | "sl")}
+                        onClick={() => setFilterTpSl(value as "all" | "tp" | "sl" | "ongoing")}
                         className="relative h-8 flex-1 flex items-center justify-center gap-1 rounded text-xs z-10"
                       >
                         {filterTpSl === value && (
