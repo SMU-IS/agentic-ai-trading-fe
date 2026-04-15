@@ -102,7 +102,7 @@ export function StatusCardPipeline() {
               <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">
                 Pipeline Yield (Orders Placed / News Scraped)
               </span>
-              <span className="text-[9px] font-mono text-foreground">
+              <span className="text-sm font-mono text-foreground">
                 {data.scraped > 0
                   ? parseFloat(((data.order_placed / data.scraped) * 100).toFixed(1))
                   : 0}%

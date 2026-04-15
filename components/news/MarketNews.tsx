@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card"
 import { ExternalLink, RefreshCw } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import Cookies from "js-cookie"
-import { motion } from "framer-motion"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -48,7 +47,6 @@ interface AgentNewsItem {
 interface AgentNewsResponse {
   status: string
   count: number
-  next_offset: string | null
   data: AgentNewsItem[]
 }
 
@@ -68,60 +66,20 @@ const SENTIMENT_SCORE_COLORS = (score: number) => {
   return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20"
 }
 
-function avgSentimentScore(tickers: TickerMetadata[]): number | null {
-  if (!tickers.length) return null
-  const sum = tickers.reduce((acc, t) => acc + t.sentiment_score, 0)
-  return sum / tickers.length
-}
-
 type AgentSubTab = "reddit" | "tradingview"
 
 export default function MarketNews({ category = "general" }: MarketNewsProps) {
   const [news, setNews] = useState<NewsArticle[]>([])
   const [agentNews, setAgentNews] = useState<AgentNewsItem[]>([])
   const [loading, setLoading] = useState(false)
-  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState(category)
   const [agentSubTab, setAgentSubTab] = useState<AgentSubTab>("reddit")
 
-  const [nextOffset, setNextOffset] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(false)
-
   const wsRef = useRef<WebSocket | null>(null)
-  const sentinelRef = useRef<HTMLDivElement>(null)
-
-  // ── Refs for values needed inside the IO callback (avoids stale closures) ──
-  const hasMoreRef = useRef(hasMore)
-  const loadingMoreRef = useRef(loadingMore)
-  const nextOffsetRef = useRef(nextOffset)
-
-  useEffect(() => { hasMoreRef.current = hasMore }, [hasMore])
-  useEffect(() => { loadingMoreRef.current = loadingMore }, [loadingMore])
-  useEffect(() => { nextOffsetRef.current = nextOffset }, [nextOffset])
 
   const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY
   const wsUrl = `${process.env.NEXT_PUBLIC_NOTIF_API_URL}/ws/notifications`
-
-  // ── IntersectionObserver for infinite scroll ──────────────────────────────
-  useEffect(() => {
-    if (selectedCategory !== "agent") return
-    const sentinel = sentinelRef.current
-    if (!sentinel) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMoreRef.current && !loadingMoreRef.current && nextOffsetRef.current) {
-          fetchAgentNews(nextOffsetRef.current)
-        }
-      },
-      { threshold: 0.1 },
-    )
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  // re-attach whenever the list re-renders (loading done, category set)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory, loading])
 
   const fetchMarketNews = async (newsCategory: string) => {
     setLoading(true)
@@ -140,17 +98,13 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
     }
   }
 
-  const fetchAgentNews = async (offset?: string) => {
+  const fetchAgentNews = async () => {
     const token = getToken()
-    const isLoadMore = offset !== undefined
-
-    isLoadMore ? setLoadingMore(true) : setLoading(true)
+    setLoading(true)
     setError(null)
 
     try {
       const url = new URL(`${process.env.NEXT_PUBLIC_BASE_API_URL}/qdrant/news`)
-      url.searchParams.set("limit", "10")
-      if (offset) url.searchParams.set("offset", offset)
 
       const response = await fetch(url.toString(), {
         method: "GET",
@@ -166,39 +120,33 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
       const data: AgentNewsResponse = await response.json()
 
       if (data.status === "success") {
-        setAgentNews((prev) => {
-          const merged = isLoadMore ? [...prev, ...data.data] : data.data
-          return merged.sort(
+        setAgentNews(
+          data.data.sort(
             (a, b) =>
               new Date(b.metadata.timestamp).getTime() -
               new Date(a.metadata.timestamp).getTime(),
-          )
-        })
-        setNextOffset(data.next_offset ?? null)
-        setHasMore(!!data.next_offset)
+          ),
+        )
       } else {
         throw new Error("Failed to fetch agent news")
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to fetch agent news")
     } finally {
-      isLoadMore ? setLoadingMore(false) : setLoading(false)
+      setLoading(false)
     }
   }
 
   useEffect(() => {
     if (selectedCategory !== "agent") return
     setAgentNews([])
-    setNextOffset(null)
-    setHasMore(false)
     fetchAgentNews()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentSubTab])
 
   useEffect(() => {
     if (selectedCategory === "agent") {
       setAgentNews([])
-      setNextOffset(null)
-      setHasMore(false)
       fetchAgentNews()
 
       const token = getToken()
@@ -336,8 +284,6 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
           onClick={() => {
             if (selectedCategory === "agent") {
               setAgentNews([])
-              setNextOffset(null)
-              setHasMore(false)
               fetchAgentNews()
             } else {
               fetchMarketNews(selectedCategory)
@@ -403,99 +349,72 @@ export default function MarketNews({ category = "general" }: MarketNewsProps) {
               </p>
             </div>
           ) : (
-            <>
-              {filteredAgentNews.map((article) => {
-                return (
-                  <div
-                    key={article.topic_id}
-                    className="group w-full min-w-0 overflow-hidden cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
-                    onClick={() =>
-                      article.metadata.url ? window.open(article.metadata.url, "_blank") : null
-                    }
-                  >
-                    <div className="flex min-w-0 items-start justify-between gap-2">
-                      <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
-                        {article.metadata.headline}
-                      </h3>
-                      {article.metadata.url && (
-                        <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                      )}
-                    </div>
-
-                    <p className="mt-1 min-w-0 line-clamp-2 text-xs text-muted-foreground">
-                      {article.metadata.text_content}
-                    </p>
-
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {article.metadata.tickers_metadata.map((ticker) => (
-                        <span
-                          key={ticker.ticker}
-                          className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium ${SENTIMENT_COLORS[ticker.sentiment_label] ?? SENTIMENT_COLORS.neutral
-                            }`}
-                        >
-                          <span className="font-bold">{ticker.ticker}</span>
-                          {ticker.event_type && (
-                            <span className="opacity-70">{ticker.event_type}</span>
-                          )}
-                          <span
-                            className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(ticker.sentiment_score)}`}
-                          >
-                            {ticker.sentiment_label.charAt(0).toUpperCase() +
-                              ticker.sentiment_label.slice(1)}
-                          </span>
-                          <span
-                            className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(ticker.sentiment_score)}`}
-                          >
-                            {ticker.sentiment_score > 0 ? "+" : ""}
-                            {ticker.sentiment_score.toFixed(2)} sentiment
-                          </span>
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
-                      <span className="min-w-0 truncate font-medium">
-                        {article.metadata.source_domain}
-                      </span>
-                      {article.metadata.author && (
-                        <>
-                          <span className="flex-shrink-0">•</span>
-                          <span className="min-w-0 truncate">{article.metadata.author}</span>
-                        </>
-                      )}
-                      <span className="flex-shrink-0">•</span>
-                      <span className="flex-shrink-0">
-                        {formatAgentDate(article.metadata.timestamp)}
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
-            </>
-          )}
-
-          <div ref={sentinelRef} className="flex justify-center py-3">
-            {hasMore && (
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="flex items-center gap-2 text-xs text-muted-foreground"
+            filteredAgentNews.map((article) => (
+              <div
+                key={article.topic_id}
+                className="group w-full min-w-0 overflow-hidden cursor-pointer rounded-lg border border-border bg-muted p-3 transition-all hover:border-primary/50 hover:bg-muted/30 hover:shadow-sm"
+                onClick={() =>
+                  article.metadata.url ? window.open(article.metadata.url, "_blank") : null
+                }
               >
-                <motion.div
-                  animate={loadingMore ? { rotate: 360 } : { rotate: 0 }}
-                  transition={
-                    loadingMore
-                      ? { repeat: Infinity, duration: 0.8, ease: "linear" }
-                      : { duration: 0 }
-                  }
-                >
-                  <RefreshCw className="h-3 w-3" />
-                </motion.div>
-                <span>{loadingMore ? "Loading more…" : "Scroll for more"}</span>
-              </motion.div>
-            )}
-          </div>
+                <div className="flex min-w-0 items-start justify-between gap-2">
+                  <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-foreground group-hover:text-primary">
+                    {article.metadata.headline}
+                  </h3>
+                  {article.metadata.url && (
+                    <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                  )}
+                </div>
+
+                <p className="mt-1 min-w-0 line-clamp-2 text-xs text-muted-foreground">
+                  {article.metadata.text_content}
+                </p>
+
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {article.metadata.tickers_metadata.map((ticker) => (
+                    <span
+                      key={ticker.ticker}
+                      className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-medium ${SENTIMENT_COLORS[ticker.sentiment_label] ?? SENTIMENT_COLORS.neutral
+                        }`}
+                    >
+                      <span className="font-bold">{ticker.ticker}</span>
+                      {ticker.event_type && (
+                        <span className="opacity-70">{ticker.event_type}</span>
+                      )}
+                      <span
+                        className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(ticker.sentiment_score)}`}
+                      >
+                        {ticker.sentiment_label.charAt(0).toUpperCase() +
+                          ticker.sentiment_label.slice(1)}
+                      </span>
+                      <span
+                        className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold ${SENTIMENT_SCORE_COLORS(ticker.sentiment_score)}`}
+                      >
+                        {ticker.sentiment_score > 0 ? "+" : ""}
+                        {ticker.sentiment_score.toFixed(2)} sentiment
+                      </span>
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-2 flex w-full min-w-0 items-center gap-2 overflow-hidden text-xs text-muted-foreground">
+                  <span className="min-w-0 truncate font-medium">
+                    {article.metadata.source_domain}
+                  </span>
+                  {article.metadata.author && (
+                    <>
+                      <span className="flex-shrink-0">•</span>
+                      <span className="min-w-0 truncate">{article.metadata.author}</span>
+                    </>
+                  )}
+                  <span className="flex-shrink-0">•</span>
+                  <span className="flex-shrink-0">
+                    {formatAgentDate(article.metadata.timestamp)}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 
