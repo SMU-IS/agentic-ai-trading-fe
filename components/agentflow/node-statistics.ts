@@ -70,22 +70,22 @@ export function useNodeStatistics(): Record<string, Statistic[]> {
     // Node 4 — Event Identification
     "4": [
       {
-        label: "News Events Identified",
-        value: s?.event?.processed ?? null,
-        suffix: "/hr",
-      },
-      {
-        label: "Stock Tickers Identified",
+        label: "Posts Containing Tickers",
         value: s?.ticker?.processed ?? null,
         suffix: "/hr",
       },
       {
-        label: "News Events Analysed",
+        label: "Posts Containing Events",
+        value: s?.event?.processed ?? null,
+        suffix: "/hr",
+      },
+      {
+        label: "News Analysed",
         value: s?.sentiment?.processed ?? null,
         suffix: "/hr",
       },  
       {
-        label: "News Events Vectorised",
+        label: "News Vectorised",
         value: s?.vectorisation?.processed ?? null,
         suffix: "/hr",
       },

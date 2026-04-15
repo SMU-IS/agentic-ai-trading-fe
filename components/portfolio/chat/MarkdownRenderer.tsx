@@ -39,6 +39,171 @@ function extractFinalValue(expr: string): string | null {
   return null
 }
 
+// ─── Conflict / Hold Analysis Card ──────────────────────────────────────────
+
+interface ConflictAnalysis {
+  outcome: "HOLD" | "INVALID"
+  ticker?: string
+  currentPrice?: string
+  catalystSummary?: string
+  catalystStrength?: string
+  candleSentiment?: string
+  conflicts: string[]
+  conclusion: string
+}
+
+function parseConflictAnalysis(text: string): ConflictAnalysis | null {
+  const isConflict =
+    /\b(HOLD|invalid|conflict detected|contradiction|revert(?:ing)? to HOLD)\b/i.test(text) &&
+    /\b(catalyst|RSI|MACD|resistance|support)\b/i.test(text) &&
+    text.length > 200
+
+  if (!isConflict) return null
+
+  const d: ConflictAnalysis = { outcome: "HOLD", conflicts: [], conclusion: "" }
+
+  // Current price
+  const priceMatch = text.match(/current price \$?([\d.]+)/i)
+  if (priceMatch) d.currentPrice = priceMatch[1]
+
+  // Catalyst strength + summary
+  const catalystMatch = text.match(/\b(STRONG|MODERATE|WEAK)\s+catalyst[:\s]+([^.]+\.)/i)
+  if (catalystMatch) {
+    d.catalystStrength = catalystMatch[1].toUpperCase()
+    d.catalystSummary = catalystMatch[2].trim()
+  }
+
+  // Candle
+  const candleMatch = text.match(
+    /\b(STRONG_BULLISH|BULLISH|MODERATE_BULLISH|NEUTRAL|MODERATE_BEARISH|BEARISH|STRONG_BEARISH)\s+candle\b/i,
+  )
+  if (candleMatch) d.candleSentiment = candleMatch[1].toUpperCase()
+
+  // Extract conflict statements — sentences containing "conflict", "invalid", "contradiction", "no TP", "already at"
+  const sentences = text.split(/(?<=[.!?])\s+/)
+  for (const s of sentences) {
+    if (
+      /\b(conflict|invalid|contradiction|no\s+TP|already at|cannot|below entry|makes no sense|not.*valid)\b/i.test(
+        s,
+      )
+    ) {
+      const clean = s.trim()
+      if (clean.length > 20 && clean.length < 220) d.conflicts.push(clean)
+    }
+  }
+  // Cap at 4 most relevant
+  d.conflicts = d.conflicts.slice(0, 4)
+
+  // Conclusion — last sentence containing HOLD or the final sentence
+  const holdMatch = text.match(/(?:Revert(?:ing)? to|Reverting:|conclusion[:\s]+)\s*([^.]+\.)/i)
+  if (holdMatch) {
+    d.conclusion = holdMatch[1].trim()
+  } else {
+    const lastSentences = sentences.filter((s) => s.trim().length > 20)
+    d.conclusion = lastSentences[lastSentences.length - 1]?.trim() ?? ""
+  }
+
+  return d
+}
+
+function ConflictAnalysisCard({ analysis, rawText }: { analysis: ConflictAnalysis; rawText: string }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div className="my-3 rounded-xl border border-yellow-500/25 bg-background overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-yellow-500/15">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="h-4 w-4 text-yellow-400" />
+          <span className="text-xs font-semibold text-yellow-400 uppercase tracking-wide">
+            No Trade — Conflict Detected
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {analysis.catalystStrength && (
+            <span
+              className={cn(
+                "text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide",
+                analysis.catalystStrength === "STRONG"
+                  ? "bg-teal-500/10 text-teal-400 border-teal-500/25"
+                  : analysis.catalystStrength === "WEAK"
+                    ? "bg-muted/40 text-muted-foreground border-border"
+                    : "bg-yellow-500/10 text-yellow-400 border-yellow-500/25",
+              )}
+            >
+              {analysis.catalystStrength} catalyst
+            </span>
+          )}
+          {analysis.candleSentiment && (
+            <span
+              className={cn(
+                "text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide",
+                /BULLISH/i.test(analysis.candleSentiment)
+                  ? "bg-green-500/10 text-green-400 border-green-500/25"
+                  : /BEARISH/i.test(analysis.candleSentiment)
+                    ? "bg-red-500/10 text-red-400 border-red-500/25"
+                    : "bg-muted/40 text-muted-foreground border-border",
+              )}
+            >
+              {analysis.candleSentiment.replace(/_/g, " ")} candle
+            </span>
+          )}
+          {analysis.currentPrice && (
+            <span className="text-xs text-muted-foreground">@ ${analysis.currentPrice}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Catalyst summary */}
+      {analysis.catalystSummary && (
+        <div className="px-4 pt-3 pb-1 flex items-start gap-1.5 text-xs text-muted-foreground">
+          <Zap className="h-3 w-3 mt-0.5 text-yellow-400 shrink-0" />
+          <span>{analysis.catalystSummary}</span>
+        </div>
+      )}
+
+      {/* Conflicts */}
+      {analysis.conflicts.length > 0 && (
+        <div className="px-4 pt-2 pb-1 space-y-1.5">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold">
+            Why this trade was rejected
+          </p>
+          {analysis.conflicts.map((c, i) => (
+            <div key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground/80">
+              <span className="text-red-400 shrink-0 mt-0.5">✕</span>
+              <span>{c}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Conclusion */}
+      {analysis.conclusion && (
+        <div className="border-t border-border/30 px-4 py-2.5 text-xs text-muted-foreground italic">
+          {analysis.conclusion}
+        </div>
+      )}
+
+      {/* Full text toggle */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors border-t border-border/20"
+      >
+        <ChevronDown
+          className={cn("h-3 w-3 transition-transform", expanded ? "rotate-180" : "")}
+        />
+        {expanded ? "hide" : "full analysis"}
+      </button>
+      {expanded && (
+        <div className="px-4 pb-3 text-[11px] text-muted-foreground/60 leading-relaxed border-t border-border/20 pt-2 whitespace-pre-wrap">
+          {/* Re-flow into readable paragraphs by splitting on ". " */}
+          {rawText}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function parseTradeSignal(text: string): TradeSignalData | null {
   // Heuristic: must mention key trading terms to be considered a signal block
   // Direction is optional — a setup may be implicitly long/bullish from catalyst context
@@ -150,6 +315,190 @@ function parseTradeSignal(text: string): TradeSignalData | null {
   return d
 }
 
+// ─── Structured JSON Signal ──────────────────────────────────────────────────
+
+interface StructuredSignal {
+  setup: { direction: string; type: string; validity: boolean; override_note?: string }
+  catalyst: { strength: string; description: string; basis: string; analyst_support?: string }
+  price_action: { signal: string; current_price: number; atr_14: number }
+  alignment: { total_score: number; factors: { factor: string; signal: string; score: number }[] }
+  entry: { type: string; current_price: number }
+  levels: { support?: number; bb_lower?: number; key_level_targeted?: number }
+  risk_management: {
+    stop_loss: { value: number }
+    take_profit: { adjusted: number }
+    risk: number
+    reward: number
+    rr_ratio: { simple: string; precise: string }
+    rr_valid: boolean
+  }
+}
+
+function parseStructuredSignal(text: string): StructuredSignal | null {
+  const trimmed = text.trim()
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("```")) return null
+  try {
+    const jsonStr = trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "")
+    const parsed = JSON.parse(jsonStr)
+    if (parsed?.setup && parsed?.risk_management && parsed?.alignment) {
+      return parsed as StructuredSignal
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+function scoreColor(score: number) {
+  if (score >= 2) return "text-green-400"
+  if (score === 1) return "text-teal-400"
+  return "text-muted-foreground/50"
+}
+
+function StructuredSignalCard({ signal }: { signal: StructuredSignal }) {
+  const [expanded, setExpanded] = useState(false)
+  const isBuy = signal.setup.direction.toUpperCase() === "BUY"
+  const rm = signal.risk_management
+
+  return (
+    <div
+      className={cn(
+        "my-3 rounded-xl border overflow-hidden",
+        isBuy ? "border-green-500/25 bg-background" : "border-red-500/25 bg-background",
+      )}
+    >
+      {/* Header */}
+      <div
+        className={cn(
+          "flex items-center justify-between px-4 py-2.5 border-b",
+          isBuy ? "border-green-500/15" : "border-red-500/15",
+        )}
+      >
+        <div className="flex items-center gap-2">
+          {isBuy ? (
+            <TrendingUp className="h-4 w-4 text-green-400" />
+          ) : (
+            <TrendingDown className="h-4 w-4 text-red-400" />
+          )}
+          <span className="text-xs text-muted-foreground">
+            @ ${signal.entry.current_price}
+          </span>
+          <span
+            className={cn(
+              "text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide",
+              signal.price_action.signal.toUpperCase() === "NEUTRAL"
+                ? "bg-muted/40 text-muted-foreground border-border"
+                : /BULLISH/i.test(signal.price_action.signal)
+                  ? "bg-green-500/10 text-green-400 border-green-500/25"
+                  : "bg-red-500/10 text-red-400 border-red-500/25",
+            )}
+          >
+            {signal.price_action.signal} candle
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide",
+              signal.catalyst.strength === "STRONG"
+                ? "bg-teal-500/10 text-teal-400 border-teal-500/25"
+                : signal.catalyst.strength === "WEAK"
+                  ? "bg-muted/40 text-muted-foreground border-border"
+                  : "bg-yellow-500/10 text-yellow-400 border-yellow-500/25",
+            )}
+          >
+            {signal.catalyst.strength} catalyst
+          </span>
+          <span
+            className={cn(
+              "text-xs font-semibold px-2 py-0.5 rounded-full border",
+              rm.rr_valid
+                ? "bg-green-500/15 text-green-300 border-green-500/30"
+                : "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
+            )}
+          >
+            RR {rm.rr_ratio.precise}
+          </span>
+        </div>
+      </div>
+
+      {/* Setup type */}
+      <div className="px-4 pt-2.5 pb-1 text-xs text-muted-foreground">
+        <span className="font-semibold text-foreground/70">{signal.setup.type}</span>
+        {signal.setup.override_note && (
+          <span className="ml-2 italic text-muted-foreground/60">— {signal.setup.override_note}</span>
+        )}
+      </div>
+
+      {/* Key Levels Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 px-3 pb-3 pt-1">
+        <Pill label="Entry" value={`$${signal.entry.current_price}`} color="teal" />
+        {signal.levels.support && (
+          <Pill label="Support" value={`$${signal.levels.support}`} color="muted" />
+        )}
+        <Pill label="Stop Loss" value={`$${rm.stop_loss.value}`} color="red" />
+        <Pill label="Take Profit" value={`$${rm.take_profit.adjusted}`} color="green" />
+        {signal.levels.bb_lower && (
+          <Pill label="BB Lower" value={`$${signal.levels.bb_lower}`} color="yellow" />
+        )}
+      </div>
+
+      {/* Risk / Reward row */}
+      <div className="flex items-center gap-4 px-3 pb-3 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <ShieldAlert className="h-3 w-3 text-red-400" />
+          Risk <span className="font-mono text-red-300">${rm.risk}</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <Target className="h-3 w-3 text-green-400" />
+          Reward <span className="font-mono text-green-300">${rm.reward}</span>
+        </span>
+      </div>
+
+      {/* Catalyst */}
+      <div className="border-t border-border/30 px-3 py-2 space-y-1">
+        <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+          <Zap className="h-3 w-3 mt-0.5 text-yellow-400 shrink-0" />
+          <span>{signal.catalyst.description}</span>
+        </div>
+        <div className="text-[11px] text-muted-foreground/50 pl-4">
+          {signal.catalyst.basis}
+        </div>
+      </div>
+
+      {/* Alignment factors — toggle */}
+      <div className="border-t border-border/30">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="w-full flex items-center justify-between px-3 py-2 text-xs text-muted-foreground hover:bg-muted/10 transition-colors"
+        >
+          <span>
+            Alignment score:{" "}
+            <span className="font-semibold text-teal-400">{signal.alignment.total_score}</span>
+            <span className="text-muted-foreground/50"> / {signal.alignment.factors.reduce((s, f) => s + (f.score > 0 ? f.score : 0), 0) + signal.alignment.factors.filter(f => f.score === 0).length}</span>
+          </span>
+          <ChevronDown
+            className={cn("h-3 w-3 transition-transform", expanded ? "rotate-180" : "")}
+          />
+        </button>
+        {expanded && (
+          <div className="px-3 pb-3 space-y-1.5">
+            {signal.alignment.factors.map((f, i) => (
+              <div key={i} className="flex items-start gap-2 text-xs">
+                <span className={cn("font-mono font-bold shrink-0 w-4 text-right", scoreColor(f.score))}>
+                  {f.score > 0 ? `+${f.score}` : "–"}
+                </span>
+                <span className="text-foreground/70 shrink-0">{f.factor}</span>
+                <span className="text-muted-foreground/60 italic">{f.signal}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function Pill({
   label,
   value,
@@ -202,14 +551,6 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
           ) : (
             <TrendingDown className="h-4 w-4 text-red-400" />
           )}
-          <span
-            className={cn(
-              "text-sm font-bold uppercase tracking-wide",
-              isBuy ? "text-green-400" : "text-red-400",
-            )}
-          >
-            {data.direction} Signal
-          </span>
           {data.currentPrice && (
             <span className="text-xs text-muted-foreground ml-1">
               @ ${data.currentPrice}
@@ -566,6 +907,16 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           }
 
           if (!cleanedText.trim()) return null
+
+          const structured = parseStructuredSignal(cleanedText.trim())
+          if (structured) {
+            return <StructuredSignalCard key={idx} signal={structured} />
+          }
+
+          const conflictData = parseConflictAnalysis(cleanedText.trim())
+          if (conflictData) {
+            return <ConflictAnalysisCard key={idx} analysis={conflictData} rawText={cleanedText.trim()} />
+          }
 
           const signalData = parseTradeSignal(cleanedText.trim())
           if (signalData) {
