@@ -16,6 +16,15 @@ export default function TradeCard({ trade, isSelected, onSelect }: TradeCardProp
   const tpFilled = filledLegs.some((leg: any) => leg.order_type === "limit" || leg.type === "limit")
   const slFilled = filledLegs.some((leg: any) => leg.order_type === "stop" || leg.type === "stop")
 
+  const getLegPL = (leg: any) => {
+    const legQty = parseFloat(leg.filled_qty || leg.quantity || "0")
+    const legPrice = parseFloat(leg.filled_avg_price || leg.limit_price || leg.stop_price || "0")
+    return trade.trade_type === "sell"
+      ? (trade.price - legPrice) * legQty
+      : (legPrice - trade.price) * legQty
+  }
+  const totalLegPL = filledLegs.reduce((sum: number, leg: any) => sum + getLegPL(leg), 0)
+
   return (
     <div
       onClick={() => onSelect(trade)}
@@ -72,15 +81,22 @@ export default function TradeCard({ trade, isSelected, onSelect }: TradeCardProp
           </div>
 
           {/* TP / SL badge */}
-          {tpFilled && (
-            <span className="rounded border border-green-500/30 bg-green-500/10 px-1.5 py-0.5 text-xs font-bold text-green-500">
-              TP
-            </span>
-          )}
-          {slFilled && (
-            <span className="rounded border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-xs font-bold text-red-500">
-              SL
-            </span>
+          {(tpFilled || slFilled) && (
+            <div className="flex items-center gap-1">
+              {tpFilled && (
+                <span className="rounded border border-green-500/30 bg-green-500/10 px-1.5 py-0.5 text-xs font-bold text-green-500">
+                  TP |
+                </span>
+              )}
+              {slFilled && (
+                <span className="rounded border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-xs font-bold text-red-500">
+                  SL |
+                </span>
+              )}
+              <span className={`text-xs font-semibold ${totalLegPL >= 0 ? "text-green-500" : "text-red-500"}`}>
+                {totalLegPL >= 0 ? "+" : ""}${totalLegPL.toFixed(2)}
+              </span>
+            </div>
           )}
 
           {/* Agent / Manual badge — pushed right on sm+, wraps naturally on mobile */}
