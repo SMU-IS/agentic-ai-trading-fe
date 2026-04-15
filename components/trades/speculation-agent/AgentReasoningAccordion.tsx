@@ -41,8 +41,13 @@ export default function AgentReasoningAccordion({
             <div className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
               <span className="text-sm font-bold text-primary">
-                Agent Technical Reasoning
+                Agent Trade Reasoning
               </span>
+              {selectedTrade.signal_data && (
+                <p className={`text-sm font-bold ${selectedTrade.signal_data.trade_signal === "BUY" ? "text-green-500" : "text-red-500"}`}>
+                  {selectedTrade.signal_data.trade_signal}
+                </p>
+              )}
             </div>
           </AccordionTrigger>
           <AccordionContent>

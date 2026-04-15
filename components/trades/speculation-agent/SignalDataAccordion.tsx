@@ -58,7 +58,7 @@ export default function SignalDataAccordion({
               {selectedTrade.signal_data.trade_signal}
             </p>
             <p className="mt-2 text-[10px] text-muted-foreground italic">
-              Technical Analysis Agent still has to analyse market conditions before executing.
+              Technical Analysis Agent still has to analyse market conditions before trading.
             </p>
           </div>
           <div>

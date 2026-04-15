@@ -148,7 +148,7 @@ export function DevFilterPanel() {
               className="space-y-2"
             >
               <p className="text-xs text-muted-foreground">
-                Reddit — select subreddits
+                Reddit — filter subreddits to trade
               </p>
               <div ref={subredditListRef} className="flex flex-col gap-0.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 {REDDIT_SUBREDDITS.map((sub) => {
