@@ -71,7 +71,7 @@ export default function TradeHeader({ selectedTrade }: TradeHeaderProps) {
           })()}
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">Status</p>
+          <p className="text-xs text-muted-foreground">Order</p>
           <div
             className={`text-lg ${
               selectedTrade.status === "filled"
