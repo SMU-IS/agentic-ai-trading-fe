@@ -125,7 +125,7 @@ export default function FiltersDropdown({
               </div>
             </div>
 
-            <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
               {/* Symbol Filter */}
               <div>
                 <h4 className="mb-2 text-xs text-muted-foreground">Symbol</h4>

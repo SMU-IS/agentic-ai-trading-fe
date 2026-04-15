@@ -121,7 +121,7 @@ export function DevFilterPanel() {
         </div>
 
         {/* Two-column body */}
-        <div className="grid grid-cols-[1fr_200px] gap-4">
+        <div className="grid grid-cols-[1fr_2fr] gap-4">
           {/* Column 1: Sources */}
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
@@ -204,7 +204,7 @@ export function DevFilterPanel() {
           {/* Column 2: Risk Adjustment */}
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
-              Risk Adjustment
+              Risk Adjustment Agent
             </p>
             <div className="relative flex items-center rounded-lg border border-border bg-muted/30 p-1 text-xs overflow-hidden">
               {/* Sliding background */}
