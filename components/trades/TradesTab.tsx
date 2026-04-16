@@ -55,10 +55,14 @@ export default function TradesTab() {
   // Trigger slide-up animation when a trade is selected on mobile
   useEffect(() => {
     if (selectedTrade) {
-      // Small delay so the mount triggers the CSS transition
       requestAnimationFrame(() => setIsOverlayVisible(true))
+      document.body.style.overflow = "hidden"
     } else {
       setIsOverlayVisible(false)
+      document.body.style.overflow = ""
+    }
+    return () => {
+      document.body.style.overflow = ""
     }
   }, [selectedTrade])
 
@@ -90,7 +94,7 @@ export default function TradesTab() {
         <>
           {/* Scrim / backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 lg:hidden"
             style={{ opacity: isOverlayVisible ? 1 : 0 }}
             onClick={handleCloseOverlay}
             aria-hidden="true"
@@ -100,7 +104,7 @@ export default function TradesTab() {
           <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col rounded-t-2xl border border-border bg-background/50 backdrop-blur-sm shadow-2xl transition-transform duration-300 ease-out lg:hidden"
+            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col rounded-t-2xl border border-border bg-background shadow-2xl transition-transform duration-300 ease-out lg:hidden"
             style={{
               transform: isOverlayVisible
                 ? "translateY(0)"
@@ -124,7 +128,7 @@ export default function TradesTab() {
             </div>
 
             {/* Scrollable content */}
-            <div className="flex-1 overflow-y-clip overscroll-contain px-4 py-4">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
               <SpeculationAgent
                 selectedTrade={selectedTrade}
                 holdings={holdings}
