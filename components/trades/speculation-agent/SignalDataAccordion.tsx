@@ -10,6 +10,30 @@ import {
 import { TradeEvent } from "@/lib/types"
 import { getCredibilityColor } from "./utils"
 
+function FormattedReasoning({ text }: { text: string }) {
+  const parts = text.split(/(?=\(\d+\))/)
+  const intro = parts[0].match(/^\(\d+\)/) ? null : parts.shift()
+
+  return (
+    <div className="space-y-1.5 text-xs text-muted-foreground">
+      {intro && <p className="font-medium text-foreground">{intro.trim()}</p>}
+      <ol className="space-y-1 list-none">
+        {parts.map((part, i) => {
+          const content = part.replace(/^\(\d+\)\s*/, "").trim()
+          return (
+            <li key={i} className="flex gap-2">
+              <span className="flex-shrink-0 font-semibold text-foreground">
+                {i + 1}.
+              </span>
+              <span>{content}</span>
+            </li>
+          )
+        })}
+      </ol>
+    </div>
+  )
+}
+
 interface SignalDataAccordionProps {
   selectedTrade: TradeEvent
 }
@@ -83,24 +107,15 @@ export default function SignalDataAccordion({
             <div className="flex items-center gap-2 mb-1">
               <Zap className="h-3.5 w-3.5 text-primary" />
               <p className="text-xs font-semibold text-muted-foreground">
-                🟡 Trade Suggestion — Under Review
+                Trade Suggestion, sent to Trade Decision Agent for review
               </p>
             </div>
-              <p className="bg-yellow-500/10 text-yellow-300 border-yellow-500/30 text-xs leading-relaxed break-words">
+              <div className="rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3 text-xs leading-relaxed break-words">
               Signal Engine has identified a potential trade opportunity
               for {selectedTrade.symbol}. This has been forwarded to the Decision Agent
               for final assessment before any action is taken.
-              </p>  
-            <div className="space-y-1.5">
-              {selectedTrade.signal_data.trade_rationale
-                .split(/(?<=\.)\s+/)
-                .filter(Boolean)
-                .map((sentence: string, i: number) => (
-                  <p key={i} className="text-xs text-foreground leading-relaxed break-words">
-                    {sentence}
-                  </p>
-                ))}
-            </div>
+              </div>  
+            <FormattedReasoning text={selectedTrade.signal_data.trade_rationale} />
           </div>
 
           {/* <div className="grid grid-cols-3 gap-3">
