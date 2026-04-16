@@ -118,12 +118,13 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
       }
     }
 
-    fetchPrice()
+    const timer = setTimeout(() => fetchPrice(), 300)
 
     return () => {
+      clearTimeout(timer)
       controller.abort()
     }
-  }, [selectedTrade.symbol, anyLegFilled, currentPrice])
+  }, [selectedTrade.symbol, anyLegFilled])
 
   const getLegPL = (leg: any) => {
     const legQty = parseFloat(leg.filled_qty || leg.quantity || "0")
