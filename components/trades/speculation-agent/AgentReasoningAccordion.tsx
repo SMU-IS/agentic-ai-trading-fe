@@ -41,10 +41,10 @@ export default function AgentReasoningAccordion({
             <div className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
               <span className="text-sm font-bold text-primary">
-                Agent Trade Reasoning
+                Trade Decision Agent
               </span>
-              <div className={`rounded border px-3 py-1 text-xs font-bold ${selectedTrade.trade_type === "buy" ? "text-green-500" : "text-red-500"}`}>
-              <p className={`text-sm font-bold ${selectedTrade.trade_type === "buy" ? "text-green-500" : "text-red-500"}`}>
+              <div className={`rounded-xl border px-3 py-1 text-xs font-bold ${selectedTrade.trade_type === "buy" ? "bg-green-500/10" : "bg-red-500/10"}`}>
+              <p className={`text-xs font-bold ${selectedTrade.trade_type === "buy" ? "text-green-500" : "text-red-500"}`}>
                 {selectedTrade.trade_type.toUpperCase()}
               </p>
               </div>

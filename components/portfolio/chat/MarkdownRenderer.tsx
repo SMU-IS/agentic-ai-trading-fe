@@ -381,9 +381,9 @@ function StructuredSignalCard({ signal }: { signal: StructuredSignal }) {
             <TrendingDown className="h-4 w-4 text-red-400" />
           )}
           <span className="text-xs text-muted-foreground">
-            @ ${signal.entry.current_price}
+            {isBuy ? "buy" : "sell"} @ ${signal.entry.current_price}
           </span>
-          <span
+          {/* <span
             className={cn(
               "text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide",
               signal.price_action.signal.toUpperCase() === "NEUTRAL"
@@ -394,7 +394,7 @@ function StructuredSignalCard({ signal }: { signal: StructuredSignal }) {
             )}
           >
             {signal.price_action.signal} candle
-          </span>
+          </span> */}
         </div>
         <div className="flex items-center gap-2">
           <span
@@ -417,7 +417,7 @@ function StructuredSignalCard({ signal }: { signal: StructuredSignal }) {
                 : "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
             )}
           >
-            RR {rm.rr_ratio.precise}
+            RR {rm.rr_ratio.precise} : 1
           </span>
         </div>
       </div>
@@ -583,7 +583,7 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
                     : "bg-yellow-500/10 text-yellow-400 border-yellow-500/25",
               )}
             >
-              {data.catalystStrength}
+              {data.catalystStrength} catalyst
             </span>
           )}
           {data.rr && (
@@ -595,7 +595,7 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
                   : "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
               )}
             >
-              RR {data.rr}
+              RR {data.rr} : 1
             </span>
           )}
         </div>
@@ -626,13 +626,13 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
           {data.risk && (
             <span className="flex items-center gap-1">
               <ShieldAlert className="h-3 w-3 text-red-400" />
-              Risk <span className="font-mono text-red-300">${data.risk}</span>
+              Suggested Risk <span className="font-mono text-red-300">${data.risk}</span>
             </span>
           )}
           {data.reward && (
             <span className="flex items-center gap-1">
               <Target className="h-3 w-3 text-green-400" />
-              Reward <span className="font-mono text-green-300">${data.reward}</span>
+              Suggested Reward <span className="font-mono text-green-300">${data.reward}</span>
             </span>
           )}
         </div>

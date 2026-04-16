@@ -30,7 +30,7 @@ export default function SignalDataAccordion({
             <div className="flex items-center gap-2 shrink-0">
               <Newspaper className="h-5 w-5 text-muted-foreground" />
               <span className="text-sm font-bold">
-                Agent Trade Signal (news)
+                Signal Engine (news)
               </span>
             </div>
             <div className="flex items-center gap-2 shrink-0">

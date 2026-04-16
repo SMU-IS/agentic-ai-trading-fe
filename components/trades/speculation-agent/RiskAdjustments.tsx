@@ -22,7 +22,7 @@ export default function RiskAdjustments({
       <div className="mb-3 flex items-center gap-2">
         <Target className="h-5 w-5 text-yellow-600" />
         <span className="text-sm font-bold text-yellow-600">
-          Risk Adjustments Applied ({selectedTrade.risk_adjustments_made.length}
+          Risk Guardrails Applied ({selectedTrade.risk_adjustments_made.length}
           )
         </span>
       </div>
@@ -33,7 +33,7 @@ export default function RiskAdjustments({
             className="rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3"
           >
             <div className="mb-2">
-              <div className="rounded bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-foreground inline-block">
+              <div className="uppercase rounded bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-foreground inline-block">
                 {adj.field
                   .split("_")
                   .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
