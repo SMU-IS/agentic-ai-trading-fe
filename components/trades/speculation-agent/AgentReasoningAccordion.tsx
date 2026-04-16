@@ -54,6 +54,7 @@ export default function AgentReasoningAccordion({
             <div className="text-sm leading-relaxed text-foreground">
               <MarkdownRenderer content={selectedTrade.trading_agent_reasonings} />
             </div>
+            <RiskAdjustments selectedTrade={selectedTrade} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -156,7 +157,6 @@ export default function AgentReasoningAccordion({
           </Accordion>
         )}
 
-      <RiskAdjustments selectedTrade={selectedTrade} />
     </div>
   )
 }
