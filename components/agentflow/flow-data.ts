@@ -17,6 +17,7 @@ import {
   SiTradingview,
   SiRedis,
 } from "react-icons/si"
+import Groq from "@lobehub/icons/es/Groq"
 
 interface CustomEdge extends Edge {
   humanizedLabel?: string
@@ -372,13 +373,13 @@ export const initialNodes: Node[] = [
     data: {
       label: "Chatbot Service",
       humanized: "Chatbot",
-      description: "Ollama",
+      description: "Groq",
       icon: Bot,
       variant: "stream",
       sources: [
         {
-          name: "Ollama",
-          icon: SiOllama,
+          name: "Groq",
+          icon: Groq,
           color: "bg-muted",
           textColor: "text-orange-600",
           hasToggle: false,
@@ -397,15 +398,15 @@ export const initialNodes: Node[] = [
     data: {
       label: "Trading Agent Service",
       humanized: "Automatic Trading System",
-      description: "Ollama",
+      description: "Groq",
       icon: Newspaper,
       variant: "stream",
       sources: [
         {
-          name: "Ollama",
-          icon: SiOllama,
+          name: "Groq",
+          icon: Groq,
           color: "bg-muted",
-          textColor: "text-orange-600",
+          textColor: "text-orange-400",
           hasToggle: false,
         },
         // {

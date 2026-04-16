@@ -56,6 +56,22 @@ export default function FiltersDropdown({
   const toInputValue = (d: Date | null) =>
     d ? d.toISOString().slice(0, 10) : ""
 
+  const today = new Date().toISOString().slice(0, 10)
+
+  const handleDateFromChange = (val: string) => {
+    if (!val) { setFilterDateFrom(null); return }
+    const next = new Date(val)
+    if (filterDateTo && next > filterDateTo) return
+    setFilterDateFrom(next)
+  }
+
+  const handleDateToChange = (val: string) => {
+    if (!val) { setFilterDateTo(null); return }
+    const next = new Date(val)
+    if (filterDateFrom && next < filterDateFrom) return
+    setFilterDateTo(next)
+  }
+
   const clearAll = () => {
     setFilterType("all")
     setFilterStatus("all")
@@ -226,10 +242,8 @@ export default function FiltersDropdown({
                     <input
                       type="date"
                       value={toInputValue(filterDateFrom)}
-                      max={toInputValue(filterDateTo)}
-                      onChange={(e) =>
-                        setFilterDateFrom(e.target.value ? new Date(e.target.value) : null)
-                      }
+                      max={toInputValue(filterDateTo) || today}
+                      onChange={(e) => handleDateFromChange(e.target.value)}
                       className="w-full rounded-lg border border-border bg-muted px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
@@ -239,9 +253,8 @@ export default function FiltersDropdown({
                       type="date"
                       value={toInputValue(filterDateTo)}
                       min={toInputValue(filterDateFrom)}
-                      onChange={(e) =>
-                        setFilterDateTo(e.target.value ? new Date(e.target.value) : null)
-                      }
+                      max={today}
+                      onChange={(e) => handleDateToChange(e.target.value)}
                       className="w-full rounded-lg border border-border bg-muted px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
