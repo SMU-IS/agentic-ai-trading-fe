@@ -257,11 +257,11 @@ export default function SpeculationAgent({
                   className="w-full h-10 bg-foreground/80 text-background relative group transition-all duration-300 rounded-xl hover:bg-foreground/70 hover:text-background border-none"
                 >
                   <span
-                    className="pointer-events-none absolute -inset-[2px] rounded-xl animate-rotate-border"
+                    className="pointer-events-none absolute -inset-[2px] rounded-xl animate-spin-border"
                     style={{
                       padding: "3px",
                       background:
-                        "conic-gradient(from var(--angle, 0deg), #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
+                        "conic-gradient(from 0deg, #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
                       WebkitMask:
                         "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
                       WebkitMaskComposite: "xor",
