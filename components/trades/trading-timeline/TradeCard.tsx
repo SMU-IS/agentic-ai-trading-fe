@@ -147,7 +147,7 @@ export default function TradeCard({ trade, isSelected, onSelect }: TradeCardProp
             <div className="mb-1.5 flex items-center gap-2">
               <Bot className="h-4 w-4 flex-shrink-0 text-primary" />
               <span className="text-xs font-semibold text-primary">
-                Agent Reasoning
+                Trade Decision Agent
               </span>
             </div>
             <p className="line-clamp-2 text-xs leading-relaxed text-foreground">

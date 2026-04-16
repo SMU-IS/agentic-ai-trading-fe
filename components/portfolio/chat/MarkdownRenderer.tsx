@@ -560,7 +560,7 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
           )}
           {data.currentPrice && (
             <span className="text-xs text-muted-foreground ml-1">
-              {isBuy ? "buy" : "sell"} @ ${data.currentPrice}
+              {isBuy ? "Targeted Buy" : "Targeted Sell"} @ ${data.currentPrice}
             </span>
           )}
           {/* {data.candleSentiment && (
@@ -609,7 +609,8 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
       </div>
 
       {/* Key Levels Table */}
-      <table className="ml-auto text-xs border-collapse">
+      <div className="flex justify-end">
+      <table className="text-xs border-collapse">
         <thead>
           <tr className="border-b border-border/30">
             {data.currentPrice && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">Entry</th>}
@@ -629,6 +630,7 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
           </tr>
         </tbody>
       </table>
+      </div>
 
       {/* Risk / Reward row */}
       {(data.risk || data.reward) && (

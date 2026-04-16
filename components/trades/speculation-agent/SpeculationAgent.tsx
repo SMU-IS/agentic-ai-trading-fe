@@ -239,7 +239,7 @@ export default function SpeculationAgent({
                   <div className="mb-2 flex items-center gap-2">
                     <Bot className="w-6 h-6 text-orange-500 mr-2" />
                     <span className="text-sm font-bold text-orange-500">
-                      Agent Reasoning
+                      Trade Decision Agent
                     </span>
                   </div>
                   <div className="text-sm text-foreground">
