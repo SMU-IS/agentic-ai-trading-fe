@@ -709,7 +709,7 @@ interface MarkdownRendererProps {
 function ThoughtBlock({ steps, isStreaming }: { steps: string[]; isStreaming?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
 
-  if (!steps.length) return null
+  if (!steps.length || steps.every((s) => !s.trim())) return null
 
   return (
     <div className="my-2">
@@ -886,7 +886,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           const isStreaming = thoughtParts.some((p) => p.streaming)
           const steps = thoughtParts
             .map((p) => p.content.replace(/<\/t?h?o?u?g?h?t?>?$/, "").trim())
-            .filter((c) => c.length >= 10)
+            .filter((c) => c.length >= 2)
           return steps.length > 0 ? { steps, streaming: isStreaming } : null
         })()
       : null

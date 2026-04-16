@@ -142,8 +142,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
   const sessionIdRef = useRef<string>(crypto.randomUUID())
 
-  const lastUserMessageIdRef = useRef<string | null>(null)
-
   const scrollToBottom = () => {
     const scroll = () => {
       if (scrollContainerRef.current)
@@ -166,8 +164,10 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   }
 
   useEffect(() => {
-    if (lastUserMessageIdRef.current) {
-      scrollUserMessageToTop(lastUserMessageIdRef.current)
+    // Always keep the latest user bubble at the top
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === "user")
+    if (lastUserMsg) {
+      scrollUserMessageToTop(lastUserMsg.id)
     } else {
       scrollToBottom()
     }
@@ -176,7 +176,10 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
   useEffect(() => {
     if (loading) {
       const lastMessage = messages[messages.length - 1]
-      if (lastMessage?.isStreaming) scrollToBottom()
+      if (lastMessage?.isStreaming) {
+        const lastUserMsg = [...messages].reverse().find((m) => m.role === "user")
+        if (lastUserMsg) scrollUserMessageToTop(lastUserMsg.id)
+      }
     }
   }, [messages, loading])
 
@@ -423,7 +426,6 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       ...prev,
       { id: userMessageId, role: "user", content: textToSend },
     ])
-    lastUserMessageIdRef.current = userMessageId
     if (!messageText) setInput("")
 
     setLoading(true)
@@ -451,7 +453,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           isStreaming: true,
         },
       ])
-      lastUserMessageIdRef.current = null
+
 
       await streamBackendResponse(
         textToSend,
