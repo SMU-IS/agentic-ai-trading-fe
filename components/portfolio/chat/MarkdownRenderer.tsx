@@ -706,11 +706,10 @@ interface MarkdownRendererProps {
   className?: string
 }
 
-function ThoughtBlock({ content, stepCount, isStreaming }: { content: string; stepCount: number; isStreaming?: boolean }) {
+function ThoughtBlock({ steps, isStreaming }: { steps: string[]; isStreaming?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
 
-  // Don't render until we have some actual content beyond just a few characters or whitespace
-  if (!content || content.trim().length < 2) return null
+  if (!steps.length) return null
 
   return (
     <div className="my-2">
@@ -725,19 +724,16 @@ function ThoughtBlock({ content, stepCount, isStreaming }: { content: string; st
           )}
         />
         <span
-          className={cn(
-            isStreaming && "relative overflow-hidden",
-          )}
-          style={isStreaming ? {
+          style={{
             background: "linear-gradient(90deg, hsl(var(--muted-foreground) / 0.6) 0%, hsl(var(--foreground) / 0.9) 40%, hsl(var(--muted-foreground) / 0.6) 80%)",
             backgroundSize: "200% 100%",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
             animation: "shimmer-ltr 1.6s linear infinite",
-          } : undefined}
+          }}
         >
-          Ran {stepCount} {stepCount === 1 ? "Step" : "Steps"}
+          Ran {steps.length} {steps.length === 1 ? "Step" : "Steps"}
         </span>
       </button>
       <div
@@ -746,10 +742,27 @@ function ThoughtBlock({ content, stepCount, isStreaming }: { content: string; st
           isOpen ? "max-h-[2000px] opacity-100 mt-2" : "max-h-0 opacity-0 overflow-hidden",
         )}
       >
-        <div className="text-xs italic text-muted-foreground/80 leading-relaxed space-y-2 border-l-2 border-teal-500/30 pl-3">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {content.trim()}
-          </ReactMarkdown>
+        <div className="relative pl-4">
+          {/* Vertical timeline line */}
+          <div className="absolute left-[5px] top-1 bottom-1 w-px bg-teal-500/30" />
+          <div className="space-y-3">
+            {steps.map((step, i) => (
+              <div key={i} className="relative flex gap-3">
+                {/* Dot */}
+                <div className={cn(
+                  "absolute -left-[11px] top-[5px] h-2 w-2 rounded-full border shrink-0",
+                  i === steps.length - 1 && isStreaming
+                    ? "border-teal-400 bg-teal-400/30 animate-pulse"
+                    : "border-teal-500/50 bg-background",
+                )} />
+                <div className="text-xs italic text-muted-foreground/80 leading-relaxed">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {step}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -865,6 +878,21 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
     ),
   }
 
+  // Collect all thought parts into a steps array for one accordion
+  const thoughtParts = parts.filter((p) => p.type === "thought")
+  const mergedThought =
+    thoughtParts.length > 0
+      ? (() => {
+          const isStreaming = thoughtParts.some((p) => p.streaming)
+          const steps = thoughtParts
+            .map((p) => p.content.replace(/<\/t?h?o?u?g?h?t?>?$/, "").trim())
+            .filter((c) => c.length >= 10)
+          return steps.length > 0 ? { steps, streaming: isStreaming } : null
+        })()
+      : null
+
+  const firstThoughtIdx = parts.findIndex((p) => p.type === "thought")
+
   return (
     <div
       className={cn(
@@ -874,80 +902,52 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
     >
       {parts.map((part, idx) => {
         if (part.type === "thought") {
-          const cleanedThought = part.content
-            .replace(/<\/t?h?o?u?g?h?t?>?$/, "")
-            .trim()
-          // Higher threshold to prevent empty-looking accordions during the very start of streaming
-          if (cleanedThought.length < 10) return null
-
-          // Handle multiple sources within a single thought block
-          if (cleanedThought.includes("Source:")) {
-            const subSegments = cleanedThought.split(/Source:/g)
-            const sourceSegments = subSegments.filter((s, sIdx) => sIdx > 0 && s.trim())
-            const stepCount = sourceSegments.length || 1
-
-            const combinedParts: string[] = []
-            if (subSegments[0]?.trim()) {
-              combinedParts.push(subSegments[0].trim())
-            }
-            sourceSegments.forEach((segment) => {
-              const lines = segment.trim().split("\n")
-              const sourceName = lines[0].trim()
-              const sourceContent = lines.slice(1).join("\n").trim()
-              combinedParts.push(`**Source: ${sourceName}**\n${sourceContent}`)
-            })
-
-            return (
-              <ThoughtBlock
-                key={idx}
-                content={combinedParts.join("\n\n")}
-                stepCount={stepCount}
-                isStreaming={part.streaming}
-              />
-            )
-          }
-
-          return <ThoughtBlock key={idx} content={cleanedThought} stepCount={1} isStreaming={part.streaming} />
-        } else {
-          // Cleanup text content
-          // Only apply aggressive trailing cleanup to the very last part if it's text
-          let cleanedText = part.content
-          if (idx === parts.length - 1) {
-            cleanedText = cleanedText
-              .replace(/\\?$/, "") // Remove trailing backslash
-              .replace(/<t?h?o?u?g?h?t?>?$/, "") // Remove partial tag
-              .replace(/(?:^|\n)[\s>*-]+$/, "$1") // Strip trailing markers
-          }
-
-          if (!cleanedText.trim()) return null
-
-          const structured = parseStructuredSignal(cleanedText.trim())
-          if (structured) {
-            return <StructuredSignalCard key={idx} signal={structured} />
-          }
-
-          const conflictData = parseConflictAnalysis(cleanedText.trim())
-          if (conflictData) {
-            return <ConflictAnalysisCard key={idx} analysis={conflictData} rawText={cleanedText.trim()} />
-          }
-
-          const signalData = parseTradeSignal(cleanedText.trim())
-          if (signalData) {
-            return (
-              <TradeSignalCard key={idx} data={signalData} rawText={cleanedText.trim()} />
-            )
-          }
-
+          // Render merged accordion only at the first thought part's position
+          if (idx !== firstThoughtIdx || !mergedThought) return null
           return (
-            <ReactMarkdown
-              key={idx}
-              remarkPlugins={[remarkGfm]}
-              components={markdownComponents}
-            >
-              {cleanedText}
-            </ReactMarkdown>
+            <ThoughtBlock
+              key="merged-thought"
+              steps={mergedThought.steps}
+              isStreaming={mergedThought.streaming}
+            />
           )
         }
+
+        // Text part
+        let cleanedText = part.content
+        if (idx === parts.length - 1) {
+          cleanedText = cleanedText
+            .replace(/\\?$/, "")
+            .replace(/<t?h?o?u?g?h?t?>?$/, "")
+            .replace(/(?:^|\n)[\s>*-]+$/, "$1")
+        }
+
+        if (!cleanedText.trim()) return null
+
+        const structured = parseStructuredSignal(cleanedText.trim())
+        if (structured) {
+          return <StructuredSignalCard key={idx} signal={structured} />
+        }
+
+        const conflictData = parseConflictAnalysis(cleanedText.trim())
+        if (conflictData) {
+          return <ConflictAnalysisCard key={idx} analysis={conflictData} rawText={cleanedText.trim()} />
+        }
+
+        const signalData = parseTradeSignal(cleanedText.trim())
+        if (signalData) {
+          return <TradeSignalCard key={idx} data={signalData} rawText={cleanedText.trim()} />
+        }
+
+        return (
+          <ReactMarkdown
+            key={idx}
+            remarkPlugins={[remarkGfm]}
+            components={markdownComponents}
+          >
+            {cleanedText}
+          </ReactMarkdown>
+        )
       })}
     </div>
   )
