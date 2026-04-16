@@ -706,7 +706,7 @@ interface MarkdownRendererProps {
   className?: string
 }
 
-function ThoughtBlock({ content, stepCount }: { content: string; stepCount: number }) {
+function ThoughtBlock({ content, stepCount, isStreaming }: { content: string; stepCount: number; isStreaming?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
 
   // Don't render until we have some actual content beyond just a few characters or whitespace
@@ -724,7 +724,21 @@ function ThoughtBlock({ content, stepCount }: { content: string; stepCount: numb
             isOpen ? "rotate-180" : "rotate-0",
           )}
         />
-        <span>Ran {stepCount} {stepCount === 1 ? "Step" : "Steps"}</span>
+        <span
+          className={cn(
+            isStreaming && "relative overflow-hidden",
+          )}
+          style={isStreaming ? {
+            background: "linear-gradient(90deg, hsl(var(--muted-foreground) / 0.6) 0%, hsl(var(--foreground) / 0.9) 40%, hsl(var(--muted-foreground) / 0.6) 80%)",
+            backgroundSize: "200% 100%",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            animation: "shimmer-ltr 1.6s linear infinite",
+          } : undefined}
+        >
+          Ran {stepCount} {stepCount === 1 ? "Step" : "Steps"}
+        </span>
       </button>
       <div
         className={cn(
@@ -744,7 +758,7 @@ function ThoughtBlock({ content, stepCount }: { content: string; stepCount: numb
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   // Parse content into interleaved parts of text and thoughts
-  const parts: { type: "text" | "thought"; content: string }[] = []
+  const parts: { type: "text" | "thought"; content: string; streaming?: boolean }[] = []
 
   // Handle escaped tags like \<thought>
   const sanitizedContent = content.replace(/\\<thought>/g, "<thought>")
@@ -761,7 +775,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
     const thoughtAndRest = splitParts[i]
     if (thoughtAndRest.includes("</thought>")) {
       const [thought, ...rest] = thoughtAndRest.split("</thought>")
-      parts.push({ type: "thought", content: thought })
+      parts.push({ type: "thought", content: thought, streaming: false })
 
       const restContent = rest.join("</thought>")
       if (restContent) {
@@ -769,7 +783,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
       }
     } else {
       // Still streaming this thought block
-      parts.push({ type: "thought", content: thoughtAndRest })
+      parts.push({ type: "thought", content: thoughtAndRest, streaming: true })
     }
   }
 
@@ -888,11 +902,12 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
                 key={idx}
                 content={combinedParts.join("\n\n")}
                 stepCount={stepCount}
+                isStreaming={part.streaming}
               />
             )
           }
 
-          return <ThoughtBlock key={idx} content={cleanedThought} stepCount={1} />
+          return <ThoughtBlock key={idx} content={cleanedThought} stepCount={1} isStreaming={part.streaming} />
         } else {
           // Cleanup text content
           // Only apply aggressive trailing cleanup to the very last part if it's text

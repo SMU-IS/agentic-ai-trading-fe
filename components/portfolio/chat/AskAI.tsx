@@ -142,6 +142,8 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
 
   const sessionIdRef = useRef<string>(crypto.randomUUID())
 
+  const lastUserMessageIdRef = useRef<string | null>(null)
+
   const scrollToBottom = () => {
     const scroll = () => {
       if (scrollContainerRef.current)
@@ -154,8 +156,21 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
     scrollAnimationFrameRef.current = requestAnimationFrame(scroll)
   }
 
+  const scrollUserMessageToTop = (messageId: string) => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    const el = container.querySelector<HTMLElement>(`[data-id="${messageId}"]`)
+    if (!el) return
+    const offsetTop = el.offsetTop - container.offsetTop
+    container.scrollTop = offsetTop
+  }
+
   useEffect(() => {
-    scrollToBottom()
+    if (lastUserMessageIdRef.current) {
+      scrollUserMessageToTop(lastUserMessageIdRef.current)
+    } else {
+      scrollToBottom()
+    }
   }, [messages])
 
   useEffect(() => {
@@ -408,6 +423,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
       ...prev,
       { id: userMessageId, role: "user", content: textToSend },
     ])
+    lastUserMessageIdRef.current = userMessageId
     if (!messageText) setInput("")
 
     setLoading(true)
@@ -435,6 +451,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
           isStreaming: true,
         },
       ])
+      lastUserMessageIdRef.current = null
 
       await streamBackendResponse(
         textToSend,
@@ -742,6 +759,7 @@ export default function AskAI({ open, onOpenChange, contextData }: AskAIProps) {
                   {messages.map((m) => (
                     <motion.div
                       key={m.id}
+                      data-id={m.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}

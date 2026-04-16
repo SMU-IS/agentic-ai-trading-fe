@@ -104,6 +104,15 @@
   animation: typing-cursor 1s infinite;
 }
 
+@keyframes shimmer-ltr {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
