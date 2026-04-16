@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import TradingTimeline from "./trading-timeline/TradingTimeline"
 import SpeculationAgent from "./speculation-agent/SpeculationAgent"
 import AgentSummary from "./AgentSummary"
@@ -19,9 +19,6 @@ export default function TradesTab() {
   const [selectedTrade, setSelectedTrade] = useState<TradeEvent | null>(null)
   const [holdings, setHoldings] = useState<Record<string, HoldingInfo>>({})
   const [isOverlayVisible, setIsOverlayVisible] = useState(false)
-  // Keeps the last selected trade frozen during the slide-down animation
-  // so SpeculationAgent doesn't re-render with null while closing
-  const frozenTrade = useRef<TradeEvent | null>(null)
 
   useEffect(() => {
     const fetchHoldings = async () => {
@@ -55,7 +52,6 @@ export default function TradesTab() {
   // Trigger slide-up animation when a trade is selected on mobile
   useEffect(() => {
     if (selectedTrade) {
-      frozenTrade.current = selectedTrade
       requestAnimationFrame(() => setIsOverlayVisible(true))
       document.body.style.overflow = "hidden"
     } else {
@@ -69,11 +65,7 @@ export default function TradesTab() {
 
   const handleCloseOverlay = () => {
     setIsOverlayVisible(false)
-    // Wait for slide-down to finish before unmounting — frozenTrade keeps content stable
-    setTimeout(() => {
-      setSelectedTrade(null)
-      frozenTrade.current = null
-    }, 300)
+    setTimeout(() => setSelectedTrade(null), 300)
   }
 
   return (
@@ -94,53 +86,51 @@ export default function TradesTab() {
       </div>
 
       {/* ── Mobile: slide-up overlay ── */}
-      {selectedTrade && (
-        <>
-          {/* Scrim / backdrop */}
-          <div
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden"
-            style={{ opacity: isOverlayVisible ? 1 : 0 }}
+      {/* Scrim / backdrop — always mounted, visibility driven by pointer-events */}
+      <div
+        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden"
+        style={{
+          opacity: isOverlayVisible ? 1 : 0,
+          pointerEvents: isOverlayVisible ? "auto" : "none",
+        }}
+        onClick={handleCloseOverlay}
+        aria-hidden="true"
+      />
+
+      {/* Slide-up sheet — always mounted, slides in/out via transform */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col rounded-t-2xl border border-border bg-background/50 backdrop-blur-sm shadow-2xl transition-transform duration-300 ease-out lg:hidden"
+        style={{
+          transform: isOverlayVisible ? "translateY(0)" : "translateY(100%)",
+          pointerEvents: isOverlayVisible ? "auto" : "none",
+        }}
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+        </div>
+
+        {/* Header bar */}
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
             onClick={handleCloseOverlay}
-            aria-hidden="true"
-          />
-
-          {/* Slide-up sheet */}
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col rounded-t-2xl border border-border bg-background/50 backdrop-blur-sm shadow-2xl transition-transform duration-300 ease-out lg:hidden"
-            style={{
-              transform: isOverlayVisible
-                ? "translateY(0)"
-                : "translateY(100%)",
-            }}
+            className="absolute right-3 top-3 p-1 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+            aria-label="Close analysis panel"
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
-            </div>
+            <X />
+          </button>
+        </div>
 
-            {/* Header bar */}
-            <div className="flex items-center justify-between  px-4 py-3">
-              <button
-                onClick={handleCloseOverlay}
-                className="absolute right-3 top-3 p-1 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
-                aria-label="Close analysis panel"
-              >
-                <X />
-              </button>
-            </div>
-
-            {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
-              <SpeculationAgent
-                selectedTrade={frozenTrade.current}
-                holdings={holdings}
-              />
-            </div>
-          </div>
-        </>
-      )}
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+          <SpeculationAgent
+            selectedTrade={selectedTrade}
+            holdings={holdings}
+          />
+        </div>
+      </div>
 
       <AgentSummary />
 
