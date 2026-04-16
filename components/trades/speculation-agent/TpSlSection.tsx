@@ -291,8 +291,8 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                       <motion.span
                         className="text-xs text-muted-foreground absolute whitespace-nowrap"
                         variants={{
-                          hovered: { opacity: 0, y: -8, filter: "blur(4px)" },
-                          rest: { opacity: 1, y: 0, filter: "blur(0px)" },
+                          hovered: { opacity: 0, y: -8 },
+                          rest: { opacity: 1, y: 0 },
                         }}
                         transition={{ duration: 0.2 }}
                       >
@@ -301,8 +301,8 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                       <motion.span
                         className="text-xs text-muted-foreground absolute whitespace-nowrap"
                         variants={{
-                          hovered: { opacity: 1, y: 0, filter: "blur(0px)" },
-                          rest: { opacity: 0, y: 8, filter: "blur(4px)" },
+                          hovered: { opacity: 1, y: 0 },
+                          rest: { opacity: 0, y: 8 },
                         }}
                         transition={{ duration: 0.2 }}
                       >
@@ -322,8 +322,8 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                           className={`text-xs font-bold whitespace-nowrap ${isPositive ? "text-green-500" : "text-red-500"}`}
                           style={{ gridArea: "stack" }}
                           variants={{
-                            hovered: { opacity: 0, y: -8, filter: "blur(4px)" },
-                            rest: { opacity: 1, y: 0, filter: "blur(0px)" },
+                            hovered: { opacity: 0, y: -8 },
+                            rest: { opacity: 1, y: 0 },
                           }}
                           transition={{ duration: 0.2 }}
                         >
@@ -333,8 +333,8 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                           className="text-xs font-bold whitespace-nowrap text-foreground"
                           style={{ gridArea: "stack" }}
                           variants={{
-                            hovered: { opacity: 1, y: 0, filter: "blur(0px)" },
-                            rest: { opacity: 0, y: 8, filter: "blur(4px)" },
+                            hovered: { opacity: 1, y: 0 },
+                            rest: { opacity: 0, y: 8 },
                           }}
                           transition={{ duration: 0.2 }}
                         >
