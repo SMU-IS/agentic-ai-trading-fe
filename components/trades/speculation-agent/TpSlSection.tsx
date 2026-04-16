@@ -278,9 +278,11 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
                     className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 cursor-default"
                   >
                     <span className="relative flex h-2 w-2 flex-shrink-0">
-                      <span
-                        className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isWinning ? "bg-green-400" : "bg-red-400"} opacity-75`}
-                      />
+                      {!isMobile && (
+                        <span
+                          className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isWinning ? "bg-green-400" : "bg-red-400"} opacity-75`}
+                        />
+                      )}
                       <span
                         className={`relative inline-flex h-2 w-2 rounded-full ${isWinning ? "bg-green-500" : "bg-red-500"}`}
                       />
