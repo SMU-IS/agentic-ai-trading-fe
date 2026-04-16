@@ -9,7 +9,7 @@ import TradesTab from "@/components/trades/TradesTab"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 import { AnimatePresence, motion } from "framer-motion"
-import { DatabaseZapIcon, LogOut, Menu, Sparkles, X } from "lucide-react"
+import { DatabaseZapIcon, LogOut, Menu, Settings, Sparkles, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
 import AnimatedBackground from "./AnimatedBackground"
@@ -132,6 +132,16 @@ function PortfolioContent() {
 
             <ModeToggle />
             <NotificationsDropdown />
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => router.push("/settings")}
+              title="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
 
             <Button
               variant="ghost"
