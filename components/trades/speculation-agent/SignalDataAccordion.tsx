@@ -103,14 +103,14 @@ export default function SignalDataAccordion({
             </p>
           </div>
 
-          <div className="rounded-lg bg-background p-3 ">
+          <div className="space-y-2 rounded-lg bg-background p-3 ">
             <div className="flex items-center gap-2 mb-1">
               <Zap className="h-3.5 w-3.5 text-primary" />
               <p className="text-xs font-semibold text-muted-foreground">
                 Trade Suggestion (Sent to Trade Decision Agent for review)
               </p>
             </div>
-              <div className="space-y-1 rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3 text-xs leading-relaxed break-words">
+              <div className="rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3 text-xs leading-relaxed break-words">
               Signal Engine has identified a potential trade opportunity
               for <span className="font-bold text-teal-300">{selectedTrade.symbol}</span>. This has been forwarded to the Decision Agent
               for final assessment before any action is taken.
