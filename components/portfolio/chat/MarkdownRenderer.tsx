@@ -382,7 +382,7 @@ function StructuredSignalCard({ signal }: { signal: StructuredSignal }) {
             <TrendingDown className="h-4 w-4 text-red-400" />
           )}
           <span className="text-xs text-muted-foreground">
-            {isBuy ? "buy" : "sell"} @ ${signal.entry.current_price}
+            {isBuy ? "Targeted Buy" : "Targeted Sell"} @ ${signal.entry.current_price}
           </span>
           {/* <span
             className={cn(
@@ -412,7 +412,7 @@ function StructuredSignalCard({ signal }: { signal: StructuredSignal }) {
           </span>
           <span
             className={cn(
-              "text-xs font-semibold px-2 py-0.5 rounded-full border",
+              "text-xs font-semibold px-2 py-0.5 rounded border",
               rrComputed >= 2
                 ? "bg-green-500/15 text-green-500 border-green-500/30"
                 : "bg-yellow-500/15 text-yellow-500 border-yellow-500/30",
@@ -596,10 +596,10 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
           {rrComputed !== null && (
             <span
               className={cn(
-                "text-xs font-semibold px-2 py-0.5 rounded-full border",
+                "text-xs font-semibold px-2 py-0.5 rounded border",
                 rrComputed >= 2
-                  ? "bg-green-500/15 text-green-300 border-green-500/30"
-                  : "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
+                  ? "bg-green-500/15 text-green-500 border-green-500/30"
+                  : "bg-yellow-500/15 text-yellow-500 border-yellow-500/30",
               )}
             >
               RR {rrComputed.toFixed(2)} : 1
@@ -608,27 +608,14 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
         </div>
       </div>
 
-      {/* Key Levels Table */}
-      <table className="w-full text-xs border-collapse">
-        <thead>
-          <tr className="border-b border-border/30">
-            {data.currentPrice && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">Entry</th>}
-            {data.support && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">Support</th>}
-            {data.sl && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">Stop Loss</th>}
-            {data.tp && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">Take Profit</th>}
-            {data.bbLower && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">BB Lower</th>}
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            {data.currentPrice && <td className="px-3 py-2 font-mono font-bold text-foreground">${data.currentPrice}</td>}
-            {data.support && <td className="px-3 py-2 font-mono font-bold text-foreground">${data.support}</td>}
-            {data.sl && <td className="px-3 py-2 font-mono font-bold text-foreground">${data.sl}</td>}
-            {data.tp && <td className="px-3 py-2 font-mono font-bold text-foreground">${data.tp}</td>}
-            {data.bbLower && <td className="px-3 py-2 font-mono font-bold text-foreground">${data.bbLower}</td>}
-          </tr>
-        </tbody>
-      </table>
+      {/* Key Levels Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 px-3 pb-3 pt-1">
+        {data.currentPrice && <Pill label="Entry" value={`$${data.currentPrice}`} color="teal" />}
+        {data.support && <Pill label="Support" value={`$${data.support}`} color="muted" />}
+        {data.sl && <Pill label="Stop Loss" value={`$${data.sl}`} color="red" />}
+        {data.tp && <Pill label="Take Profit" value={`$${data.tp}`} color="green" />}
+        {data.bbLower && <Pill label="BB Lower" value={`$${data.bbLower}`} color="yellow" />}
+      </div>
 
       {/* Risk / Reward row */}
       {(data.risk || data.reward) && (
