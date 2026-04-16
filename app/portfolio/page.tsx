@@ -118,7 +118,7 @@ function PortfolioContent() {
                 style={{
                   padding: "2px",
                   background:
-                    "conic-gradient(from 0deg, #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
+                    "conic-gradient(from var(--angle, 0deg), #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
                   WebkitMask:
                     "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
                   WebkitMaskComposite: "xor",
