@@ -723,16 +723,7 @@ function ThoughtBlock({ steps, isStreaming }: { steps: string[]; isStreaming?: b
             isOpen ? "rotate-180" : "rotate-0",
           )}
         />
-        <span
-          style={{
-            background: "linear-gradient(90deg, hsl(var(--muted-foreground) / 0.6) 0%, hsl(var(--foreground) / 0.9) 40%, hsl(var(--muted-foreground) / 0.6) 80%)",
-            backgroundSize: "200% 100%",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-            animation: "shimmer-ltr 1.6s linear infinite",
-          }}
-        >
+        <span className="shimmer-text">
           Ran {steps.length} {steps.length === 1 ? "Step" : "Steps"}
         </span>
       </button>
@@ -744,7 +735,7 @@ function ThoughtBlock({ steps, isStreaming }: { steps: string[]; isStreaming?: b
       >
         <div className="relative pl-4">
           {/* Vertical timeline line */}
-          <div className="absolute left-[5px] top-1 bottom-1 w-px bg-teal-500/30" />
+          <div className="absolute left-[8.5px] top-1 bottom-1 w-px bg-teal-500/30" />
           <div className="space-y-3">
             {steps.map((step, i) => (
               <div key={i} className="relative flex gap-3">

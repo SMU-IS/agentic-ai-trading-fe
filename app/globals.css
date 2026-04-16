@@ -104,6 +104,24 @@
   animation: typing-cursor 1s infinite;
 }
 
+.shimmer-text {
+  background: linear-gradient(90deg, #6b7280 0%, #111827 40%, #6b7280 80%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer-ltr 1.6s linear infinite;
+}
+
+.dark .shimmer-text {
+  background: linear-gradient(90deg, rgba(160,200,190,0.6) 0%, rgba(231,236,235,0.9) 40%, rgba(160,200,190,0.6) 80%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer-ltr 1.6s linear infinite;
+}
+
 @keyframes shimmer-ltr {
   0% {
     background-position: 200% 0;
