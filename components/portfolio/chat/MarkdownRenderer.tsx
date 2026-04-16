@@ -359,6 +359,7 @@ function StructuredSignalCard({ signal }: { signal: StructuredSignal }) {
   const [expanded, setExpanded] = useState(false)
   const isBuy = signal.setup.direction.toUpperCase() === "BUY"
   const rm = signal.risk_management
+  const rrComputed = rm.risk && rm.reward ? rm.reward / rm.risk : parseFloat(rm.rr_ratio.precise)
 
   return (
     <div
@@ -412,12 +413,12 @@ function StructuredSignalCard({ signal }: { signal: StructuredSignal }) {
           <span
             className={cn(
               "text-xs font-semibold px-2 py-0.5 rounded-full border",
-              rm.rr_valid
-                ? "bg-green-500/15 text-green-300 border-green-500/30"
-                : "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
+              rrComputed >= 2
+                ? "bg-green-500/15 text-green-500 border-green-500/30"
+                : "bg-yellow-500/15 text-yellow-500 border-yellow-500/30",
             )}
           >
-            RR {rm.rr_ratio.precise} : 1
+            RR {rrComputed.toFixed(2)} : 1
           </span>
         </div>
       </div>
@@ -509,10 +510,10 @@ function Pill({
   color: "teal" | "red" | "green" | "yellow" | "muted"
 }) {
   const colors = {
-    teal: "bg-teal-500/10 text-teal-300 border-teal-500/30",
-    red: "bg-red-500/10 text-red-300 border-red-500/30",
-    green: "bg-green-500/10 text-green-300 border-green-500/30",
-    yellow: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30",
+    teal: "bg-teal-500/10 text-teal-500 border-teal-500/30",
+    red: "bg-red-500/10 text-red-500 border-red-500/30",
+    green: "bg-green-500/10 text-green-500 border-green-500/30",
+    yellow: "bg-yellow-500/10 text-yellow-500 border-yellow-500/30",
     muted: "bg-muted/40 text-muted-foreground border-border",
   }
   return (
@@ -528,6 +529,12 @@ function Pill({
 function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: string }) {
   const [expanded, setExpanded] = useState(false)
   const isBuy = data.direction === "BUY"
+  const rrComputed =
+    data.risk && data.reward
+      ? parseFloat(data.reward) / parseFloat(data.risk)
+      : data.rr
+        ? parseFloat(data.rr)
+        : null
 
   return (
     <div
@@ -586,53 +593,56 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
               {data.catalystStrength} catalyst
             </span>
           )}
-          {data.rr && (
+          {rrComputed !== null && (
             <span
               className={cn(
                 "text-xs font-semibold px-2 py-0.5 rounded-full border",
-                parseFloat(data.rr) >= 2
+                rrComputed >= 2
                   ? "bg-green-500/15 text-green-300 border-green-500/30"
                   : "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
               )}
             >
-              RR {data.rr} : 1
+              RR {rrComputed.toFixed(2)} : 1
             </span>
           )}
         </div>
       </div>
 
-      {/* Key Levels Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3">
-        {data.currentPrice && (
-          <Pill label="Entry" value={`$${data.currentPrice}`} color="teal" />
-        )}
-        {data.support && (
-          <Pill label="Support" value={`$${data.support}`} color="muted" />
-        )}
-        {data.sl && (
-          <Pill label="Stop Loss" value={`$${data.sl}`} color="red" />
-        )}
-        {data.tp && (
-          <Pill label="Take Profit" value={`$${data.tp}`} color="green" />
-        )}
-        {data.bbLower && (
-          <Pill label="BB Lower" value={`$${data.bbLower}`} color="yellow" />
-        )}
-      </div>
+      {/* Key Levels Table */}
+      <table className="w-full text-xs border-collapse">
+        <thead>
+          <tr className="border-b border-border/30">
+            {data.currentPrice && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">Entry</th>}
+            {data.support && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">Support</th>}
+            {data.sl && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">Stop Loss</th>}
+            {data.tp && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">Take Profit</th>}
+            {data.bbLower && <th className="px-3 py-1.5 text-left font-semibold text-muted-foreground/50 uppercase tracking-wider text-[10px]">BB Lower</th>}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {data.currentPrice && <td className="px-3 py-2 font-mono font-bold text-foreground">${data.currentPrice}</td>}
+            {data.support && <td className="px-3 py-2 font-mono font-bold text-foreground">${data.support}</td>}
+            {data.sl && <td className="px-3 py-2 font-mono font-bold text-foreground">${data.sl}</td>}
+            {data.tp && <td className="px-3 py-2 font-mono font-bold text-foreground">${data.tp}</td>}
+            {data.bbLower && <td className="px-3 py-2 font-mono font-bold text-foreground">${data.bbLower}</td>}
+          </tr>
+        </tbody>
+      </table>
 
       {/* Risk / Reward row */}
       {(data.risk || data.reward) && (
         <div className="flex items-center gap-4 px-3 pb-3 text-xs text-muted-foreground">
           {data.risk && (
             <span className="flex items-center gap-1">
-              <ShieldAlert className="h-3 w-3 text-red-400" />
-              Suggested Risk <span className="font-mono text-red-300">${data.risk}</span>
+              <ShieldAlert className="h-3 w-3 text-red-500" />
+              Suggested Risk <span className="font-mono text-red-500">${data.risk}</span>
             </span>
           )}
           {data.reward && (
             <span className="flex items-center gap-1">
-              <Target className="h-3 w-3 text-green-400" />
-              Suggested Reward <span className="font-mono text-green-300">${data.reward}</span>
+              <Target className="h-3 w-3 text-green-500" />
+              Suggested Reward <span className="font-mono text-green-500">${data.reward}</span>
             </span>
           )}
         </div>
