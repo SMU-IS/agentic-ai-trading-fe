@@ -114,17 +114,17 @@ function PortfolioContent() {
               }}
             >
               <span
-                className="pointer-events-none absolute -inset-[2px] rounded-full animate-rotate-border"
-                style={{
-                  padding: "2px",
-                  background:
-                    "conic-gradient(from var(--angle, 0deg), #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
-                  WebkitMask:
-                    "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                  WebkitMaskComposite: "xor",
-                  maskComposite: "exclude",
-                  zIndex: -1,
-                }}
+                // className="pointer-events-none absolute -inset-[2px] rounded-full animate-rotate-border"
+                // style={{
+                //   padding: "2px",
+                //   background:
+                //     "conic-gradient(from var(--angle, 0deg), #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
+                //   WebkitMask:
+                //     "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                //   WebkitMaskComposite: "xor",
+                //   maskComposite: "exclude",
+                //   zIndex: -1,
+                // }}
               />
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline ml-1">AskAI</span>
