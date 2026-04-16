@@ -3,7 +3,7 @@
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { cn } from "@/lib/utils"
-import { ChevronDown, BrainCircuit, TrendingUp, TrendingDown, Target, ShieldAlert, Zap } from "lucide-react"
+import { ChevronDown, TrendingUp, TrendingDown, Target, ShieldAlert, Zap } from "lucide-react"
 import { useState } from "react"
 
 // ─── Trade Signal Card ───────────────────────────────────────────────────────
@@ -706,37 +706,34 @@ interface MarkdownRendererProps {
   className?: string
 }
 
-function ThoughtBlock({ content, title }: { content: string; title?: string }) {
-  const [isOpen, setIsOpen] = useState(true)
+function ThoughtBlock({ content, stepCount }: { content: string; stepCount: number }) {
+  const [isOpen, setIsOpen] = useState(false)
 
   // Don't render until we have some actual content beyond just a few characters or whitespace
   if (!content || content.trim().length < 2) return null
 
   return (
-    <div className="my-4 rounded-xl border border-teal-500/20 bg-teal-500/5 overflow-hidden transition-all duration-300">
+    <div className="my-2">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-teal-400/80 hover:bg-teal-500/10 transition-colors border-b border-teal-500/10"
+        className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground/60 hover:text-muted-foreground transition-colors"
       >
-        <div className="flex items-center gap-2">
-          <BrainCircuit className="h-3.5 w-3.5 animate-pulse" />
-          <span>{title || "Thinking Process"}</span>
-        </div>
         <ChevronDown
           className={cn(
-            "h-3.5 w-3.5 transition-transform duration-300",
+            "h-3 w-3 transition-transform duration-200",
             isOpen ? "rotate-180" : "rotate-0",
           )}
         />
+        <span>Ran {stepCount} {stepCount === 1 ? "Step" : "Steps"}</span>
       </button>
       <div
         className={cn(
           "transition-all duration-300 ease-in-out",
-          isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden",
+          isOpen ? "max-h-[2000px] opacity-100 mt-2" : "max-h-0 opacity-0 overflow-hidden",
         )}
       >
-        <div className="p-4 text-xs italic text-muted-foreground/80 leading-relaxed space-y-2 border-l-2 border-teal-500/30 ml-4 my-2">
-           <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        <div className="text-xs italic text-muted-foreground/80 leading-relaxed space-y-2 border-l-2 border-teal-500/30 pl-3">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {content.trim()}
           </ReactMarkdown>
         </div>
@@ -872,41 +869,30 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           // Handle multiple sources within a single thought block
           if (cleanedThought.includes("Source:")) {
             const subSegments = cleanedThought.split(/Source:/g)
+            const sourceSegments = subSegments.filter((s, sIdx) => sIdx > 0 && s.trim())
+            const stepCount = sourceSegments.length || 1
+
+            const combinedParts: string[] = []
+            if (subSegments[0]?.trim()) {
+              combinedParts.push(subSegments[0].trim())
+            }
+            sourceSegments.forEach((segment) => {
+              const lines = segment.trim().split("\n")
+              const sourceName = lines[0].trim()
+              const sourceContent = lines.slice(1).join("\n").trim()
+              combinedParts.push(`**Source: ${sourceName}**\n${sourceContent}`)
+            })
+
             return (
-              <div key={idx} className="flex flex-col gap-0">
-                {subSegments.map((segment, sIdx) => {
-                  const trimmed = segment.trim()
-                  if (!trimmed) return null
-
-                  if (sIdx === 0) {
-                    // This is the intro text before any "Source:"
-                    return (
-                      <ThoughtBlock
-                        key={sIdx}
-                        content={trimmed}
-                        title="Thinking Process"
-                      />
-                    )
-                  }
-
-                  // Extract the source name (first line or until next newline)
-                  const lines = trimmed.split("\n")
-                  const sourceName = lines[0].trim()
-                  const sourceContent = lines.slice(1).join("\n").trim()
-
-                  return (
-                    <ThoughtBlock
-                      key={sIdx}
-                      content={sourceContent || trimmed}
-                      title={`Source: ${sourceName}`}
-                    />
-                  )
-                })}
-              </div>
+              <ThoughtBlock
+                key={idx}
+                content={combinedParts.join("\n\n")}
+                stepCount={stepCount}
+              />
             )
           }
 
-          return <ThoughtBlock key={idx} content={cleanedThought} />
+          return <ThoughtBlock key={idx} content={cleanedThought} stepCount={1} />
         } else {
           // Cleanup text content
           // Only apply aggressive trailing cleanup to the very last part if it's text
