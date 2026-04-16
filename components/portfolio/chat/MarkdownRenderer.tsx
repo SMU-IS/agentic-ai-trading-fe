@@ -616,7 +616,7 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
         {data.tp && <Pill label="Take Profit" value={`$${data.tp}`} color="green" />}
         {data.bbLower && <Pill label="BB Lower" value={`$${data.bbLower}`} color="yellow" />}
       </div>
-
+          
       {/* Risk / Reward row */}
       {(data.risk || data.reward) && (
         <div className="flex items-center gap-4 px-3 pb-3 text-xs text-muted-foreground">

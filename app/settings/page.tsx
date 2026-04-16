@@ -197,7 +197,7 @@ export default function UserSettingsPage() {
 
         {/* ── Profile ── */}
         <Section id="profile" icon={<User className="h-4 w-4" />} title="Profile">
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 text-lg">
                 <AvatarFallback className="bg-teal-500/20 text-teal-400 font-medium">
@@ -262,7 +262,7 @@ export default function UserSettingsPage() {
           title="Security"
           description="Update your password to keep your account secure."
         >
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             {user.provider === "twitter" ? (
               <p className="text-sm text-muted-foreground">
                 You signed in with Twitter / X. Password management is handled by your
@@ -373,7 +373,7 @@ export default function UserSettingsPage() {
             ) : null
           }
         >
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-5 pt-6">
             {alpacaStatus === "connected" && alpacaAccount ? (
               <AlpacaConnectedView
                 account={alpacaAccount}
@@ -492,7 +492,7 @@ export default function UserSettingsPage() {
           title="Notifications"
           description="Choose which events you'd like to be notified about."
         >
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <NotifRow
               label="Trade executions"
               description="When Agent M opens or closes a position"
@@ -524,7 +524,7 @@ export default function UserSettingsPage() {
           description="Irreversible account actions."
           destructive
         >
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
               <div>
                 <p className="text-sm font-medium">Delete account</p>
