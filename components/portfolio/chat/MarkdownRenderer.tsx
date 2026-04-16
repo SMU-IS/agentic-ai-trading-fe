@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { cn } from "@/lib/utils"
 import { ChevronDown, TrendingUp, TrendingDown, Target, ShieldAlert, Zap } from "lucide-react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 
 // ─── Trade Signal Card ───────────────────────────────────────────────────────
 
@@ -761,35 +761,28 @@ function ThoughtBlock({ steps, isStreaming }: { steps: string[]; isStreaming?: b
 }
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
-  // Parse content into interleaved parts of text and thoughts
-  const parts: { type: "text" | "thought"; content: string; streaming?: boolean }[] = []
+  const parts = useMemo(() => {
+    const result: { type: "text" | "thought"; content: string; streaming?: boolean }[] = []
+    const sanitizedContent = content.replace(/\\<thought>/g, "<thought>")
+    const splitParts = sanitizedContent.split("<thought>")
 
-  // Handle escaped tags like \<thought>
-  const sanitizedContent = content.replace(/\\<thought>/g, "<thought>")
-
-  // Regex to find all thought blocks
-  const splitParts = sanitizedContent.split("<thought>")
-
-  // The first part is always text (before the first <thought>)
-  if (splitParts[0]) {
-    parts.push({ type: "text", content: splitParts[0] })
-  }
-
-  for (let i = 1; i < splitParts.length; i++) {
-    const thoughtAndRest = splitParts[i]
-    if (thoughtAndRest.includes("</thought>")) {
-      const [thought, ...rest] = thoughtAndRest.split("</thought>")
-      parts.push({ type: "thought", content: thought, streaming: false })
-
-      const restContent = rest.join("</thought>")
-      if (restContent) {
-        parts.push({ type: "text", content: restContent })
-      }
-    } else {
-      // Still streaming this thought block
-      parts.push({ type: "thought", content: thoughtAndRest, streaming: true })
+    if (splitParts[0]) {
+      result.push({ type: "text", content: splitParts[0] })
     }
-  }
+
+    for (let i = 1; i < splitParts.length; i++) {
+      const thoughtAndRest = splitParts[i]
+      if (thoughtAndRest.includes("</thought>")) {
+        const [thought, ...rest] = thoughtAndRest.split("</thought>")
+        result.push({ type: "thought", content: thought, streaming: false })
+        const restContent = rest.join("</thought>")
+        if (restContent) result.push({ type: "text", content: restContent })
+      } else {
+        result.push({ type: "thought", content: thoughtAndRest, streaming: true })
+      }
+    }
+    return result
+  }, [content])
 
   const markdownComponents = {
     p: ({ children }: any) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -869,20 +862,48 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
     ),
   }
 
-  // Collect all thought parts into a steps array for one accordion
-  const thoughtParts = parts.filter((p) => p.type === "thought")
-  const mergedThought =
-    thoughtParts.length > 0
-      ? (() => {
-          const isStreaming = thoughtParts.some((p) => p.streaming)
-          const steps = thoughtParts
-            .map((p) => p.content.replace(/<\/t?h?o?u?g?h?t?>?$/, "").trim())
-            .filter((c) => c.length >= 2)
-          return steps.length > 0 ? { steps, streaming: isStreaming } : null
-        })()
-      : null
+  const { mergedThought, firstThoughtIdx, resolvedParts } = useMemo(() => {
+    const thoughtParts = parts.filter((p) => p.type === "thought")
+    const merged =
+      thoughtParts.length > 0
+        ? (() => {
+            const isStreaming = thoughtParts.some((p) => p.streaming)
+            const steps = thoughtParts
+              .map((p) => p.content.replace(/<\/t?h?o?u?g?h?t?>?$/, "").trim())
+              .filter((c) => c.length >= 2)
+            return steps.length > 0 ? { steps, streaming: isStreaming } : null
+          })()
+        : null
 
-  const firstThoughtIdx = parts.findIndex((p) => p.type === "thought")
+    const firstIdx = parts.findIndex((p) => p.type === "thought")
+
+    const resolved = parts.map((part, idx) => {
+      if (part.type === "thought") return { kind: "thought" as const, idx }
+
+      let cleanedText = part.content
+      if (idx === parts.length - 1) {
+        cleanedText = cleanedText
+          .replace(/\\?$/, "")
+          .replace(/<t?h?o?u?g?h?t?>?$/, "")
+          .replace(/(?:^|\n)[\s>*-]+$/, "$1")
+      }
+      const trimmed = cleanedText.trim()
+      if (!trimmed) return { kind: "empty" as const, idx }
+
+      const structured = parseStructuredSignal(trimmed)
+      if (structured) return { kind: "structured" as const, idx, structured }
+
+      const conflictData = parseConflictAnalysis(trimmed)
+      if (conflictData) return { kind: "conflict" as const, idx, conflictData, trimmed }
+
+      const signalData = parseTradeSignal(trimmed)
+      if (signalData) return { kind: "signal" as const, idx, signalData, trimmed }
+
+      return { kind: "markdown" as const, idx, cleanedText }
+    })
+
+    return { mergedThought: merged, firstThoughtIdx: firstIdx, resolvedParts: resolved }
+  }, [parts])
 
   return (
     <div
@@ -891,10 +912,9 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         className,
       )}
     >
-      {parts.map((part, idx) => {
-        if (part.type === "thought") {
-          // Render merged accordion only at the first thought part's position
-          if (idx !== firstThoughtIdx || !mergedThought) return null
+      {resolvedParts.map((resolved) => {
+        if (resolved.kind === "thought") {
+          if (resolved.idx !== firstThoughtIdx || !mergedThought) return null
           return (
             <ThoughtBlock
               key="merged-thought"
@@ -903,40 +923,23 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             />
           )
         }
-
-        // Text part
-        let cleanedText = part.content
-        if (idx === parts.length - 1) {
-          cleanedText = cleanedText
-            .replace(/\\?$/, "")
-            .replace(/<t?h?o?u?g?h?t?>?$/, "")
-            .replace(/(?:^|\n)[\s>*-]+$/, "$1")
+        if (resolved.kind === "empty") return null
+        if (resolved.kind === "structured") {
+          return <StructuredSignalCard key={resolved.idx} signal={resolved.structured} />
         }
-
-        if (!cleanedText.trim()) return null
-
-        const structured = parseStructuredSignal(cleanedText.trim())
-        if (structured) {
-          return <StructuredSignalCard key={idx} signal={structured} />
+        if (resolved.kind === "conflict") {
+          return <ConflictAnalysisCard key={resolved.idx} analysis={resolved.conflictData} rawText={resolved.trimmed} />
         }
-
-        const conflictData = parseConflictAnalysis(cleanedText.trim())
-        if (conflictData) {
-          return <ConflictAnalysisCard key={idx} analysis={conflictData} rawText={cleanedText.trim()} />
+        if (resolved.kind === "signal") {
+          return <TradeSignalCard key={resolved.idx} data={resolved.signalData} rawText={resolved.trimmed} />
         }
-
-        const signalData = parseTradeSignal(cleanedText.trim())
-        if (signalData) {
-          return <TradeSignalCard key={idx} data={signalData} rawText={cleanedText.trim()} />
-        }
-
         return (
           <ReactMarkdown
-            key={idx}
+            key={resolved.idx}
             remarkPlugins={[remarkGfm]}
             components={markdownComponents}
           >
-            {cleanedText}
+            {resolved.cleanedText}
           </ReactMarkdown>
         )
       })}

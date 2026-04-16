@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import TradingTimeline from "./trading-timeline/TradingTimeline"
 import SpeculationAgent from "./speculation-agent/SpeculationAgent"
 import AgentSummary from "./AgentSummary"
@@ -18,8 +18,10 @@ interface HoldingInfo {
 export default function TradesTab() {
   const [selectedTrade, setSelectedTrade] = useState<TradeEvent | null>(null)
   const [holdings, setHoldings] = useState<Record<string, HoldingInfo>>({})
-  const [holdingsLoading, setHoldingsLoading] = useState(true)
   const [isOverlayVisible, setIsOverlayVisible] = useState(false)
+  // Keeps the last selected trade frozen during the slide-down animation
+  // so SpeculationAgent doesn't re-render with null while closing
+  const frozenTrade = useRef<TradeEvent | null>(null)
 
   useEffect(() => {
     const fetchHoldings = async () => {
@@ -44,8 +46,6 @@ export default function TradesTab() {
         setHoldings(holdingsMap)
       } catch (err) {
         console.error("Failed to fetch holdings:", err)
-      } finally {
-        setHoldingsLoading(false)
       }
     }
 
@@ -55,6 +55,7 @@ export default function TradesTab() {
   // Trigger slide-up animation when a trade is selected on mobile
   useEffect(() => {
     if (selectedTrade) {
+      frozenTrade.current = selectedTrade
       requestAnimationFrame(() => setIsOverlayVisible(true))
       document.body.style.overflow = "hidden"
     } else {
@@ -68,8 +69,11 @@ export default function TradesTab() {
 
   const handleCloseOverlay = () => {
     setIsOverlayVisible(false)
-    // Wait for the slide-down animation to finish before clearing trade
-    setTimeout(() => setSelectedTrade(null), 300)
+    // Wait for slide-down to finish before unmounting — frozenTrade keeps content stable
+    setTimeout(() => {
+      setSelectedTrade(null)
+      frozenTrade.current = null
+    }, 300)
   }
 
   return (
@@ -130,7 +134,7 @@ export default function TradesTab() {
             {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
               <SpeculationAgent
-                selectedTrade={selectedTrade}
+                selectedTrade={frozenTrade.current}
                 holdings={holdings}
               />
             </div>
