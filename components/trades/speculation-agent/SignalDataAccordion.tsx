@@ -112,7 +112,7 @@ export default function SignalDataAccordion({
             </div>
               <div className="space-y-1 rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3 text-xs leading-relaxed break-words">
               Signal Engine has identified a potential trade opportunity
-              for {selectedTrade.symbol}. This has been forwarded to the Decision Agent
+              for <span className="font-bold text-teal-300">{selectedTrade.symbol}</span>. This has been forwarded to the Decision Agent
               for final assessment before any action is taken.
               </div>  
             <FormattedReasoning text={selectedTrade.signal_data.trade_rationale} />
