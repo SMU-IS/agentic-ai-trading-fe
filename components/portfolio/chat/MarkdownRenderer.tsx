@@ -553,10 +553,10 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
           )}
           {data.currentPrice && (
             <span className="text-xs text-muted-foreground ml-1">
-              @ ${data.currentPrice}
+              {isBuy ? "buy" : "sell"} @ ${data.currentPrice}
             </span>
           )}
-          {data.candleSentiment && (
+          {/* {data.candleSentiment && (
             <span
               className={cn(
                 "text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide",
@@ -569,7 +569,7 @@ function TradeSignalCard({ data, rawText }: { data: TradeSignalData; rawText: st
             >
               {data.candleSentiment.replace(/_/g, " ")}
             </span>
-          )}
+          )} */}
         </div>
         <div className="flex items-center gap-2">
           {data.catalystStrength && (

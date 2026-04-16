@@ -58,7 +58,7 @@ export default function SignalDataAccordion({
               {selectedTrade.signal_data.trade_signal}
             </p>
             <p className="mt-2 text-[10px] text-muted-foreground italic">
-              Technical Analysis Agent still has to analyse market conditions before trading.
+              Trade Decision Agent still has to analyse technicals & market conditions before trade is confirmed.
             </p>
           </div>
           <div>
@@ -72,7 +72,7 @@ export default function SignalDataAccordion({
 
           <div className="rounded-lg bg-background p-3">
             <p className="text-xs font-semibold text-muted-foreground mb-1">
-              Credibility Reason
+              Credibility checks against rumor
             </p>
             <p className="text-xs text-foreground leading-relaxed break-words">
               {selectedTrade.signal_data.credibility_reason}
@@ -83,12 +83,24 @@ export default function SignalDataAccordion({
             <div className="flex items-center gap-2 mb-1">
               <Zap className="h-3.5 w-3.5 text-primary" />
               <p className="text-xs font-semibold text-muted-foreground">
-                Trade Rationale
+                🟡 Trade Suggestion — Under Review
               </p>
             </div>
-            <p className="text-xs text-foreground leading-relaxed break-words">
-              {selectedTrade.signal_data.trade_rationale}
-            </p>
+              <p className="bg-yellow-500/10 text-yellow-300 border-yellow-500/30 text-xs leading-relaxed break-words">
+              Signal Engine has identified a potential trade opportunity
+              for {selectedTrade.symbol}. This has been forwarded to the Decision Agent
+              for final assessment before any action is taken.
+              </p>  
+            <div className="space-y-1.5">
+              {selectedTrade.signal_data.trade_rationale
+                .split(/(?<=\.)\s+/)
+                .filter(Boolean)
+                .map((sentence: string, i: number) => (
+                  <p key={i} className="text-xs text-foreground leading-relaxed break-words">
+                    {sentence}
+                  </p>
+                ))}
+            </div>
           </div>
 
           {/* <div className="grid grid-cols-3 gap-3">
