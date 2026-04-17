@@ -183,13 +183,13 @@ export default function SpeculationAgent({
         }}
         contextData={askAIData}
       />
-      <div className="h-full flex flex-col">
-        <Card className="bg-card border-border flex-shrink-0">
-          <CardHeader>
+      <div className="h-full flex flex-col min-h-0">
+        <Card className="bg-card border-border flex flex-col h-full lg:h-[calc(80vh)] overflow-hidden">
+          <CardHeader className="flex-shrink-0">
             <TradeHeader selectedTrade={selectedTrade} />
           </CardHeader>
 
-          <CardContent className="space-y-4 mt-0">
+          <CardContent className="flex-1 overflow-y-auto space-y-4 mt-0 pt-0">
             <PnLSection pnlData={pnlData} selectedTrade={selectedTrade} />
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 ">
