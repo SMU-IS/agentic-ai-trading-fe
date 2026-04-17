@@ -7,6 +7,7 @@ import AgentSummary from "./AgentSummary"
 import { TradeEvent } from "@/lib/types"
 import Cookies from "js-cookie"
 import { X } from "lucide-react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -19,6 +20,7 @@ export default function TradesTab() {
   const [selectedTrade, setSelectedTrade] = useState<TradeEvent | null>(null)
   const [holdings, setHoldings] = useState<Record<string, HoldingInfo>>({})
   const [isOverlayVisible, setIsOverlayVisible] = useState(false)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const fetchHoldings = async () => {
@@ -53,7 +55,11 @@ export default function TradesTab() {
   useEffect(() => {
     if (selectedTrade) {
       requestAnimationFrame(() => setIsOverlayVisible(true))
-      document.body.style.overflow = "hidden"
+      if (isMobile) {
+        document.body.style.overflow = "hidden"
+      } else {
+        document.body.style.overflow = ""
+      }
     } else {
       setIsOverlayVisible(false)
       document.body.style.overflow = ""
@@ -61,7 +67,7 @@ export default function TradesTab() {
     return () => {
       document.body.style.overflow = ""
     }
-  }, [selectedTrade])
+  }, [selectedTrade, isMobile])
 
   const handleCloseOverlay = () => {
     setIsOverlayVisible(false)
