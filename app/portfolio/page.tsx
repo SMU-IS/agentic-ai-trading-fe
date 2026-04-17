@@ -7,6 +7,13 @@ import AskAI from "@/components/portfolio/chat/AskAI"
 import PortfolioTab from "@/components/portfolio/PortfolioTab"
 import TradesTab from "@/components/trades/TradesTab"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/lib/auth-context"
 import { AnimatePresence, motion } from "framer-motion"
 import { DatabaseZapIcon, LogOut, Menu, Settings, Sparkles, X } from "lucide-react"
@@ -130,34 +137,38 @@ function PortfolioContent() {
               <span className="hidden sm:inline ml-1">AskAI</span>
             </Button>
 
-            <ModeToggle />
             <NotificationsDropdown />
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => router.push("/settings")}
-              title="Settings"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden sm:flex"
-              onClick={async () => {
-                try {
-                  await signOut()
-                  router.push("/")
-                } catch {
-                  router.push("/")
-                }
-              }}
-            >
-              <LogOut className="mr-2 h-4 w-4" /> Sign out
-            </Button>
+            {/* ── Desktop menu dropdown ── */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="hidden md:flex h-8 w-8">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <div className="flex items-center justify-between px-2 py-1.5">
+                  <span className="text-sm text-muted-foreground">Theme</span>
+                  <ModeToggle />
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/settings")}>
+                  <Settings className="mr-2 h-4 w-4" /> Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={async () => {
+                    try {
+                      await signOut()
+                      router.push("/")
+                    } catch {
+                      router.push("/")
+                    }
+                  }}
+                >
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* ── Mobile hamburger (visible on mobile only) ── */}
             <button
@@ -200,20 +211,35 @@ function PortfolioContent() {
                   </button>
                 ))}
 
-                {/* Sign out inside mobile menu */}
-                <button
-                  className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full text-left mt-1 border-t border-border pt-3"
-                  onClick={async () => {
-                    try {
-                      await signOut()
-                      router.push("/")
-                    } catch {
-                      router.push("/")
-                    }
-                  }}
-                >
-                  <LogOut className="mr-2 h-4 w-4" /> Sign out
-                </button>
+                {/* Theme, Settings, Sign out inside mobile menu */}
+                <div className="mt-1 border-t border-border pt-3 flex flex-col gap-1">
+                  <div className="flex items-center justify-between rounded-md px-3 py-2">
+                    <span className="text-sm font-medium text-muted-foreground">Theme</span>
+                    <ModeToggle />
+                  </div>
+                  <button
+                    className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full text-left"
+                    onClick={() => {
+                      setMobileNavOpen(false)
+                      router.push("/settings")
+                    }}
+                  >
+                    <Settings className="mr-2 h-4 w-4" /> Settings
+                  </button>
+                  <button
+                    className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full text-left"
+                    onClick={() => {
+                      try {
+                        signOut()
+                        router.push("/")
+                      } catch {
+                        router.push("/")
+                      }
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" /> Sign out
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
