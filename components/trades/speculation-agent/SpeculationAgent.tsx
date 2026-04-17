@@ -183,13 +183,13 @@ export default function SpeculationAgent({
         }}
         contextData={askAIData}
       />
-      <div className="h-full flex flex-col">
-        <Card className="bg-card border-border flex-shrink-0">
-          <CardHeader className="flex-shrink-0">
+      <div className="h-full flex flex-col overflow-y-auto">
+        <Card className="bg-card border-border flex-shrink-0 h-[calc(80vh)] overflow-y-auto">
+          <CardHeader>
             <TradeHeader selectedTrade={selectedTrade} />
           </CardHeader>
 
-          <CardContent className="space-y-4 mt-0 pt-0">
+          <CardContent className="space-y-4 mt-0">
             <PnLSection pnlData={pnlData} selectedTrade={selectedTrade} />
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 ">
@@ -248,10 +248,8 @@ export default function SpeculationAgent({
                 </div>
               )}
 
-            <OrderDetails selectedTrade={selectedTrade} />
-
             {selectedTrade.is_agent_trade && (
-              <div className="sticky bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm py-4 border-t border-border -mx-6 px-6">
+              <div className="sticky bottom-0 left-0 right-0 bg-card py-4 border-t border-border -mx-6 px-6">
                 <Button
                   variant="outline"
                   size="lg"
@@ -259,11 +257,11 @@ export default function SpeculationAgent({
                   className="w-full h-10 bg-foreground/80 text-background relative group transition-all duration-300 rounded-xl hover:bg-foreground/70 hover:text-background border-none"
                 >
                   <span
-                    className="pointer-events-none absolute -inset-[2px] rounded-xl animate-rotate-border"
+                    className="pointer-events-none absolute -inset-[2px] rounded-xl animate-spin-border"
                     style={{
                       padding: "3px",
                       background:
-                        "conic-gradient(from var(--angle, 0deg), #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
+                        "conic-gradient(from 0deg, #14b8a6, #0d9488, #00faea, #134e4a, #14b8a6)",
                       WebkitMask:
                         "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
                       WebkitMaskComposite: "xor",
@@ -276,6 +274,8 @@ export default function SpeculationAgent({
                 </Button>
               </div>
             )}
+
+            <OrderDetails selectedTrade={selectedTrade} />
           </CardContent>
         </Card>
       </div>
