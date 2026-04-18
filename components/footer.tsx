@@ -1,7 +1,10 @@
 "use client"
 
 import { motion } from "framer-motion"
+import Link from "next/link"
 import { LINKS } from "./utils/utils"
+
+const MotionLink = motion(Link)
 
 const ease = [0.22, 1, 0.36, 1] as const
 const CONTACT = [
@@ -30,7 +33,7 @@ export function Footer() {
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.6, ease }}
-      className="w-full border-t-2 border-foreground px-6 py-8 lg:px-12"
+      className="w-full border-t-2 border-foreground px-6 pt-8 pb-20 lg:px-12"
     >
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex flex-col gap-1">
@@ -43,20 +46,32 @@ export function Footer() {
         </div>
 
         <div className="flex items-center gap-6">
-          {CONTACT.map(({ title, link }, i) => (
-            <motion.a
-              key={title}
-              href={link}
-              target="_blank"
-              initial={{ opacity: 0, y: 6 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 + i * 0.06, duration: 0.4, ease }}
-              className="text-[10px] font-mono tracking-widest uppercase text-muted-foreground hover:text-foreground transition-colors duration-200"
-            >
-              {title}
-            </motion.a>
-          ))}
+          {CONTACT.map(({ title, link }, i) => {
+            const isInternal = link.startsWith("/")
+            const sharedProps = {
+              initial: { opacity: 0, y: 6 },
+              whileInView: { opacity: 1, y: 0 },
+              viewport: { once: true },
+              transition: { delay: 0.1 + i * 0.06, duration: 0.4, ease },
+              className:
+                "text-[10px] font-mono tracking-widest uppercase text-muted-foreground hover:text-foreground transition-colors duration-200",
+            }
+            return isInternal ? (
+              <MotionLink key={title} href={link} {...sharedProps}>
+                {title}
+              </MotionLink>
+            ) : (
+              <motion.a
+                key={title}
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                {...sharedProps}
+              >
+                {title}
+              </motion.a>
+            )
+          })}
         </div>
       </div>
     </motion.footer>

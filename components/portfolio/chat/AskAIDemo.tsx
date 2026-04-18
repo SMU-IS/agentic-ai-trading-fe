@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from "framer-motion"
 import { ArrowUp, Mic, MicOff, Square, SquarePen, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
+import { useIsMobile } from "@/hooks/use-mobile"
+
 import LoaderSpinner from "@/components/loader-spinner"
 import { MarkdownRenderer } from "@/components/portfolio/chat/MarkdownRenderer"
 
@@ -177,6 +179,7 @@ interface AskAIDemoProps {
 }
 
 export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
+  const isMobile = useIsMobile()
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
@@ -512,10 +515,10 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
         {" "}
         {/* ↓ This div is the animated panel — re-enables pointer-events and drives open/close */}
         <div
-          className={`pointer-events-auto relative h-[500px] max-h-[70vh] w-full sm:w-[440px] transform transition-[transform,opacity] duration-500 ${
+          className={`relative h-[500px] max-h-[70vh] w-full sm:w-[440px] transform transition-[transform,opacity] duration-500 ${
             open
-              ? "translate-y-0 scale-100 opacity-100"
-              : "translate-y-[calc(100%+2rem)] scale-95 opacity-0"
+              ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+              : "pointer-events-none translate-y-[calc(100%+2rem)] scale-95 opacity-0"
           }`}
           style={{
             transitionTimingFunction: open
@@ -526,12 +529,12 @@ export default function AskAIDemo({ open, onOpenChange }: AskAIDemoProps) {
           {/* Suggested prompts */}
           <div className="absolute bottom-full right-0 z-10 w-full">
             <AnimatePresence>
-              {messages.length === 0 && (
+              {!isMobile && open && messages.length === 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="mb-3 hidden sm:flex flex-wrap justify-end gap-2 px-1"
+                  className="mb-3 flex flex-wrap justify-end gap-2 px-1"
                 >
                   {SUGGESTED_PROMPTS.map((prompt) => (
                     <button

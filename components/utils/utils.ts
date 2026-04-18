@@ -11,8 +11,8 @@ export const formatDate = (dateStr: string) => {
 }
 
 export const LINKS = {
-  PRIVACY: "https://agentic-m.com",
-  TERMS: "https://agentic-m.com",
+  PRIVACY: "/privacy",
+  TERMS: "/terms",
   CONTACT: "mailto:hello@agentic-m.com",
   URL: "https://agentic-m.com",
   GITHUB: "https://github.com/SMU-IS",

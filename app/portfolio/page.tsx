@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/lib/auth-context"
 import { AnimatePresence, motion } from "framer-motion"
-import { DatabaseZapIcon, LogOut, Menu, Settings, Sparkles, X } from "lucide-react"
+import { BookOpen, DatabaseZapIcon, FileText, LogOut, Menu, Settings, Sparkles, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
 import AnimatedBackground from "./AnimatedBackground"
@@ -155,6 +155,12 @@ function PortfolioContent() {
                 <DropdownMenuItem onClick={() => router.push("/settings")}>
                   <Settings className="mr-2 h-4 w-4" /> Settings
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/privacy")}>
+                  <FileText className="mr-2 h-4 w-4" /> Privacy Policy
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/terms")}>
+                  <BookOpen className="mr-2 h-4 w-4" /> Terms of Service
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={async () => {
                     try {
@@ -225,6 +231,24 @@ function PortfolioContent() {
                     }}
                   >
                     <Settings className="mr-2 h-4 w-4" /> Settings
+                  </button>
+                  <button
+                    className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full text-left"
+                    onClick={() => {
+                      setMobileNavOpen(false)
+                      router.push("/privacy")
+                    }}
+                  >
+                    <FileText className="mr-2 h-4 w-4" /> Privacy Policy
+                  </button>
+                  <button
+                    className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full text-left"
+                    onClick={() => {
+                      setMobileNavOpen(false)
+                      router.push("/terms")
+                    }}
+                  >
+                    <BookOpen className="mr-2 h-4 w-4" /> Terms of Service
                   </button>
                   <button
                     className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full text-left"
