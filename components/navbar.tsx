@@ -79,10 +79,10 @@ export function Navbar() {
           >
             <ThemeToggle />
             <a
-              href="/login"
-              className="hidden sm:block text-xs font-mono tracking-widest uppercase text-muted-foreground hover:text-foreground transition-colors duration-200"
+              href="/waitlist"
+              className="hidden sm:block text-xs font-mono tracking-widest uppercase px-4 py-1.5 border border-foreground/20 hover:border-foreground/60 text-foreground transition-colors duration-200"
             >
-              Log In
+              Join Waitlist
             </a>
           </motion.div>
         </div>

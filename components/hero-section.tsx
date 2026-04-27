@@ -78,8 +78,11 @@ export function HeroSection() {
               />
             </motion.span>
           </span>
-          <a href="/login" className="px-5 py-2.5">
+          {/* <a href="/login" className="px-5 py-2.5">
             Login
+          </a> */}
+          <a href="/waitlist" className="px-5 py-2.5">
+            Join Waitlist
           </a>
         </motion.button>
       </div>
