@@ -4,19 +4,30 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { motion } from "framer-motion"
 import { Cpu } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function Navbar() {
+  const pathname = usePathname()
+  const isHome = pathname === "/"
+
   const navItems = [
     { name: "Partners", href: "#hero-section" },
     { name: "FEATURES", href: "#features-section" },
     { name: "Tech", href: "#tech-section" },
     { name: "FAQ", href: "#faq-section" },
+    { name: "Pricing", href: "/pricing" },
   ]
+
+  const resolveHref = (href: string) => {
+    if (href.startsWith("#")) return isHome ? href : `/${href}`
+    return href
+  }
 
   const handleScroll = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string,
   ) => {
+    if (!href.startsWith("#") || !isHome) return
     e.preventDefault()
     const targetId = href.substring(1)
     const targetElement = document.getElementById(targetId)
@@ -39,13 +50,10 @@ export function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.4 }}
-            className="flex items-center gap-3"
           >
-            <Cpu size={16} strokeWidth={1.5} />
-            <Link href="/portfolio">
-              <span className="text-xs font-geist font-thin tracking-[0.15em] ">
-                Agent M
-              </span>
+            <Link href="/" className="flex items-center gap-3 cursor-pointer">
+              <Cpu size={16} strokeWidth={1.5} />
+              <span className="text-xs font-geist font-thin">Agent M</span>
             </Link>
           </motion.div>
 
@@ -54,7 +62,7 @@ export function Navbar() {
             {navItems.map((item, i) => (
               <motion.a
                 key={item.name}
-                href={item.href}
+                href={resolveHref(item.href)}
                 onClick={(e) => handleScroll(e, item.href)}
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -63,7 +71,7 @@ export function Navbar() {
                   duration: 0.4,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="text-xs font-mono tracking-widest uppercase text-muted-foreground hover:text-foreground transition-colors duration-200"
+                className="text-xs font-mono tracking-widest uppercase text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer"
               >
                 {item.name}
               </motion.a>
@@ -80,7 +88,7 @@ export function Navbar() {
             <ThemeToggle />
             <a
               href="/waitlist"
-              className="hidden sm:block text-xs font-mono tracking-widest uppercase px-4 py-1.5 border border-foreground/20 hover:border-foreground/60 text-foreground transition-colors duration-200"
+              className="hidden sm:block text-xs font-mono tracking-widest uppercase px-4 py-1.5 border border-foreground/20 hover:border-foreground/60 text-foreground transition-colors duration-200 cursor-pointer"
             >
               Join Waitlist
             </a>

@@ -51,9 +51,9 @@ export function HeroSection() {
           transition={{ duration: 0.5, delay: 0.45, ease }}
           className="text-xs lg:text-sm text-muted-foreground max-w-md mb-6 leading-relaxed font-mono"
         >
-          Agent M transforms real-time market sentiment from social media news
-          sources into actionable trade decisions, gaining portfolio success
-          through autonomous AI-powered trades.
+          Agent M orchestrates multiple AI agents across ingestion, analysis,
+          and execution — transforming raw market signals into autonomous
+          trades, end to end.
         </motion.p>
 
         {/* CTA Button */}

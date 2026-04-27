@@ -1,223 +1,280 @@
 "use client"
 
 import { useState } from "react"
-import { Check } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Check, ArrowRight } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
+
+const ease = [0.22, 1, 0.36, 1] as const
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 48, filter: "blur(8px)" },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { delay: 0.2 + i * 0.15, duration: 0.7, ease },
+  }),
+}
+
+const featureVariants = {
+  hidden: { opacity: 0, x: -12 },
+  visible: (i: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: { delay: 0.5 + i * 0.07, duration: 0.35, ease },
+  }),
+}
+
+const pricingPlans = [
+  {
+    name: "Free",
+    monthlyPrice: "$0",
+    annualPrice: "$0",
+    period: "/month",
+    description: "Start trading with AI-driven automation at no cost.",
+    features: [
+      "Paper trading via Alpaca",
+      "Up to 3 paper trading accounts",
+      "Daily News Signals (Reddit & TradingView)",
+      "24/7 automated trading",
+    ],
+    buttonText: "Join the waitlist",
+    href: "/waitlist",
+  },
+  {
+    name: "Pro",
+    monthlyPrice: "$25",
+    annualPrice: "$18",
+    period: "/month",
+    description: "Unlock live trading and full strategy customization.",
+    features: [
+      "Live trading via Alpaca",
+      "Additional news sources (Twitter, Stocktwits)",
+      "Customized trading strategies",
+      "Custom agent guardrails for risk management",
+    ],
+    buttonText: "To be released",
+    href: "/",
+    popular: true,
+  },
+]
 
 export function PricingSection() {
   const [isAnnual, setIsAnnual] = useState(true)
 
-  const pricingPlans = [
-    {
-      name: "Free",
-      monthlyPrice: "$0",
-      annualPrice: "$0",
-      description: "Perfect for individuals starting their journey.",
-      features: [
-        "Real-time code suggestions",
-        "Basic integration logos",
-        "Single MCP server connection",
-        "Up to 2 AI coding agents",
-        "Vercel deployments with Pointer branding",
-      ],
-      buttonText: "Get Started",
-      buttonClass:
-        "bg-zinc-300 shadow-[0px_1px_1px_-0.5px_rgba(16,24,40,0.20)] outline outline-0.5 outline-[#1e29391f] outline-offset-[-0.5px] text-gray-800 text-shadow-[0px_1px_1px_rgba(16,24,40,0.08)] hover:bg-zinc-400",
-    },
-    {
-      name: "Pro",
-      monthlyPrice: "$20",
-      annualPrice: "$16",
-      description: "Ideal for professionals.",
-      features: [
-        "Enhanced real-time previews",
-        "Unlimited integrations with custom logos",
-        "Multiple MCP server connections",
-        "Up to 10 concurrent AI coding agents",
-        "Collaborative coding with team chat",
-        "Advanced version control integrations",
-        "Priority email and chat support",
-      ],
-      buttonText: "Join now",
-      buttonClass:
-        "bg-primary-foreground shadow-[0px_1px_1px_-0.5px_rgba(16,24,40,0.20)] text-primary text-shadow-[0px_1px_1px_rgba(16,24,40,0.08)] hover:bg-primary-foreground/90",
-      popular: true,
-    },
-    {
-      name: "Ultra",
-      monthlyPrice: "$200",
-      annualPrice: "$160",
-      description: "Tailored solutions for teams.",
-      features: [
-        "Dedicated account support",
-        "Unlimited MCP server clusters",
-        "Unlimited AI coding agents",
-        "Enterprise-grade security and compliance",
-        "Priority deployments and SLA guarantees",
-      ],
-      buttonText: "Talk to Sales",
-      buttonClass:
-        "bg-secondary shadow-[0px_1px_1px_-0.5px_rgba(16,24,40,0.20)] text-secondary-foreground text-shadow-[0px_1px_1px_rgba(16,24,40,0.08)] hover:bg-secondary/90",
-    },
-  ]
-
   return (
-    <section className="my-0 flex w-full flex-col items-center justify-start overflow-hidden px-5 py-8 md:py-14">
-      <div className="relative flex flex-col items-center justify-center gap-2 self-stretch py-0">
-        <div className="flex flex-col items-center justify-start gap-4">
-          <h2 className="text-center text-4xl font-semibold leading-tight text-foreground md:text-5xl md:leading-[40px]">
-            Pricing built for every developer
-          </h2>
-          <p className="self-stretch text-center text-sm font-medium leading-tight text-muted-foreground">
-            Choose a plan that fits your coding workflow, from individuals
-            starting out to <br /> growing professionals and large
-            organizations.
-          </p>
-        </div>
-        <div className="pt-4">
-          <div className="flex items-center justify-start gap-1 rounded-lg bg-muted p-0.5 outline outline-1 outline-offset-[-1px] outline-[#0307120a] md:mt-0">
-            <button
-              onClick={() => setIsAnnual(true)}
-              className={`flex items-start justify-start gap-2 rounded-md py-1 pl-2 pr-1 ${isAnnual ? "bg-accent shadow-[0px_1px_1px_-0.5px_rgba(0,0,0,0.08)]" : ""}`}
-            >
-              <span
-                className={`text-center text-sm font-medium leading-tight ${isAnnual ? "text-accent-foreground" : "text-zinc-400"}`}
+    <section id="pricing-section" className="w-full px-6 py-20 lg:px-12">
+      {/* Headline */}
+      <div className="flex flex-col items-center gap-4 mb-10 text-center">
+        <motion.h2
+          initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7, ease }}
+          className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground"
+        >
+          Simple, transparent pricing
+        </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.15, ease }}
+          className="text-sm text-muted-foreground font-mono max-w-sm"
+        >
+          Start for free with paper trading, upgrade when you&apos;re ready for
+          the real thing.
+        </motion.p>
+
+        {/* Billing toggle */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.25, ease }}
+          className="mt-2 relative flex items-center rounded-lg bg-muted p-0.5 border border-border"
+        >
+          {/* Sliding pill — always mounted, position driven by state */}
+          <motion.div
+            className="absolute top-0.5 bottom-0.5 rounded-md bg-accent pointer-events-none"
+            animate={{ left: isAnnual ? "2px" : "50%" }}
+            style={{ width: "calc(50% - 2px)" }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+          />
+          {(["Annually", "Monthly"] as const).map((label) => {
+            const active = label === "Annually" ? isAnnual : !isAnnual
+            return (
+              <motion.button
+                key={label}
+                onClick={() => setIsAnnual(label === "Annually")}
+                className={`relative z-10 flex-1 px-3 py-1.5 text-xs font-mono tracking-widest uppercase transition-colors duration-200 ${active ? "text-foreground" : "text-muted-foreground"}`}
+                whileTap={{ scale: 0.97 }}
               >
-                Annually
-              </span>
-            </button>
-            <button
-              onClick={() => setIsAnnual(false)}
-              className={`flex items-start justify-start rounded-md px-2 py-1 ${!isAnnual ? "bg-accent shadow-[0px_1px_1px_-0.5px_rgba(0,0,0,0.08)]" : ""}`}
-            >
-              <span
-                className={`text-center text-sm font-medium leading-tight ${!isAnnual ? "text-accent-foreground" : "text-zinc-400"}`}
-              >
-                Monthly
-              </span>
-            </button>
-          </div>
-        </div>
+                {label}
+              </motion.button>
+            )
+          })}
+        </motion.div>
       </div>
-      <div className="mx-auto mt-6 flex max-w-[1100px] flex-col items-start justify-start gap-4 self-stretch px-5 md:flex-row md:gap-6">
-        {pricingPlans.map((plan) => (
-          <div
+
+      {/* Cards */}
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-60px" }}
+        className="mx-auto grid max-w-3xl grid-cols-1 md:grid-cols-2 gap-px border border-foreground/20 bg-foreground/10"
+      >
+        {pricingPlans.map((plan, i) => (
+          <motion.div
             key={plan.name}
-            className={`flex flex-1 flex-col items-start justify-start gap-6 overflow-hidden rounded-xl p-4 ${plan.popular ? "bg-primary shadow-[0px_4px_8px_-2px_rgba(0,0,0,0.10)]" : "bg-gradient-to-b from-gray-50/5 to-gray-50/0"}`}
-            style={
-              plan.popular
-                ? {}
-                : {
-                    outline: "1px solid hsl(var(--border))",
-                    outlineOffset: "-1px",
-                  }
-            }
+            custom={i}
+            variants={cardVariants}
+            whileHover={{ y: -4, transition: { duration: 0.25, ease } }}
+            className={`relative flex flex-col gap-8 p-8 ${
+              plan.popular ? "bg-primary" : "bg-background"
+            }`}
           >
-            <div className="flex flex-col items-start justify-start gap-6 self-stretch">
-              <div className="flex flex-col items-start justify-start gap-8 self-stretch">
-                <div
-                  className={`h-5 w-full text-sm font-medium leading-tight ${plan.popular ? "text-primary-foreground" : "text-zinc-200"}`}
-                >
-                  {plan.name}
-                  {plan.popular && (
-                    <div className="ml-2 mt-0 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-full bg-white bg-gradient-to-b from-primary-light/50 to-primary-light px-2 py-0.5">
-                      <div className="break-words text-center text-xs font-normal leading-tight text-primary-foreground">
-                        Popular
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-col items-start justify-start gap-1 self-stretch">
-                  <div className="flex items-center justify-start gap-1.5">
-                    <div
-                      className={`relative flex h-10 items-center text-3xl font-medium leading-10 ${plan.popular ? "text-primary-foreground" : "text-zinc-50"}`}
-                    >
-                      <span className="invisible">
-                        {isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                      </span>
-                      <span
-                        className="absolute inset-0 flex items-center transition-all duration-500"
-                        style={{
-                          opacity: isAnnual ? 1 : 0,
-                          transform: `scale(${isAnnual ? 1 : 0.8})`,
-                          filter: `blur(${isAnnual ? 0 : 4}px)`,
-                        }}
-                        aria-hidden={!isAnnual}
-                      >
-                        {plan.annualPrice}
-                      </span>
-                      <span
-                        className="absolute inset-0 flex items-center transition-all duration-500"
-                        style={{
-                          opacity: !isAnnual ? 1 : 0,
-                          transform: `scale(${!isAnnual ? 1 : 0.8})`,
-                          filter: `blur(${!isAnnual ? 0 : 4}px)`,
-                        }}
-                        aria-hidden={isAnnual}
-                      >
-                        {plan.monthlyPrice}
-                      </span>
-                    </div>
-                    <div
-                      className={`text-center text-sm font-medium leading-tight ${plan.popular ? "text-primary-foreground/70" : "text-zinc-400"}`}
-                    >
-                      /month
-                    </div>
-                  </div>
-                  <div
-                    className={`self-stretch text-sm font-medium leading-tight ${plan.popular ? "text-primary-foreground/70" : "text-zinc-400"}`}
+            {/* Popular badge */}
+            {/* {plan.popular && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5, duration: 0.3, ease }}
+                className="absolute top-4 right-4"
+              >
+                <span className="text-[9px] font-mono tracking-[0.2em] uppercase border border-primary-foreground/30 text-primary-foreground px-2 py-0.5">
+                  Popular
+                </span>
+              </motion.div>
+            )} */}
+
+            {/* Plan name + price */}
+            <div className="flex flex-col gap-4">
+              <span
+                className={`text-[10px] font-mono tracking-[0.2em] uppercase ${plan.popular ? "text-primary-foreground/60" : "text-muted-foreground"}`}
+              >
+                {plan.name}
+              </span>
+
+              <div className="flex items-end gap-1">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={isAnnual ? "annual" : "monthly"}
+                    initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+                    transition={{ duration: 0.25, ease }}
+                    className={`text-4xl font-semibold tracking-tight ${plan.popular ? "text-primary-foreground" : "text-foreground"}`}
                   >
-                    {plan.description}
-                  </div>
-                </div>
-              </div>
-              <Link href="/login" className="self-stretch">
-                <Button
-                  className={`flex w-full items-center justify-center rounded-[40px] px-5 py-2 ${plan.buttonClass}`}
+                    {isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                  </motion.span>
+                </AnimatePresence>
+                <span
+                  className={`mb-1 text-xs font-mono ${plan.popular ? "text-primary-foreground/50" : "text-muted-foreground"}`}
                 >
-                  <div className="flex items-center justify-center gap-2 px-1.5">
-                    <span
-                      className={`text-center text-sm font-medium leading-tight ${plan.name === "Free" ? "text-gray-800" : plan.name === "Pro" ? "text-primary" : "text-zinc-950"}`}
-                    >
-                      {plan.buttonText}
-                    </span>
-                  </div>
-                </Button>
-              </Link>
+                  {plan.period}
+                </span>
+              </div>
+
+              <p
+                className={`text-xs font-mono leading-relaxed ${plan.popular ? "text-primary-foreground/60" : "text-muted-foreground"}`}
+              >
+                {plan.description}
+              </p>
             </div>
-            <div className="flex flex-col items-start justify-start gap-4 self-stretch">
-              <div
-                className={`self-stretch text-sm font-medium leading-tight ${plan.popular ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+
+            {/* CTA button */}
+            {plan.popular ? (
+              <div className="flex items-center gap-2 border px-5 py-2.5 text-xs font-mono tracking-widest uppercase cursor-not-allowed border-primary-foreground/20 text-primary-foreground/30 select-none">
+                {plan.buttonText}
+              </div>
+            ) : (
+              <Link href={plan.href}>
+                <motion.div
+                  whileHover={{ gap: "12px" }}
+                  className="group flex items-center gap-2 border px-5 py-2.5 text-xs font-mono tracking-widest uppercase transition-colors duration-200 border-foreground/30 text-foreground hover:border-foreground"
+                >
+                  {plan.buttonText}
+                  <motion.span
+                    className="inline-flex"
+                    whileHover={{ x: 3 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  >
+                    <ArrowRight size={12} strokeWidth={1.5} />
+                  </motion.span>
+                </motion.div>
+              </Link>
+            )}
+
+            {/* Divider */}
+            <div
+              className={`border-t ${plan.popular ? "border-primary-foreground/20" : "border-border"}`}
+            />
+
+            {/* Features */}
+            <div className="flex flex-col gap-3">
+              <span
+                className={`text-[10px] font-mono tracking-[0.15em] uppercase ${plan.popular ? "text-primary-foreground/50" : "text-muted-foreground/60"}`}
               >
                 {plan.name === "Free"
-                  ? "Get Started today:"
-                  : "Everything in Free +"}
-              </div>
-              <div className="flex flex-col items-start justify-start gap-3 self-stretch">
-                {plan.features.map((feature) => (
-                  <div
+                  ? "What's included"
+                  : "Everything in Free, plus"}
+              </span>
+
+              <motion.ul
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="flex flex-col gap-2.5"
+              >
+                {plan.features.map((feature, fi) => (
+                  <motion.li
                     key={feature}
-                    className="flex items-center justify-start gap-2 self-stretch"
+                    custom={fi}
+                    variants={featureVariants}
+                    className="flex items-start gap-2.5"
                   >
-                    <div className="flex h-4 w-4 items-center justify-center">
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      whileInView={{ scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{
+                        delay: 0.6 + fi * 0.07,
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 20,
+                      }}
+                      className={`mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full ${
+                        plan.popular
+                          ? "bg-primary-foreground/20"
+                          : "bg-foreground/10"
+                      }`}
+                    >
                       <Check
-                        className={`h-full w-full ${plan.popular ? "text-primary-foreground" : "text-muted-foreground"}`}
-                        strokeWidth={2}
+                        size={8}
+                        strokeWidth={2.5}
+                        className={
+                          plan.popular
+                            ? "text-primary-foreground"
+                            : "text-foreground"
+                        }
                       />
-                    </div>
-                    <div
-                      className={`text-left text-sm font-normal leading-tight ${plan.popular ? "text-primary-foreground" : "text-muted-foreground"}`}
+                    </motion.span>
+                    <span
+                      className={`text-xs font-mono leading-relaxed ${plan.popular ? "text-primary-foreground/80" : "text-muted-foreground"}`}
                     >
                       {feature}
-                    </div>
-                  </div>
+                    </span>
+                  </motion.li>
                 ))}
-              </div>
+              </motion.ul>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   )
 }
