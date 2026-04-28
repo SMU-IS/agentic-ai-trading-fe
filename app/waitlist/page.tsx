@@ -3,19 +3,17 @@
 import LoaderSpinner from "@/components/loader-spinner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { Label } from "@/components/ui/label"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowLeft, CheckCircle2 } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 
-type Step = "email" | "code" | "success"
+type Step = "email" | "success"
 
 export default function WaitlistPage() {
   const [step, setStep] = useState<Step>("email")
   const [email, setEmail] = useState("")
-  const [code, setCode] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
@@ -28,7 +26,7 @@ export default function WaitlistPage() {
     setIsLoading(true)
 
     try {
-      const res = await fetch(`${baseUrl}/waitlist/request`, {
+      const res = await fetch(`${baseUrl}/trading/waitlist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -37,57 +35,10 @@ export default function WaitlistPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to send code")
-      }
-
-      setStep("code")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleCodeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
-
-    try {
-      const res = await fetch(`${baseUrl}/waitlist/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || "Invalid code")
+        throw new Error(data.error || "Failed to join waitlist")
       }
 
       setStep("success")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleResend = async () => {
-    setError("")
-    setCode("")
-    setIsLoading(true)
-
-    try {
-      const res = await fetch(`${baseUrl}/waitlist/request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to resend")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
@@ -158,91 +109,6 @@ export default function WaitlistPage() {
                     {isLoading ? <LoaderSpinner /> : "Request access"}
                   </Button>
                 </form>
-              </motion.div>
-            )}
-
-            {step === "code" && (
-              <motion.div
-                key="code"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25 }}
-              >
-                <button
-                  onClick={() => {
-                    setStep("email")
-                    setCode("")
-                    setError("")
-                  }}
-                  className="mb-6 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Back
-                </button>
-
-                <div className="mb-8 text-center">
-                  <h1 className="mb-2 text-2xl font-semibold text-foreground">
-                    Check your inbox
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    We sent a 4-digit code to{" "}
-                    <span className="text-foreground font-medium">{email}</span>
-                  </p>
-                </div>
-
-                <form onSubmit={handleCodeSubmit} className="space-y-6">
-                  <div className="flex justify-center">
-                    <InputOTP
-                      maxLength={4}
-                      value={code}
-                      onChange={(val) => setCode(val)}
-                    >
-                      <InputOTPGroup className="gap-3">
-                        <InputOTPSlot
-                          index={0}
-                          className="h-14 w-14 rounded-xl border-border bg-background text-xl"
-                        />
-                        <InputOTPSlot
-                          index={1}
-                          className="h-14 w-14 rounded-xl border-border bg-background text-xl"
-                        />
-                        <InputOTPSlot
-                          index={2}
-                          className="h-14 w-14 rounded-xl border-border bg-background text-xl"
-                        />
-                        <InputOTPSlot
-                          index={3}
-                          className="h-14 w-14 rounded-xl border-border bg-background text-xl"
-                        />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-
-                  {error && (
-                    <p className="text-center text-sm text-red-500">{error}</p>
-                  )}
-
-                  <Button
-                    type="submit"
-                    className="flex w-full items-center justify-center rounded-xl bg-secondary py-5 font-medium text-secondary-foreground hover:bg-secondary/90"
-                    disabled={isLoading || code.length < 4}
-                  >
-                    {isLoading ? <LoaderSpinner /> : "Verify code"}
-                  </Button>
-                </form>
-
-                <p className="mt-6 text-center text-sm text-muted-foreground">
-                  Didn&apos;t receive it?{" "}
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    disabled={isLoading}
-                    className="font-medium text-primary hover:underline disabled:opacity-50"
-                  >
-                    Resend code
-                  </button>
-                </p>
               </motion.div>
             )}
 
