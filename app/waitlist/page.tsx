@@ -4,7 +4,7 @@ import LoaderSpinner from "@/components/loader-spinner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { motion, AnimatePresence } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import { CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
@@ -26,7 +26,7 @@ export default function WaitlistPage() {
     setIsLoading(true)
 
     try {
-      const res = await fetch(`${baseUrl}/trading/waitlist`, {
+      const res = await fetch(`${baseUrl}/trading/waitlist/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -77,7 +77,8 @@ export default function WaitlistPage() {
                     Join the waitlist
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    Be among the first to experience AI-powered autonomous trading
+                    Be among the first to experience AI-powered autonomous
+                    trading
                   </p>
                 </div>
 
@@ -121,7 +122,10 @@ export default function WaitlistPage() {
                 className="py-4 text-center"
               >
                 <div className="mb-6 flex justify-center">
-                  <CheckCircle2 className="h-14 w-14 text-green-500" strokeWidth={1.5} />
+                  <CheckCircle2
+                    className="h-14 w-14 text-green-500"
+                    strokeWidth={1.5}
+                  />
                 </div>
                 <h1 className="mb-3 text-2xl font-semibold text-foreground">
                   You&apos;re on the list.
