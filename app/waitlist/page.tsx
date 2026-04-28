@@ -26,7 +26,7 @@ export default function WaitlistPage() {
     setIsLoading(true)
 
     try {
-      const res = await fetch(`${baseUrl}/trading/waitlist/register`, {
+      const res = await fetch(`${baseUrl}/trading/waitlist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
