@@ -7,7 +7,6 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  ReferenceDot,
   ReferenceLine,
   Tooltip,
   XAxis,
@@ -376,13 +375,11 @@ export default function TickerChart({
               />
             )}
             {entryBar != null && (
-              <ReferenceDot
+              <ReferenceLine
                 x={entryBar.timestamp}
-                y={tradePrice}
-                r={5}
-                fill="hsl(var(--foreground))"
-                stroke="hsl(var(--background))"
-                strokeWidth={2}
+                stroke="white"
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
               />
             )}
             <Area
