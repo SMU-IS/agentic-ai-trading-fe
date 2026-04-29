@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import TradingTimeline from "./trading-timeline/TradingTimeline"
 import SpeculationAgent from "./speculation-agent/SpeculationAgent"
 import AgentSummary from "./AgentSummary"
@@ -17,10 +17,16 @@ interface HoldingInfo {
 }
 
 export default function TradesTab() {
+  // selectedTrade drives the timeline highlight only
   const [selectedTrade, setSelectedTrade] = useState<TradeEvent | null>(null)
+  // sheetTrade is what the mobile sheet renders — intentionally lags by one
+  // animation frame on open, and clears only after the close animation ends,
+  // so EmptyState (196 animated dots) is never mounted inside the sheet
+  const [sheetTrade, setSheetTrade] = useState<TradeEvent | null>(null)
   const [holdings, setHoldings] = useState<Record<string, HoldingInfo>>({})
   const [isOverlayVisible, setIsOverlayVisible] = useState(false)
   const isMobile = useIsMobile()
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const fetchHoldings = async () => {
@@ -49,33 +55,43 @@ export default function TradesTab() {
     }
 
     fetchHoldings()
-  }, [])
-
-  // Trigger slide-up animation — depends only on selectedTrade, not isMobile
-  useEffect(() => {
-    if (selectedTrade) {
-      const id = requestAnimationFrame(() => setIsOverlayVisible(true))
-      return () => cancelAnimationFrame(id)
-    } else {
-      setIsOverlayVisible(false)
-    }
-  }, [selectedTrade])
-
-  // Body scroll lock — separate from animation trigger
-  useEffect(() => {
-    if (selectedTrade && isMobile) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
     return () => {
       document.body.style.overflow = ""
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
     }
-  }, [selectedTrade, isMobile])
+  }, [])
+
+  const handleSelectTrade = (trade: TradeEvent) => {
+    // Cancel any in-flight close timer so a rapid re-open doesn't conflict
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+
+    setSelectedTrade(trade)
+    if (isMobile) document.body.style.overflow = "hidden"
+
+    // Frame 1: start the slide-up animation (lightweight state change)
+    // Frame 2: mount the heavy SpeculationAgent content — by this point the
+    //          CSS transition has already started, so it doesn't compete with
+    //          the initial heavy render on the same frame
+    requestAnimationFrame(() => {
+      setIsOverlayVisible(true)
+      requestAnimationFrame(() => setSheetTrade(trade))
+    })
+  }
 
   const handleCloseOverlay = () => {
     setIsOverlayVisible(false)
-    setTimeout(() => setSelectedTrade(null), 300)
+    document.body.style.overflow = ""
+
+    // Clear both trade states only after the animation finishes — keeping
+    // sheetTrade non-null means we never transition to EmptyState while visible
+    closeTimerRef.current = setTimeout(() => {
+      setSelectedTrade(null)
+      setSheetTrade(null)
+      closeTimerRef.current = null
+    }, 300)
   }
 
   return (
@@ -85,7 +101,7 @@ export default function TradesTab() {
         <div className="w-full lg:w-[55%]">
           <TradingTimeline
             selectedTrade={selectedTrade}
-            onSelectTrade={setSelectedTrade}
+            onSelectTrade={handleSelectTrade}
           />
         </div>
 
@@ -133,17 +149,19 @@ export default function TradesTab() {
           </button>
         </div>
 
-        {/* Scrollable content */}
+        {/* Scrollable content — only mounted when there is a trade to show,
+            so EmptyState's 196 animated dots never run inside the sheet */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
-          <SpeculationAgent
-            selectedTrade={selectedTrade}
-            holdings={holdings}
-          />
+          {sheetTrade && (
+            <SpeculationAgent
+              selectedTrade={sheetTrade}
+              holdings={holdings}
+            />
+          )}
         </div>
       </div>
 
       <AgentSummary />
-
     </div>
   )
 }
