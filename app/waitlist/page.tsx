@@ -35,7 +35,7 @@ export default function WaitlistPage() {
       const data = await res.json()
 
       if (!data.success) {
-        throw new Error(data.error || "Failed to join waitlist")
+        throw new Error(data.message || "Failed to join waitlist")
       }
 
       setStep("success")
