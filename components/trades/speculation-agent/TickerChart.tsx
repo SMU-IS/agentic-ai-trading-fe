@@ -1,6 +1,7 @@
 "use client"
 
 import { ChartContainer } from "@/components/ui/chart"
+import Cookies from "js-cookie"
 import { useEffect, useRef, useState } from "react"
 import {
   Area,
@@ -12,22 +13,17 @@ import {
   YAxis,
 } from "recharts"
 
+const getToken = () => Cookies.get("jwt") ?? ""
+
 type Period = "1W" | "1M" | "3M"
 
-interface FinnhubCandleResponse {
-  c: number[]
-  h: number[]
-  l: number[]
-  o: number[]
-  v: number[]
-  t: number[]
-  s: "ok" | "no_data"
-}
-
-interface CandlePoint {
+interface HistoryPoint {
   date: string
   close: number
-  unix: number
+}
+
+interface YahooHistoryResponse {
+  history: HistoryPoint[]
 }
 
 interface TickerChartProps {
@@ -36,28 +32,14 @@ interface TickerChartProps {
   tradeType: "buy" | "sell"
 }
 
-const PERIOD_CONFIG: Record<Period, { days: number; resolution: string }> = {
-  "1W": { days: 7, resolution: "D" },
-  "1M": { days: 30, resolution: "D" },
-  "3M": { days: 90, resolution: "W" },
-}
-
-function buildFinnhubUrl(
-  symbol: string,
-  period: Period,
-  apiKey: string,
-): string {
-  const { days, resolution } = PERIOD_CONFIG[period]
-  const now = Math.floor(Date.now() / 1000)
-  const from = now - days * 24 * 60 * 60
-  const normalizedSymbol = symbol.includes("USD")
-    ? `BINANCE:${symbol}`
-    : symbol
-  return `https://finnhub.io/api/v1/stock/candle?symbol=${normalizedSymbol}&resolution=${resolution}&from=${from}&to=${now}&token=${apiKey}`
+const PERIOD_PARAMS: Record<Period, { period: string; interval: string }> = {
+  "1W": { period: "7d", interval: "1d" },
+  "1M": { period: "1mo", interval: "1d" },
+  "3M": { period: "3mo", interval: "1wk" },
 }
 
 function getYAxisDomain(
-  data: CandlePoint[],
+  data: HistoryPoint[],
   tradePrice: number,
 ): [number, number] {
   if (data.length === 0)
@@ -70,13 +52,28 @@ function getYAxisDomain(
   return [Math.floor(min - padding), Math.ceil(max + padding)]
 }
 
+function formatAxisDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+}
+
+function formatTooltipDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
 export default function TickerChart({
   symbol,
   tradePrice,
   tradeType,
 }: TickerChartProps) {
   const [period, setPeriod] = useState<Period>("1M")
-  const [data, setData] = useState<CandlePoint[]>([])
+  const [data, setData] = useState<HistoryPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -93,39 +90,31 @@ export default function TickerChart({
     if (!symbol) return
 
     const controller = new AbortController()
-    const apiKey = process.env.NEXT_PUBLIC_FINNHUB_API_KEY ?? ""
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL
+    const { period: yPeriod, interval } = PERIOD_PARAMS[period]
 
-    const fetchCandles = async () => {
+    const fetchHistory = async () => {
       if (!isMounted.current) return
       setLoading(true)
       setError(false)
 
       try {
-        const url = buildFinnhubUrl(symbol, period, apiKey)
-        const res = await fetch(url, { signal: controller.signal })
+        const res = await fetch(
+          `${baseUrl}/trading/yahoo/history/${symbol}?period=${yPeriod}&interval=${interval}`,
+          {
+            signal: controller.signal,
+            credentials: "include",
+            headers: { Authorization: `Bearer ${getToken()}` },
+          },
+        )
 
         if (!res.ok) throw new Error("Fetch failed")
 
-        const json: FinnhubCandleResponse = await res.json()
+        const json: YahooHistoryResponse = await res.json()
 
         if (!isMounted.current) return
 
-        if (json.s !== "ok" || !json.t?.length) {
-          setData([])
-          setLoading(false)
-          return
-        }
-
-        const points: CandlePoint[] = json.t.map((unix, i) => ({
-          unix,
-          date: new Date(unix * 1000).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          }),
-          close: json.c[i],
-        }))
-
-        setData(points)
+        setData(json.history ?? [])
       } catch (err: unknown) {
         if (!isMounted.current) return
         if (err instanceof Error && err.name === "AbortError") return
@@ -135,7 +124,7 @@ export default function TickerChart({
       }
     }
 
-    const timer = setTimeout(() => fetchCandles(), 300)
+    const timer = setTimeout(() => fetchHistory(), 300)
 
     return () => {
       clearTimeout(timer)
@@ -262,13 +251,8 @@ export default function TickerChart({
               stroke="hsl(var(--border))"
             />
             <XAxis
-              dataKey="unix"
-              tickFormatter={(v: number) =>
-                new Date(v * 1000).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })
-              }
+              dataKey="date"
+              tickFormatter={formatAxisDate}
               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
               axisLine={false}
               tickLine={false}
@@ -304,14 +288,7 @@ export default function TickerChart({
                 })}`,
                 "Price",
               ]}
-              labelFormatter={(unix: number) =>
-                new Date(unix * 1000).toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              }
+              labelFormatter={formatTooltipDate}
             />
             <ReferenceLine
               y={tradePrice}
