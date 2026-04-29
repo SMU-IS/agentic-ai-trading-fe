@@ -206,6 +206,12 @@ export default function SpeculationAgent({
                   ? parseFloat(selectedTrade.risk_evaluation.risk_per_share.replace(/[^0-9.-]/g, ""))
                   : undefined
               }
+              tpHit={selectedTrade.legs?.some(
+                (leg: any) => (leg.order_type === "limit" || leg.type === "limit") && leg.status === "filled"
+              )}
+              slHit={selectedTrade.legs?.some(
+                (leg: any) => (leg.order_type === "stop" || leg.type === "stop") && leg.status === "filled"
+              )}
             />
             <PnLSection pnlData={pnlData} selectedTrade={selectedTrade} />
 

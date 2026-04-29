@@ -40,6 +40,8 @@ interface TickerChartProps {
   tradeTimestamp?: string
   rewardPerShare?: number
   riskPerShare?: number
+  tpHit?: boolean
+  slHit?: boolean
 }
 
 const PERIOD_PARAMS: Record<Period, { period: string; interval: string }> = {
@@ -48,10 +50,7 @@ const PERIOD_PARAMS: Record<Period, { period: string; interval: string }> = {
   "3M": { period: "3mo", interval: "1wk" },
 }
 
-function getYAxisDomain(
-  data: Bar[],
-  tradePrice: number,
-): [number, number] {
+function getYAxisDomain(data: Bar[], tradePrice: number): [number, number] {
   if (data.length === 0)
     return [Math.floor(tradePrice * 0.95), Math.ceil(tradePrice * 1.05)]
   const values = [...data.map((d) => d.close), tradePrice]
@@ -85,6 +84,8 @@ export default function TickerChart({
   tradeTimestamp,
   rewardPerShare,
   riskPerShare,
+  tpHit = false,
+  slHit = false,
 }: TickerChartProps) {
   const [period, setPeriod] = useState<Period>("1M")
   const [data, setData] = useState<Bar[]>([])
@@ -177,8 +178,14 @@ export default function TickerChart({
   const entryBar =
     tradeTimestamp && data.length > 0
       ? data.reduce((closest, bar) => {
-          const diff = Math.abs(new Date(bar.timestamp).getTime() - new Date(tradeTimestamp).getTime())
-          const closestDiff = Math.abs(new Date(closest.timestamp).getTime() - new Date(tradeTimestamp).getTime())
+          const diff = Math.abs(
+            new Date(bar.timestamp).getTime() -
+              new Date(tradeTimestamp).getTime(),
+          )
+          const closestDiff = Math.abs(
+            new Date(closest.timestamp).getTime() -
+              new Date(tradeTimestamp).getTime(),
+          )
           return diff < closestDiff ? bar : closest
         })
       : null
@@ -197,6 +204,22 @@ export default function TickerChart({
         : tradePrice - riskPerShare
       : null
 
+  const barsAfterEntry = entryBar ? data.slice(data.indexOf(entryBar) + 1) : []
+
+  const tpHitBar =
+    tpHit && tpPrice != null
+      ? (barsAfterEntry.find((bar) =>
+          tradeType === "sell" ? bar.low <= tpPrice : bar.high >= tpPrice,
+        ) ?? null)
+      : null
+
+  const slHitBar =
+    slHit && slPrice != null
+      ? (barsAfterEntry.find((bar) =>
+          tradeType === "sell" ? bar.high >= slPrice : bar.low <= slPrice,
+        ) ?? null)
+      : null
+
   return (
     <div className="rounded-lg border border-border bg-muted p-3">
       <div className="mb-2 flex items-center justify-between">
@@ -209,7 +232,15 @@ export default function TickerChart({
               <span className="text-sm font-bold">
                 ${currentClose.toFixed(2)}
               </span>
-              {percentChange !== null && (
+              {tpHit && tpPrice != null ? (
+                <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-green-500/10 text-green-500">
+                  TP @ ${tpPrice.toFixed(2)}
+                </span>
+              ) : slHit && slPrice != null ? (
+                <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-red-500/10 text-red-500">
+                  SL @ ${slPrice.toFixed(2)}
+                </span>
+              ) : percentChange !== null ? (
                 <span
                   className={`text-xs font-medium px-1.5 py-0.5 rounded ${
                     percentChange >= 0
@@ -218,9 +249,9 @@ export default function TickerChart({
                   }`}
                 >
                   {percentChange >= 0 ? "+" : ""}
-                  {percentChange.toFixed(2)}% vs {refLineLabel.toLowerCase()}
+                  {percentChange.toFixed(2)}% since {refLineLabel.toLowerCase()}
                 </span>
-              )}
+              ) : null}
             </>
           )}
         </div>
@@ -378,6 +409,22 @@ export default function TickerChart({
               <ReferenceLine
                 x={entryBar.timestamp}
                 stroke="white"
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+              />
+            )}
+            {tpHitBar != null && (
+              <ReferenceLine
+                x={tpHitBar.timestamp}
+                stroke="hsl(142, 71%, 45%)"
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+              />
+            )}
+            {slHitBar != null && (
+              <ReferenceLine
+                x={slHitBar.timestamp}
+                stroke="hsl(0, 72%, 55%)"
                 strokeWidth={1.5}
                 strokeDasharray="4 3"
               />
