@@ -7,6 +7,7 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  ReferenceDot,
   ReferenceLine,
   Tooltip,
   XAxis,
@@ -37,6 +38,7 @@ interface TickerChartProps {
   symbol: string
   tradePrice: number
   tradeType: "buy" | "sell"
+  tradeTimestamp?: string
   rewardPerShare?: number
   riskPerShare?: number
 }
@@ -81,6 +83,7 @@ export default function TickerChart({
   symbol,
   tradePrice,
   tradeType,
+  tradeTimestamp,
   rewardPerShare,
   riskPerShare,
 }: TickerChartProps) {
@@ -171,6 +174,15 @@ export default function TickerChart({
       : null
 
   const refLineLabel = "Entry"
+
+  const entryBar =
+    tradeTimestamp && data.length > 0
+      ? data.reduce((closest, bar) => {
+          const diff = Math.abs(new Date(bar.timestamp).getTime() - new Date(tradeTimestamp).getTime())
+          const closestDiff = Math.abs(new Date(closest.timestamp).getTime() - new Date(tradeTimestamp).getTime())
+          return diff < closestDiff ? bar : closest
+        })
+      : null
 
   const tpPrice =
     rewardPerShare != null
@@ -361,6 +373,16 @@ export default function TickerChart({
                   fontSize: 10,
                   position: "insideBottomRight",
                 }}
+              />
+            )}
+            {entryBar != null && (
+              <ReferenceDot
+                x={entryBar.timestamp}
+                y={tradePrice}
+                r={5}
+                fill="hsl(var(--foreground))"
+                stroke="hsl(var(--background))"
+                strokeWidth={2}
               />
             )}
             <Area

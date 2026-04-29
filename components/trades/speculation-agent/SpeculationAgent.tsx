@@ -195,14 +195,15 @@ export default function SpeculationAgent({
               symbol={selectedTrade.symbol}
               tradePrice={selectedTrade.price}
               tradeType={selectedTrade.trade_type}
+              tradeTimestamp={selectedTrade.timestamp}
               rewardPerShare={
                 selectedTrade.risk_evaluation?.reward_per_share
-                  ? parseFloat(selectedTrade.risk_evaluation.reward_per_share)
+                  ? parseFloat(selectedTrade.risk_evaluation.reward_per_share.replace(/[^0-9.-]/g, ""))
                   : undefined
               }
               riskPerShare={
                 selectedTrade.risk_evaluation?.risk_per_share
-                  ? parseFloat(selectedTrade.risk_evaluation.risk_per_share)
+                  ? parseFloat(selectedTrade.risk_evaluation.risk_per_share.replace(/[^0-9.-]/g, ""))
                   : undefined
               }
             />
