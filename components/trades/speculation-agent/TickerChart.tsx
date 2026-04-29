@@ -37,6 +37,8 @@ interface TickerChartProps {
   symbol: string
   tradePrice: number
   tradeType: "buy" | "sell"
+  rewardPerShare?: number
+  riskPerShare?: number
 }
 
 const PERIOD_PARAMS: Record<Period, { period: string; interval: string }> = {
@@ -79,6 +81,8 @@ export default function TickerChart({
   symbol,
   tradePrice,
   tradeType,
+  rewardPerShare,
+  riskPerShare,
 }: TickerChartProps) {
   const [period, setPeriod] = useState<Period>("1M")
   const [data, setData] = useState<Bar[]>([])
@@ -141,7 +145,12 @@ export default function TickerChart({
   }, [symbol, period])
 
   const currentClose = data.length > 0 ? data[data.length - 1].close : null
-  const isAboveEntry = currentClose !== null ? currentClose >= tradePrice : true
+  const isAboveEntry =
+    currentClose !== null
+      ? tradeType === "sell"
+        ? currentClose <= tradePrice
+        : currentClose >= tradePrice
+      : true
 
   const strokeColor = isAboveEntry
     ? "hsla(174, 83%, 53%, 0.83)"
@@ -156,10 +165,26 @@ export default function TickerChart({
 
   const percentChange =
     currentClose !== null
-      ? ((currentClose - tradePrice) / tradePrice) * 100
+      ? ((currentClose - tradePrice) / tradePrice) *
+        100 *
+        (tradeType === "sell" ? -1 : 1)
       : null
 
-  const refLineLabel = tradeType === "sell" ? "Exit" : "Entry"
+  const refLineLabel = "Entry"
+
+  const tpPrice =
+    rewardPerShare != null
+      ? tradeType === "sell"
+        ? tradePrice - rewardPerShare
+        : tradePrice + rewardPerShare
+      : null
+
+  const slPrice =
+    riskPerShare != null
+      ? tradeType === "sell"
+        ? tradePrice + riskPerShare
+        : tradePrice - riskPerShare
+      : null
 
   return (
     <div className="rounded-lg border border-border bg-muted p-3">
@@ -310,6 +335,34 @@ export default function TickerChart({
                 position: "insideBottomRight",
               }}
             />
+            {tpPrice != null && (
+              <ReferenceLine
+                y={tpPrice}
+                stroke="hsl(142, 71%, 45%)"
+                strokeDasharray="4 3"
+                strokeWidth={1.5}
+                label={{
+                  value: `TP $${tpPrice.toFixed(2)}`,
+                  fill: "hsl(142, 71%, 45%)",
+                  fontSize: 10,
+                  position: "insideBottomRight",
+                }}
+              />
+            )}
+            {slPrice != null && (
+              <ReferenceLine
+                y={slPrice}
+                stroke="hsl(0, 72%, 55%)"
+                strokeDasharray="4 3"
+                strokeWidth={1.5}
+                label={{
+                  value: `SL $${slPrice.toFixed(2)}`,
+                  fill: "hsl(0, 72%, 55%)",
+                  fontSize: 10,
+                  position: "insideBottomRight",
+                }}
+              />
+            )}
             <Area
               type="monotone"
               dataKey="close"
