@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Sparkles, TrendingUp, TrendingDown } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { accessToken } from "@/app/util/getAccessToken"
 import Cookies from "js-cookie"
@@ -72,6 +72,18 @@ export default function AgentSummary() {
   })
 
   const hasQueried = loading || !!result
+
+  // Memoized dot grid — random delays computed once on mount, not on every render
+  const dotGrid = useMemo(() =>
+    Array.from({ length: 50 }).flatMap((_, i) =>
+      Array.from({ length: 50 }).map((_, j) => ({
+        key: `${i}-${j}`,
+        top: i * 25 - 20,
+        left: j * 25,
+        delay: Math.random() * 500,
+      }))
+    )
+  , [])
 
   // Typing animation effect for placeholder
   useEffect(() => {
@@ -552,36 +564,21 @@ export default function AgentSummary() {
               >
                 {/* Dot Matrix Background - Changes based on loading state */}
                 <div className="absolute inset-0 p-4">
-                  {Array.from({ length: 50 }).map((_, i) =>
-                    Array.from({ length: 50 }).map((_, j) => {
-                      const gap = 25
-                      const totalDots = 50 * 50 // 2500 dots
-                      const dotsPerSecond = 10
-                      const avgCycleDuration = totalDots / dotsPerSecond // 500 seconds total cycle
-
-                      // Random delay spread across the full cycle
-                      const delay = Math.random() * avgCycleDuration
-
-                      // Duration of each individual pulse (how long it takes to light up and fade)
-                      const pulseDuration = 0.7 // 0.5 seconds per pulse (quick flash)
-
-                      return (
-                        <div
-                          key={`${i}-${j}`}
-                          className={`absolute w-1 h-1 ${
-                            loading ? "bg-foreground/10" : "bg-foreground/5"
-                          }`}
-                          style={{
-                            top: `${i * gap - 20}px`,
-                            left: `${j * gap}px`,
-                            animation: loading
-                              ? `dot-pulse ${pulseDuration}s ease-in-out ${delay}s infinite`
-                              : "none",
-                          }}
-                        />
-                      )
-                    }),
-                  )}
+                  {dotGrid.map(({ key, top, left, delay }) => (
+                    <div
+                      key={key}
+                      className={`absolute w-1 h-1 ${
+                        loading ? "bg-foreground/10" : "bg-foreground/5"
+                      }`}
+                      style={{
+                        top: `${top}px`,
+                        left: `${left}px`,
+                        animation: loading
+                          ? `dot-pulse 0.7s ease-in-out ${delay}s infinite`
+                          : "none",
+                      }}
+                    />
+                  ))}
                 </div>
 
                 {/* Content Overlay */}

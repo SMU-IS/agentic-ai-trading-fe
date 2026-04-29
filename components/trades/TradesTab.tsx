@@ -51,17 +51,21 @@ export default function TradesTab() {
     fetchHoldings()
   }, [])
 
-  // Trigger slide-up animation when a trade is selected on mobile
+  // Trigger slide-up animation — depends only on selectedTrade, not isMobile
   useEffect(() => {
     if (selectedTrade) {
-      requestAnimationFrame(() => setIsOverlayVisible(true))
-      if (isMobile) {
-        document.body.style.overflow = "hidden"
-      } else {
-        document.body.style.overflow = ""
-      }
+      const id = requestAnimationFrame(() => setIsOverlayVisible(true))
+      return () => cancelAnimationFrame(id)
     } else {
       setIsOverlayVisible(false)
+    }
+  }, [selectedTrade])
+
+  // Body scroll lock — separate from animation trigger
+  useEffect(() => {
+    if (selectedTrade && isMobile) {
+      document.body.style.overflow = "hidden"
+    } else {
       document.body.style.overflow = ""
     }
     return () => {

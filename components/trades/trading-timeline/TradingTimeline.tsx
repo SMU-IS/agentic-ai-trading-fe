@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { ArrowRightLeft } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TradeEvent } from "@/lib/types"
@@ -75,7 +75,7 @@ export default function TradingTimeline({
     }
   }
 
-  const filteredTrades = trades.filter((trade) => {
+  const filteredTrades = useMemo(() => trades.filter((trade) => {
     if (filterType !== "all" && trade.trade_type !== filterType) return false
     if (filterStatus === "filled" && trade.status !== "filled") return false
     if (filterStatus === "pending" && trade.status !== "pending") return false
@@ -109,9 +109,9 @@ export default function TradingTimeline({
       }
     }
     return true
-  })
+  }), [trades, filterType, filterStatus, filterSource, filterSymbols, filterDateFrom, filterDateTo, filterTpSl])
 
-  const totalRealizedPnL = filteredTrades.reduce((sum, trade) => {
+  const totalRealizedPnL = useMemo(() => filteredTrades.reduce((sum, trade) => {
     if (!trade.legs) return sum
     const filledLegs = trade.legs.filter((leg: any) => leg.status === "filled")
     const tradePnL = filledLegs.reduce((legSum: number, leg: any) => {
@@ -122,12 +122,12 @@ export default function TradingTimeline({
       return (
         legSum +
         (trade.trade_type === "sell"
-          ? (trade.price - legPrice) * legQty // short: profit when exit < entry
-          : (legPrice - trade.price) * legQty) // long: profit when exit > entry
+          ? (trade.price - legPrice) * legQty
+          : (legPrice - trade.price) * legQty)
       )
     }, 0)
     return sum + tradePnL
-  }, 0)
+  }, 0), [filteredTrades])
 
   useEffect(() => {
     const openSymbols = [
@@ -164,7 +164,7 @@ export default function TradingTimeline({
     })
   }, [trades])
 
-  const totalUnrealizedPnL = filteredTrades
+  const totalUnrealizedPnL = useMemo(() => filteredTrades
     .filter(
       (t) =>
         t.status === "filled" &&
@@ -176,12 +176,12 @@ export default function TradingTimeline({
       return (
         sum +
         (t.trade_type === "sell"
-          ? (t.price - livePrice) * t.quantity // short: profit when price drops
-          : (livePrice - t.price) * t.quantity) // long: profit when price rises
+          ? (t.price - livePrice) * t.quantity
+          : (livePrice - t.price) * t.quantity)
       )
-    }, 0)
+    }, 0), [filteredTrades, livePrices])
 
-  const groupedTrades = filteredTrades.reduce(
+  const groupedTrades = useMemo(() => filteredTrades.reduce(
     (acc, trade) => {
       const dateKey = trade.date_label
       if (!acc[dateKey]) acc[dateKey] = []
@@ -189,7 +189,7 @@ export default function TradingTimeline({
       return acc
     },
     {} as Record<string, TradeEvent[]>,
-  )
+  ), [filteredTrades])
 
   return (
     <div className="flex h-full flex-col">
