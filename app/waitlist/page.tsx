@@ -34,7 +34,7 @@ export default function WaitlistPage() {
 
       const data = await res.json()
 
-      if (!res.ok) {
+      if (!data.success) {
         throw new Error(data.error || "Failed to join waitlist")
       }
 
