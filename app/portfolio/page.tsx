@@ -4,6 +4,8 @@ import AgentFlowTab from "@/components/agentflow/AgentFlow"
 import { ModeToggle } from "@/components/mode-toggle"
 import NotificationsDropdown from "@/components/notifications/Notifications"
 import AskAI from "@/components/portfolio/chat/AskAI"
+import OnboardingBanner from "@/components/portfolio/OnboardingBanner"
+import OnboardingGuide from "@/components/portfolio/OnboardingGuide"
 import PortfolioTab from "@/components/portfolio/PortfolioTab"
 import TradesTab from "@/components/trades/TradesTab"
 import { Button } from "@/components/ui/button"
@@ -64,6 +66,7 @@ function PortfolioContent() {
   const [showAskAI, setShowAskAI] = useState(false)
   const [askAIData, setAskAIData] = useState<any>(null)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [showOnboardingGuide, setShowOnboardingGuide] = useState(false)
 
   const [activeTab, setActiveTab] = useState<Tab>(
     (searchParams.get("tab") as Tab) || "portfolio",
@@ -89,6 +92,11 @@ function PortfolioContent() {
   return (
     <div className="min-h-screen relative">
       <AnimatedBackground />
+
+      {/* Onboarding banner — shown to users who haven't connected Alpaca */}
+      {user.onboardingCompleted === false && (
+        <OnboardingBanner onOpenGuide={() => setShowOnboardingGuide(true)} />
+      )}
 
       {/* Header */}
       <header className="border-b border-border">
@@ -275,6 +283,12 @@ function PortfolioContent() {
         {activeTab === "trades" && <TradesTab />}
         {activeTab === "agentflow" && <AgentFlowTab />}
       </main>
+
+      {/* Onboarding guide modal */}
+      <OnboardingGuide
+        open={showOnboardingGuide}
+        onOpenChange={setShowOnboardingGuide}
+      />
 
       {/* Ask AI bottom sheet */}
       <AskAI

@@ -13,6 +13,7 @@ export interface User {
   username: string
   email?: string
   provider: "credentials" | "twitter"
+  onboardingCompleted?: boolean
 }
 
 interface AuthContextType {
@@ -22,6 +23,7 @@ interface AuthContextType {
   signIn: (username: string, password: string) => Promise<void>
   signInWithTwitter: () => Promise<void>
   signOut: () => void
+  markOnboardingComplete: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         username: "dev@test.com",
         email: "dev@test.com",
         provider: "credentials",
+        onboardingCompleted: false,
       }
       sessionStorage.setItem("pointer_user", JSON.stringify(devUser))
       setUser(devUser)
@@ -66,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: crypto.randomUUID(),
       username,
       provider: "credentials",
+      onboardingCompleted: false,
     }
 
     sessionStorage.setItem("pointer_user", JSON.stringify(newUser))
@@ -82,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: crypto.randomUUID(),
       username,
       provider: "credentials",
+      onboardingCompleted: false,
     }
 
     sessionStorage.setItem("pointer_user", JSON.stringify(newUser))
@@ -94,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: crypto.randomUUID(),
       username: "twitter_user",
       provider: "twitter",
+      onboardingCompleted: false,
     }
 
     sessionStorage.setItem("pointer_user", JSON.stringify(mockTwitterUser))
@@ -105,9 +111,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  const markOnboardingComplete = () => {
+    setUser((prev) => {
+      if (!prev) return prev
+      const updated = { ...prev, onboardingCompleted: true }
+      sessionStorage.setItem("pointer_user", JSON.stringify(updated))
+      return updated
+    })
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, signUp, signIn, signInWithTwitter, signOut }}
+      value={{
+        user,
+        isLoading,
+        signUp,
+        signIn,
+        signInWithTwitter,
+        signOut,
+        markOnboardingComplete,
+      }}
     >
       {children}
     </AuthContext.Provider>
