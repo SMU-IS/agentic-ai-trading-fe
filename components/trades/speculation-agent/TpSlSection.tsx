@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import Cookies from "js-cookie"
 import { Activity, Target, TrendingDown, TrendingUp } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const getToken = () => Cookies.get("jwt") ?? ""
 
@@ -16,7 +17,7 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
   const [currentPrice, setCurrentPrice] = useState<number | null>(null)
   const [loadingPrice, setLoadingPrice] = useState(false)
 
-  const [isMobile, setIsMobile] = useState(false)
+  const isMobile = useIsMobile()
   const [mobileFlipped, setMobileFlipped] = useState(false)
 
   const isMounted = useRef(true)
@@ -34,26 +35,7 @@ export default function TpSlSection({ selectedTrade }: TpSlSectionProps) {
 
   useEffect(() => {
     isMounted.current = true
-    const mq = window.matchMedia("(max-width: 767px)")
-    setIsMobile(mq.matches)
-
-    const handler = (e: MediaQueryListEvent) => {
-      if (isMounted.current) setIsMobile(e.matches)
-    }
-
-    if (mq.addEventListener) {
-      mq.addEventListener("change", handler)
-      return () => {
-        isMounted.current = false
-        mq.removeEventListener("change", handler)
-      }
-    } else {
-      mq.addListener(handler)
-      return () => {
-        isMounted.current = false
-        mq.removeListener(handler)
-      }
-    }
+    return () => { isMounted.current = false }
   }, [])
 
   useEffect(() => {
