@@ -195,6 +195,16 @@ export default function SpeculationAgent({
               symbol={selectedTrade.symbol}
               tradePrice={selectedTrade.price}
               tradeType={selectedTrade.trade_type}
+              rewardPerShare={
+                selectedTrade.risk_evaluation?.reward_per_share
+                  ? parseFloat(selectedTrade.risk_evaluation.reward_per_share)
+                  : undefined
+              }
+              riskPerShare={
+                selectedTrade.risk_evaluation?.risk_per_share
+                  ? parseFloat(selectedTrade.risk_evaluation.risk_per_share)
+                  : undefined
+              }
             />
             <PnLSection pnlData={pnlData} selectedTrade={selectedTrade} />
 
@@ -249,7 +259,9 @@ export default function SpeculationAgent({
                     </span>
                   </div>
                   <div className="text-sm text-foreground">
-                    <MarkdownRenderer content={selectedTrade.trading_agent_reasonings} />
+                    <MarkdownRenderer
+                      content={selectedTrade.trading_agent_reasonings}
+                    />
                   </div>
                 </div>
               )}
