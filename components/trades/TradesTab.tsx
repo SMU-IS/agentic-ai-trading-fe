@@ -83,12 +83,12 @@ export default function TradesTab() {
 
   const handleCloseOverlay = () => {
     setIsOverlayVisible(false)
+    setSelectedTrade(null)
     document.body.style.overflow = ""
 
-    // Clear both trade states only after the animation finishes — keeping
-    // sheetTrade non-null means we never transition to EmptyState while visible
+    // Clear sheet content only after the animation finishes — keeping sheetTrade
+    // non-null prevents switching to EmptyState (196 animated dots) mid-animation
     closeTimerRef.current = setTimeout(() => {
-      setSelectedTrade(null)
       setSheetTrade(null)
       closeTimerRef.current = null
     }, 300)
