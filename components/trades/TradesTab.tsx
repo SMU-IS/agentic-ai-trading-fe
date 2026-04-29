@@ -83,8 +83,8 @@ export default function TradesTab() {
 
   const handleCloseOverlay = () => {
     setIsOverlayVisible(false)
-    setSelectedTrade(null) // clear timeline highlight immediately so TradingTimeline
-    document.body.style.overflow = "" // re-renders without a selected card before the animation runs
+    setSelectedTrade(null)
+    document.body.style.overflow = ""
 
     // Clear sheet content only after the animation finishes — keeping sheetTrade
     // non-null prevents switching to EmptyState (196 animated dots) mid-animation
