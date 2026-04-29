@@ -47,7 +47,10 @@ const PERIOD_PARAMS: Record<Period, { period: string; interval: string }> = {
   "3M": { period: "3mo", interval: "1wk" },
 }
 
-function getYAxisDomain(data: Bar[], tradePrice: number): [number, number] {
+function getYAxisDomain(
+  data: Bar[],
+  tradePrice: number,
+): [number, number] {
   if (data.length === 0)
     return [Math.floor(tradePrice * 0.95), Math.ceil(tradePrice * 1.05)]
   const values = [...data.map((d) => d.close), tradePrice]
