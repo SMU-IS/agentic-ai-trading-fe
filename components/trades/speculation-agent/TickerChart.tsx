@@ -17,13 +17,20 @@ const getToken = () => Cookies.get("jwt") ?? ""
 
 type Period = "1W" | "1M" | "3M"
 
-interface HistoryPoint {
-  date: string
+interface Bar {
+  timestamp: string
+  open: number
+  high: number
+  low: number
   close: number
+  volume: number
 }
 
 interface YahooHistoryResponse {
-  history: HistoryPoint[]
+  symbol: string
+  interval: string
+  count: number
+  bars: Bar[]
 }
 
 interface TickerChartProps {
@@ -39,7 +46,7 @@ const PERIOD_PARAMS: Record<Period, { period: string; interval: string }> = {
 }
 
 function getYAxisDomain(
-  data: HistoryPoint[],
+  data: Bar[],
   tradePrice: number,
 ): [number, number] {
   if (data.length === 0)
@@ -52,14 +59,15 @@ function getYAxisDomain(
   return [Math.floor(min - padding), Math.ceil(max + padding)]
 }
 
-function formatAxisDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+function formatAxisDate(ts: string): string {
+  return new Date(ts).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })
 }
 
-function formatTooltipDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString("en-US", {
+function formatTooltipDate(ts: string): string {
+  return new Date(ts).toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -73,7 +81,7 @@ export default function TickerChart({
   tradeType,
 }: TickerChartProps) {
   const [period, setPeriod] = useState<Period>("1M")
-  const [data, setData] = useState<HistoryPoint[]>([])
+  const [data, setData] = useState<Bar[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -114,7 +122,7 @@ export default function TickerChart({
 
         if (!isMounted.current) return
 
-        setData(json.history ?? [])
+        setData(json.bars ?? [])
       } catch (err: unknown) {
         if (!isMounted.current) return
         if (err instanceof Error && err.name === "AbortError") return
@@ -251,7 +259,7 @@ export default function TickerChart({
               stroke="hsl(var(--border))"
             />
             <XAxis
-              dataKey="date"
+              dataKey="timestamp"
               tickFormatter={formatAxisDate}
               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
               axisLine={false}
