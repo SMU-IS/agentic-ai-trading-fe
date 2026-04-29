@@ -15,6 +15,7 @@ import PnLSection from "./PnLSection"
 import SignalDataAccordion from "./SignalDataAccordion"
 import TpSlSection from "./TpSlSection"
 import TradeHeader from "./TradeHeader"
+import TickerChart from "./TickerChart"
 
 // console.log("Component check:", {
 //   AskAI,
@@ -190,6 +191,11 @@ export default function SpeculationAgent({
           </CardHeader>
 
           <CardContent className="space-y-4 mt-0">
+            <TickerChart
+              symbol={selectedTrade.symbol}
+              tradePrice={selectedTrade.price}
+              tradeType={selectedTrade.trade_type}
+            />
             <PnLSection pnlData={pnlData} selectedTrade={selectedTrade} />
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 ">
