@@ -10,10 +10,10 @@ import "./globals.css"
 
 export const metadata: Metadata = {
   title: "Agent M",
-  description: "AI-powered stock portfolio management",
+  description: "Trading On Autopilot",
   openGraph: {
     title: "Trade On Autopilot",
-    description: "AI-powered stock portfolio management",
+    description: "Trading On Autopilot",
     url: LINKS.URL,
     siteName: "Agent M",
     images:
